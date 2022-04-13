@@ -130,7 +130,7 @@
     </div>
 </div>
 
-{{-- EDIT MODAL --}} 
+{{-- EDIT MODAL --}}  
 <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="createModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -200,7 +200,7 @@
 </div>
 @endsection
 
-@push('breadcrumb-plugins')
+@push('breadcrumb-plugins') 
     <button class="btn btn-sm btn--primary box--shadow1 text-white text--small addBtn">
         <i class="fa fa-fw fa-plus"></i>@lang('Add New')
     </button>
