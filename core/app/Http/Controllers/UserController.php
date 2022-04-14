@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\Deposit;
 use App\Models\Order;
 use App\Models\Coupon;
+use App\Models\DomainSetup;
 use App\Models\Frontend;
 use App\Models\Hosting;
 use App\Models\Invoice;
@@ -25,6 +26,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Carbon\Carbon;
 use PDF;
+use Illuminate\Support\Facades\Http;
 
 class UserController extends Controller
 {
@@ -515,6 +517,26 @@ class UserController extends Controller
             'billing_type' => 'required|in:'.pricing(),
         ]);
   
+        if($request->domain_id){
+
+            $general = GeneralSetting::first();
+            $domain = DomainSetup::where('status', 1)->findOrFail($request->domain_id); 
+
+            try{
+                $url = 'https://domain-availability.whoisxmlapi.com/api/v1?'. "apiKey={$general->api_key}&domainName={$request->domain}";
+                $response = Http::get($url);
+
+                if(json_decode($response)->DomainInfo->domainAvailability != 'AVAILABLE'){
+                    $notify[] = ['error', $request->domain.' is unavailable'];
+                    return back()->withNotify($notify);
+                } 
+            }catch(\Exception $error){
+                $notify[] = ['error', $error->getMessage()];
+                return back()->withNotify($notify);
+            }
+
+        }
+
         $product = Product::where('status', 1)->whereHas('price', function($price){
                         $price->filter($price);
                     }) 
@@ -558,7 +580,7 @@ class UserController extends Controller
             }
         }
  
-        shoppingCart($product, $request, null, null, ['price'=>$productPrice, 'setupFee'=>$productSetup]);
+        shoppingCart($product, $request, null, null, ['price'=>$productPrice, 'setupFee'=>$productSetup], $domain ?? null);
 
         return redirect()->route('user.shopping.cart');
     } 
@@ -763,21 +785,22 @@ class UserController extends Controller
             $productTotal = ($productPrice + $productSetup);
 
             $totalPrice += $productTotal;       
-          
+        
             $append = [ 
                 'product_id'=>$product->id, 
+                'domain'=>@$cart['domain'], 
                 'first_payment_amount'=>$productTotal,
                 'amount'=>$productPrice,
-                'setup_fee'=>$cart['setupFee'],
-                'discount'=>$cart['discount'],
+                'setup_fee'=>@$cart['setupFee'],
+                'discount'=>@$cart['discount'],
                 'billing_cycle'=>billing($cart['billing_type']),
-                'next_due_date'=>$product->payment_type == 1 ? null : billing($cart['billing_type'], true)['carbon'],
-                'next_invoice_date'=>$product->payment_type == 1 ? null : billing($cart['billing_type'], true)['carbon'],
+                'next_due_date'=>$product->payment_type == 1 ? null : billing(@$cart['billing_type'], true)['carbon'],
+                'next_invoice_date'=>$product->payment_type == 1 ? null : billing(@$cart['billing_type'], true)['carbon'],
                 'stock_control'=>$product->stock_control,
                 'billing'=> $product->payment_type == 1 ? 1 : 2,
                 'config_options'=> null
             ];
-
+            
             if($cart['config_options']){
  
                 foreach($cart['config_options'] as $option => $select){   
@@ -864,6 +887,7 @@ class UserController extends Controller
 
             $hosting = new Hosting();
             $hosting->product_id = $singleData['product_id'];
+            $hosting->domain = $singleData['domain'];
             $hosting->first_payment_amount = $singleData['first_payment_amount'];
             $hosting->amount = $singleData['amount'];
             $hosting->discount = $singleData['discount'];
@@ -946,7 +970,8 @@ class UserController extends Controller
                 $item->save();
             }
           
-            $text = $product->name . ' ('.showDateTime($hosting->created_at, 'd/m/Y').' - '.showDateTime($hosting->next_due_date, 'd/m/Y') .')'."\n".$product->serviceCategory->name;
+            $domainText = $hosting->domain ? ' - ' .$hosting->domain : null;
+            $text = $product->name . $domainText. ' ('.showDateTime($hosting->created_at, 'd/m/Y').' - '.showDateTime($hosting->next_due_date, 'd/m/Y') .')'."\n".$product->serviceCategory->name;
        
             foreach($hosting->hostingConfigs as $config){
                 $text = $text ."\n". $config->select->name.': '.$config->option->name;
@@ -996,5 +1021,77 @@ class UserController extends Controller
         return $pdf->download('invoice.pdf');
     } 
 
- 
+    public function deleteDomainCart($id, $domain){
+        $cart = shoppingCart('get');
+
+        foreach($cart as $arrayIndex => $singleCart){
+            if($singleCart['domain_id'] == $id && $singleCart['domain'] == $domain && $singleCart['product_id'] == 0){
+                unset($cart[$arrayIndex]);
+            }
+
+            if($singleCart['domain_id'] == $id && $singleCart['domain'] == $domain && $singleCart['product_id'] != 0){
+                $cart[$arrayIndex]['domain_id'] = 0;
+            }
+        }
+
+        $cart = array_reverse($cart); 
+        session()->put('shoppingCart', $cart);
+
+        session()->forget('coupon');
+
+        $notify[] = ['success', 'Removed item successfully'];
+        return back()->withNotify($notify);
+    }
+
+    public function configDomain($id, $domain, $regPeriod){
+
+        $pageTitle = 'Domains Configuration';
+        return view($this->activeTemplate.'domain_config', compact('pageTitle', 'regPeriod', 'id', 'domain'));
+    }
+
+    public function configDomainUpdate(Request $request){
+        
+        $request->validate([
+            'id'=>'required',
+            'reg_period'=>'required|between:1,6',
+            'id_protection'=>'nullable|between:1,6',
+        ]);
+
+        $domainSetup = DomainSetup::findOrFail($request->id);
+        $domainSetup->pricing->singlePrice($request->reg_period);
+
+        $domainPrice = @$domainSetup->pricing->singlePrice($request->reg_period) ?? 0;
+        $idProtectionPrice = @$domainSetup->pricing->singlePrice($request->id_protection, true) ?? 0;
+
+        $shoppingCart = shoppingCart('get');
+        $array = [];
+
+        foreach($shoppingCart as $cart){
+      
+            if($cart['domain_id'] == $request->id && $cart['product_id'] == 0 && $cart['domain'] == $request->domain){
+
+                @$cart['reg_period'] = getAmount($request->reg_period);
+                @$cart['id_protection'] = getAmount($request->id_protection ?? 0);
+
+                @$cart['price'] = getAmount($domainPrice);
+                @$cart['setupFee'] = getAmount($idProtectionPrice);
+                @$cart['total'] = getAmount($domainPrice + $idProtectionPrice);
+                
+                @$cart['discount'] = 0;
+                @$cart['afterDiscount'] = getAmount(@$cart['total']);
+               
+                $array[] = @$cart;
+            }else{
+                $array[] = @$cart; 
+            }
+
+        }
+
+        session()->forget('coupon');
+        session()->put('shoppingCart', $array);
+
+        $notify[] = ['success', 'Domains configuration updated successfully'];
+        return redirect()->route('user.shopping.cart')->withNotify($notify);
+    }
+
 }

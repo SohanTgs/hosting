@@ -12,7 +12,7 @@ use App\Models\SupportMessage;
 use App\Models\SupportTicket;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use App\Models\Domain; 
+use App\Models\DomainSetup; 
 use Image;
 
 class SiteController extends Controller
@@ -138,7 +138,7 @@ class SiteController extends Controller
 
         $image     = imagecreatetruecolor($imgWidth, $imgHeight);
         $colorFill = imagecolorallocate($image, 100, 100, 100);
-        $bgFill    = imagecolorallocate($image, 175, 175, 175);
+        $bgFill    = imagecolorallocate($image, 175, 175, 175); 
         imagefill($image, 0, 0, $bgFill);
         $textBox = imagettfbbox($fontSize, 0, $fontFile, $text);
         $textWidth  = abs($textBox[4] - $textBox[0]);
@@ -148,7 +148,7 @@ class SiteController extends Controller
         header('Content-Type: image/jpeg');
         imagettftext($image, $fontSize, 0, $textX, $textY, $colorFill, $fontFile, $text);
         imagejpeg($image);
-        imagedestroy($image);
+        imagedestroy($image); 
     }
 
     public function productConfigure($id){
@@ -167,73 +167,13 @@ class SiteController extends Controller
         $domains = [];    
 
         if($product->domain_register){
-            $domains = Domain::active()->latest()->get();
+            $domains = DomainSetup::active()->latest()->with('pricing')->get();
         }
 
         \Session::flash('previous', $id); 
 
         return view($this->activeTemplate . 'product_configure', compact('product', 'pageTitle', 'domains', 'domains'));
     } 
-
-    public function demo(Request $request){
-   
-        $this->validate($request, [
-            'file' => 'required|image|mimes:jpg,jpeg,png,gif,svg|max:4096',
-        ]); 
-        
-        $general = GeneralSetting::first();
-        
-        $image = $request->file('file');
-        $input['file'] = time().'.'.$image->getClientOriginalExtension();
-        $imgFile = Image::make($image->getRealPath());
-       
-        list($width, $height) = getimagesize($image);
-
-        // $imgFile->blur(30); 
-        // $imgFile->brightness(35);
-
-        // $imgFile->circle(70, 150, 100, function ($draw) {
-        //     $draw->border(5, '000000');
-        // });
-
-        $imgFile->text($general->sitename, 15, 15, function($font) { 
-            $font->size(35);  
-            $font->color('#ffffff');  
-            $font->align('left');  
-            $font->valign('bottom');  
-            $font->angle(90); 
-        });
-
-        $mWidth = $width/2;
-        $mHeight = $height/2;
-
-        $imgFile->text($general->sitename, $mWidth, $mHeight, function($font) { 
-            $font->size(35); 
-            $font->color('#ffffff');  
-            $font->align('center');  
-            $font->valign('middle');  
-            $font->angle(90);
-        });
-
-        $width -= 15;
-        $height -= 20;
-
-        $imgFile->text($general->sitename, $width, $height, function($font) { 
-            $font->size(35); 
-            $font->color('#ffffff');  
-            $font->align('right');  
-            $font->valign('top');  
-            $font->angle(90);
-        });
-
-        $imgFile->save('assets/demo/'.$input['file']); 
-
-        return back()
-        	->with('success','File successfully uploaded.')
-        	->with('fileName',$input['file']);         
-    }
-
- 
 
 }
 

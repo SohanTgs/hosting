@@ -15,7 +15,7 @@
                 </div>
             @else
                 @if($product->domain_register)
-                    <div class="col-md-9 domain_area">
+                    <div class="col-md-9 domainArea">
                         <ul class="option-list">
                             <li class="option-list-item option-selected">
                                 <button type="button" class="option-list-btn">
@@ -80,10 +80,14 @@
                         <div class="row mt-4 showAvailability"></div>
                     </div>
                 @endif
-                
+                 
                 <div class="col-md-9 {{ $product->domain_register ? 'd-none hideElement' : null }}">
                     <form action="{{ route('user.shopping.cart.add') }}">
                         <input type="hidden" name="product_id" value="{{ $product->id }}" required>
+
+                        <input type="hidden" name="domain_id" value="0" required class="domain_id">
+
+                        <input type="hidden" name="domain" class="domain">
                         <div class="row">
                             <div class="col-md-7 mt-3 mt-md-0"> 
                                 <div class="row"> 
@@ -208,7 +212,7 @@
 </div>
 
 @endsection
- 
+  
 @push('style')
 <style> 
     .form-control:focus {
@@ -361,8 +365,9 @@
 
             var domains = @json($domains); 
             var general = @json($general); 
-            var element = $('.hideElement');
-            
+            var hideElement = $('.hideElement');
+            var domainArea = $('.domainArea');
+
             $('.register_domain_form').on('submit', function(e){
                 e.preventDefault();
 
@@ -386,13 +391,18 @@
                 var extension = $(this).find('.extension').val();
                 var domain = domainName+'.'+extension;
                 
-                console.log(domain); return;
+                var regexDomain = /^\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+                if(domain.match(regexDomain)){
+                    $('.domain').val(domain);
+                    $('.domain_id').val(0);
+                    hideElement.removeClass('d-none');
+                    domainArea.addClass('d-none');
+                }
 
-                checkDomain(domain); 
             });
 
             function checkDomain(domain, data = null, extension = null){
-            
+     
                 var apiKey = @json($general->api_key);
 
                 $.ajax({
@@ -412,20 +422,20 @@
                                 text = `<h3><span class='text-danger'>${domain}</span> is @lang('unavailable')<h3>`;
                             }
                  
-                            $('.availability').html(text);
+                            $('.availability').html(text); 
                         }
 
                         if(respnoe == 'AVAILABLE'){
-                            button = `<button class="btn btn-info w-100 btn-sm">@lang('Add')</button>`;
+                            button = `<button class="btn btn-info w-100 btn-sm registerDomainBtn" data-domain="${domain}" data-id="${value.id}">@lang('Add')</button>`;
                         }else{
                             button = `<button class="btn btn-dark w-100 btn-sm disabled">@lang('Unavailable')</button>`;
                         }
-                     
+
                         var html = `<div class="col-md-4 mt-3">
                                         <div class="card text-center">
                                             <div class="card-body">
                                                 <b>${value.extension}</b>
-                                                <div>${general.cur_sym}15.00 ${general.cur_text}</div>
+                                                <div>${general.cur_sym}${parseFloat(value.pricing.firstPrice['price']).toFixed(2)} ${general.cur_text}</div>
                                                 ${button}
                                             </div>
                                         </div>
@@ -440,6 +450,13 @@
 
             }
 
+            $(document).on('click', '.registerDomainBtn', function(){
+                $('.domain').val($(this).data('domain'));
+                $('.domain_id').val($(this).data('id'));
+                hideElement.removeClass('d-none');
+                domainArea.addClass('d-none');
+            });
+
         }
 
     })(jQuery);
@@ -449,7 +466,7 @@
 @push('script')
 <script>
     (function ($) {
-        "use strict";
+        "use strict"; 
 
         var product = @json($product);
         var productPrice = @json($product->price);

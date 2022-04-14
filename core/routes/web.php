@@ -109,6 +109,7 @@ Route::namespace('Admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('all/domain', 'DomainController@all')->name('domain.all');
         Route::post('add/domain', 'DomainController@add')->name('domain.add');
         Route::post('update/domain', 'DomainController@update')->name('domain.update');
+        Route::post('update/domain/pricing', 'DomainController@updatePricing')->name('domain.update.pricing');
 
         //Hosting Plan
         Route::get('all/hosting/plan','HostingPlanController@all')->name('hosting.plan.all');
@@ -403,7 +404,7 @@ Route::name('user.')->group(function () {
     Route::post('password/reset', 'Auth\ResetPasswordController@reset')->name('password.update');
     Route::get('password/reset/{token}', 'Auth\ResetPasswordController@showResetForm')->name('password.reset');
     Route::post('password/verify-code', 'Auth\ForgotPasswordController@verifyCode')->name('password.verify.code');
-});
+}); 
 
 Route::name('user.')->prefix('user')->group(function () {
     Route::middleware('auth')->group(function () {
@@ -446,6 +447,9 @@ Route::name('user.')->prefix('user')->group(function () {
             Route::get('shopping/cart', 'UserController@cart')->name('shopping.cart'); 
             Route::get('add/shopping/cart', 'UserController@addCart')->name('shopping.cart.add');
             Route::get('delete/shopping/cart/{id?}/{billing_type?}', 'UserController@deleteCart')->name('shopping.cart.delete');
+            Route::get('delete/shopping/cart/domain/{id}/{domain}', 'UserController@deleteDomainCart')->name('shopping.cart.delete.domain');
+            Route::get('config/domain/{id}/{domain}/{regPeriod}', 'UserController@configDomain')->name('config.domain');
+            Route::post('config/domain', 'UserController@configDomainUpdate')->name('config.domain.update');
             Route::post('coupon', 'UserController@coupon')->name('coupon');
  
             Route::post('create/invoice', 'UserController@createInvoice')->name('create.invoice');
@@ -486,8 +490,6 @@ Route::get('/cookie/accept', 'SiteController@cookieAccept')->name('cookie.accept
 Route::get('blog/{id}/{slug}', 'SiteController@blogDetails')->name('blog.details');
 
 Route::get('placeholder-image/{size}', 'SiteController@placeholderImage')->name('placeholder.image');
-
-Route::post('/demo', 'SiteController@demo')->name('demo');
 
 Route::get('/{slug}', 'SiteController@pages')->name('pages');
 Route::get('/', 'SiteController@index')->name('home');

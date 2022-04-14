@@ -1007,7 +1007,7 @@ function pricing($billingType = null, $price = null, $type = null, $showText = f
     } 
 }
 
-function shoppingCart($product = null, $request = null, $deleteId = null, $billingType = null, $array = []){
+function shoppingCart($product = null, $request = null, $deleteId = null, $billingType = null, $array = [], $domainData = null){
 
     $cart = session()->get('shoppingCart') ?? [];
 
@@ -1037,13 +1037,21 @@ function shoppingCart($product = null, $request = null, $deleteId = null, $billi
     }
   
     session()->forget('coupon');
-
+  
     if($request && !$deleteId){
+
+        $domain = '';
+        if($request->domain){
+            $domain = $request->domain;
+        }
 
         $new = [
             'product_id'=> $request->product_id,
             'name'=> $product->name,
             'category'=> $product->serviceCategory->name,
+
+            'domain'=> $domain,
+            'domain_id'=> $request->domain_id,
 
             'price'=> $array['price'],
             'setupFee'=> $array['setupFee'],
@@ -1073,6 +1081,10 @@ function shoppingCart($product = null, $request = null, $deleteId = null, $billi
 
             if($found){ 
                 $cart[$foundIndex]['price'] = $array['price'];
+
+                $cart[$foundIndex]['domain'] = $domain;
+                $cart[$foundIndex]['domain_id'] = $request->domain_id;
+                
                 $cart[$foundIndex]['setupFee'] = $array['setupFee'];
                 $cart[$foundIndex]['discount'] = 0;
                 $cart[$foundIndex]['total'] = $array['price'] + $array['setupFee'];
@@ -1091,6 +1103,11 @@ function shoppingCart($product = null, $request = null, $deleteId = null, $billi
         foreach($cart as $index => $singleCart){ 
             $cart[$index]['discount'] = 0;
             $cart[$index]['afterDiscount'] = $cart[$index]['total'];
+        }
+       
+        if($request->domain_id){
+            $domain = domainRegister($domainData, $domain);
+            array_push($cart, $domain);
         }
 
         $cart = array_reverse($cart);  
@@ -1129,3 +1146,24 @@ function billing($getIndex, $showNextDate = false){
     } 
 } 
 
+function domainRegister($domainData, $domainName){
+
+    $array = [
+        'product_id'=> 0,
+        'name'=> 'Domain Registration',
+
+        'domain_id'=> $domainData->id,
+        'domain'=> $domainName,
+        'id_protection'=> 0,
+
+        'reg_period'=>@$domainData->pricing->firstPrice['year'],
+
+        'price'=> @$domainData->pricing->firstPrice['price'],
+        'setupFee'=> 0,
+        'discount'=> 0,
+        'total'=> @$domainData->pricing->firstPrice['price'],
+        'afterDiscount'=> @$domainData->pricing->firstPrice['price']
+    ];
+
+    return $array;
+}

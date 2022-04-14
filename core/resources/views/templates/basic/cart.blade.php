@@ -10,47 +10,80 @@
             <div class="row"> 
                 <div class="col-md-12"><h1>{{ __($pageTitle) }}</h1></div>
        
-                @foreach($carts as $cart) 
-                    <div class="col-md-12 cart_child">
-                        <div class="card fz-12">
-                            <div class="card-body"> 
-                                <div class="row">
-                                    <div class="col-md-11 d-flex justify-content-between">
-                                        <div>
-                                            <h6 class="d-inline">{{ @$cart['name'] }}</h6> 
-                                            <a href="{{ route('product.configure', @$cart['product_id']) }}?id={{ @$cart['product_id'] }}&billing_type={{ @$cart['billing_type'] }}">
-                                                <i class="fa fa-pencil"></i> @lang('Edit')
+                @foreach($carts as $cart)  
+                    <div class="col-md-12 cart_child">  @dump($cart)
+                        <div class="card fz-12"> 
+                            <div class="card-body">  
+                                @if(@$cart['product_id'])
+                                    <div class="row">
+                                        <div class="col-md-11 d-flex justify-content-between">
+                                            <div>
+                                                <h6 class="d-inline">{{ @$cart['name'] }}</h6> 
+                                                <a href="{{ route('product.configure', @$cart['product_id']) }}?id={{ @$cart['product_id'] }}&billing_type={{ @$cart['billing_type'] }}">
+                                                    <i class="fa fa-pencil"></i> @lang('Edit')
+                                                </a>
+                                                <span class="d-block">{{ @$cart['category'] }}</span>
+                                                <span class="d-block font-weight-bold">{{ @$cart['domain'] }}</span>
+                                                <i>@lang('Total') {{ @$general->cur_sym }}{{ @$cart['total'] }} {{ __($general->cur_text) }}</i>
+                                            </div>  
+                                            <div>   
+                                                <h6 class="d-inline">{{ $general->cur_sym }}{{ @$cart['price'] }} {{ __($general->cur_text) }}</h6> 
+                                                <span class="d-block">
+                                                    @if(@$cart['billing'] == 1) 
+                                                        @lang('One Time')
+                                                    @else 
+                                                        @php
+                                                            $replace = str_replace('_', ' ', @$cart['billing_type']);
+                                                            echo ucwords($replace);
+                                                        @endphp
+                                                    @endif
+                                                </span> 
+                                                <span class="d-block">{{ $general->cur_sym }}{{ @$cart['setupFee'] }} @lang('Setup Fee')</span>
+                                            </div>
+                                        </div> 
+                                        <div class="col-md-1 form-group">
+                                            @php
+                                                $product_id = @$cart['product_id'];
+                                            @endphp
+                                            <a class="remove_cart d-none" href="{{ route('user.shopping.cart.delete', [@$product_id, $cart['billing_type']]) }}">
+                                                <i class="fa fa-trash">&nbsp;@lang('Remove')</i>
                                             </a>
-                                            <span class="d-block">{{ @$cart['category'] }}</span>
-                                            <i>@lang('Total') {{ @$general->cur_sym }}{{ @$cart['total'] }} {{ __($general->cur_text) }}</i>
-                                        </div>  
-                                        <div>   
-                                            <h6 class="d-inline">{{ $general->cur_sym }}{{ @$cart['price'] }} {{ __($general->cur_text) }}</h6> 
-                                            <span class="d-block">
-                                                @if(@$cart['billing'] == 1) 
-                                                    @lang('One Time')
-                                                @else 
-                                                    @php
-                                                        $replace = str_replace('_', ' ', @$cart['billing_type']);
-                                                        echo ucwords($replace);
-                                                    @endphp
-                                                @endif
-                                            </span> 
-                                            <span class="d-block">{{ $general->cur_sym }}{{ @$cart['setupFee'] }} @lang('Setup Fee')</span>
+                                            <a href="{{ route('user.shopping.cart.delete', [@$product_id, $cart['billing_type']]) }}" class="remove_icon">
+                                                <i class="fa fa-times"></i>
+                                            </a>
                                         </div>
-                                    </div> 
-                                    <div class="col-md-1 form-group">
-                                        @php
-                                            $product_id = @$cart['product_id'];
-                                        @endphp
-                                        <a class="remove_cart d-none" href="{{ route('user.shopping.cart.delete', [@$product_id, $cart['billing_type']]) }}">
-                                            <i class="fa fa-trash">&nbsp;@lang('Remove')</i>
-                                        </a>
-                                        <a href="{{ route('user.shopping.cart.delete', [@$product_id, $cart['billing_type']]) }}" class="remove_icon">
-                                            <i class="fa fa-times"></i>
-                                        </a>
                                     </div>
-                                </div>
+                                @else 
+                                    <div class="row">
+                                        <div class="col-md-11 d-flex justify-content-between">
+                                            <div>
+                                                <h6 class="d-inline">{{ @$cart['name'] }}</h6> 
+                                                <a href="{{ route('user.config.domain', [@$cart['domain_id'], @$cart['domain'], @$cart['reg_period']]) }}?protection={{ @$cart['id_protection'] }}">
+                                                    <i class="fa fa-pencil"></i> @lang('Edit')
+                                                </a>
+                                                <span class="d-block font-weight-bold">
+                                                    {{ @$cart['domain'] }} - {{ @$cart['reg_period'] }} @lang('Year')
+                                                    {{ @$cart['id_protection'] ? __('with ID Protection') : null }}
+                                                </span>
+                                                <i>@lang('Total') {{ @$general->cur_sym }}{{ @$cart['total'] }} {{ __($general->cur_text) }}</i>
+                                            </div>  
+                                            <div>    
+                                                <h6 class="d-inline">{{ $general->cur_sym }}{{ @$cart['price'] }} {{ __($general->cur_text) }}</h6> 
+                                                @if(@$cart['id_protection'])
+                                                    <span class="d-block">{{ $general->cur_sym }}{{ @$cart['setupFee'] }} @lang('ID Protection')</span>
+                                                @endif
+                                            </div>
+                                        </div> 
+                                        <div class="col-md-1 form-group">
+                                            <a class="remove_cart d-none" href="{{ route('user.shopping.cart.delete.domain', [@$cart['domain_id'], @$cart['domain']]) }}">
+                                                <i class="fa fa-trash">&nbsp;@lang('Remove')</i>
+                                            </a>
+                                            <a href="{{ route('user.shopping.cart.delete.domain', [@$cart['domain_id'], @$cart['domain']]) }}" class="remove_icon">
+                                                <i class="fa fa-times"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>

@@ -16,7 +16,7 @@ class CreateDomainsTable extends Migration
         Schema::create('domains', function (Blueprint $table) {
             $table->id();
 
-            $table->string('extension'); 
+            $table->string('extension');  
             $table->tinyInteger('dns_management'); 
             $table->tinyInteger('email_forwarding'); 
             $table->tinyInteger('id_protection'); 
