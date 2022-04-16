@@ -28,13 +28,16 @@ class Hosting extends Model
         return $this->belongsTo(Server::class, 'server_id');
     }
 
-
     public function hostingConfigs(){
         return $this->hasMany(HostingConfig::class, 'hosting_id');
     }
  
     public function order(){
         return $this->belongsTo(Order::class, 'order_id');
+    }
+
+    public function details(){
+        return $this->hasOne(InvoiceItem::class, 'relation_id', 'id')->where('type', 2);
     }
 
     public function getShowDomainStatusAttribute(){

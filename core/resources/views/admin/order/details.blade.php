@@ -61,7 +61,8 @@
         </div>
 
         @php
-            $items = $order->hostings;
+            $hostings = $order->hostings;
+            $domains = $order->domains;
         @endphp
 
         <div class="col-xl-8 col-md-6 mb-30">
@@ -79,32 +80,49 @@
                             </tr>
                             </thead>
                             <tbody>
-                            @forelse($items as $item)
+
+                            @foreach($hostings as $hosting)
                                 <tr>
                                     <td data-label="@lang('Service')">
                                         <span class="font-weight-bold">
-                                            <a href="{{ route('admin.order.service.details', $item->id) }}">{{ __(@$item->product->serviceCategory->name) }}</a>
+                                            <a href="{{ route('admin.order.hosting.details', $hosting->id) }}">{{ __(@$hosting->product->serviceCategory->name) }}</a>
                                         </span>
                                     </td>
                                     <td data-label="@lang('Description')">
-                                        {{ shortDescription(@$item->product->serviceCategory->short_description, 30) }}
+                                        @php echo nl2br($hosting->details->description); @endphp
                                     </td>
                                     <td data-label="@lang('Billing Cycle')">
-                                        @if($item->billing == 1)
+                                        @if($hosting->billing == 1)
                                             @lang('One Time')
                                         @else 
-                                            {{ billing(@$item->billing_cycle, true)['showText'] }}
+                                            {{ billing(@$hosting->billing_cycle, true)['showText'] }}
                                         @endif
                                     </td>
                                     <td data-label="@lang('Amount')">
-                                        {{ @$general->cur_sym }}{{ showAmount(@$item->amount) }}
+                                        {{ @$general->cur_sym }}{{ showAmount(@$hosting->amount) }}
                                     </td>
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td class="text-muted text-center" colspan="100%">@lang('No data found')</td>
+                            @endforeach
+
+                            @foreach($domains as $domain)
+                                <tr> 
+                                    <td data-label="@lang('Service')">
+                                        <span class="font-weight-bold">
+                                            <a href="{{ route('admin.order.domain.details', $domain->id) }}">@lang('Domain Registration')</a>
+                                        </span>
+                                    </td>
+                                    <td data-label="@lang('Description')"> 
+                                        @php echo nl2br($domain->details->description); @endphp
+                                    </td>
+                                    <td data-label="@lang('Billing Cycle')">
+                                        {{ __($domain->reg_period) }} @lang('Year/s')
+                                    </td>
+                                    <td data-label="@lang('Amount')">
+                                        {{ @$general->cur_sym }}{{ showAmount(@$domain->recurring_amount) }}
+                                    </td>
                                 </tr>
-                            @endforelse
+                            @endforeach
+
                             </tbody>
                         </table><!-- table end -->
                     </div>

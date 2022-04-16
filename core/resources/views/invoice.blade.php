@@ -413,6 +413,12 @@
                                 <td class="text-center">{{ $general->cur_sym }}{{ showAmount($item->amount) }} {{ __($general->cur_text) }}</td>
                             </tr>
                         @endif
+                        @if($item->type == 4)
+                            <tr>
+                                <td>@php echo nl2br($item->description); @endphp</td>
+                                <td class="text-center">{{ $general->cur_sym }}{{ showAmount($item->amount) }} {{ __($general->cur_text) }}</td>
+                            </tr>
+                        @endif
                         @if($item->type == 3)
                             <tr>
                                 <td>@php echo nl2br($item->description); @endphp</td>

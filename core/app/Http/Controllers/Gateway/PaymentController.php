@@ -131,6 +131,7 @@ class PaymentController extends Controller
     {  
         $general = GeneralSetting::first();
         $data = Deposit::where('trx', $trx)->first();  
+
         if ($data->status == 0) {
             $data->status = 1;
             $data->save();
@@ -190,10 +191,11 @@ class PaymentController extends Controller
                 $order = $data->order;
                 $order->status = 2;
                 $order->save(); 
-               
+      
                 foreach($order->hostings as $hosting){
 
                     $hosting->status = 1;
+                    $hosting->deposit_id = $data->id;
                     $hosting->save();
 
                     if($hosting->stock_control){
@@ -205,9 +207,17 @@ class PaymentController extends Controller
 
                 }
     
+                foreach($order->domains as $domain){
+                    $domain->status = 2;
+                    $domain->deposit_id = $data->id;
+                    $domain->expiry_date = Carbon::now()->addYear($domain->reg_period);
+                    $domain->save();
+                }
+
             }
 
         }
+
     }
 
     public function manualDepositConfirm()
@@ -304,7 +314,7 @@ class PaymentController extends Controller
 
 
         $adminNotification = new AdminNotification();
-        $adminNotification->user_id = $data->user->id;
+        $adminNotification->user_id = $data->user->id; 
         $adminNotification->title = 'Deposit request from '.$data->user->username;
         $adminNotification->click_url = urlPath('admin.deposit.details',$data->id);
         $adminNotification->save();
@@ -317,7 +327,7 @@ class PaymentController extends Controller
             'amount' => showAmount($data->amount),
             'charge' => showAmount($data->charge),
             'currency' => $general->cur_text,
-            'rate' => showAmount($data->rate),
+            'rate' => showAmount($data->rate), 
             'trx' => $data->trx
         ]);
 
@@ -326,12 +336,22 @@ class PaymentController extends Controller
             $hostings = $order->hostings;
 
             foreach($hostings as $hosting){ 
+
+                $hosting->deposit_id = $data->id;
+                $hosting->save();
+
                 if($hosting->stock_control){
                     $product = $hosting->product;
 
                     $product->decrement('stock_quantity');
                     $product->save();
                 }
+            }
+
+            foreach($order->domains as $domain){
+                $domain->deposit_id = $data->id;
+                $domain->expiry_date = Carbon::now()->addYear($domain->reg_period);
+                $domain->save();
             }
 
             $invoice = $data->invoice;

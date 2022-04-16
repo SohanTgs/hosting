@@ -656,6 +656,9 @@
                 var productId = @json($product->id);
                 var getSession = @json(shoppingCart('get'));
                 
+                $('.hideElement').removeClass('d-none');
+                $('.domainArea').addClass('d-none');
+
                 $(getSession).each(function(index, value){
 
                     if(value['billing_type'] == editBilling && value['product_id'] == editId){

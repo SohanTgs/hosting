@@ -13,6 +13,10 @@ class Order extends Model
         return $this->hasMany(Hosting::class);
     }
 
+    public function domains(){
+        return $this->hasMany(Domain::class);
+    }
+
     public function coupon(){
         return $this->belongsTo(Coupon::class);
     }

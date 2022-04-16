@@ -5,24 +5,25 @@ namespace App\Http\Controllers\admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Hosting; 
+use App\Models\Domain; 
 use App\Models\GeneralSetting; 
 
 class ServiceController extends Controller{
 
-    public function details($id){  
-        $service = Hosting::with('hostingConfigs.select', 'hostingConfigs.option')->findOrFail($id);
-        $pageTitle = 'Service Details';
-        return view('admin.service.details', compact('pageTitle', 'service'));
-    } 
+    public function hostingDetails($id){  
+        $hosting = Hosting::with('hostingConfigs.select', 'hostingConfigs.option')->findOrFail($id);
+        $pageTitle = 'Hosting Details';
+        return view('admin.service.hosting_details', compact('pageTitle', 'hosting'));
+    }  
   
-    public function update(Request $request){
+    public function hostingUpdate(Request $request){
 
         $request->validate([
             'id'=>'required' , 
             'domain_status'=>'required|between:1,3'
         ]);
 
-        $oldDomainStatus = 0;
+        $oldStatus = 0;
 
         $service = Hosting::findOrFail($request->id);
         $service->domain = $request->domain;
@@ -30,7 +31,7 @@ class ServiceController extends Controller{
         $service->username = $request->username;
         $service->password = $request->password;
 
-        $oldDomainStatus = $service->domain_status;
+        $oldStatus = $service->domain_status;
 
         $service->domain_status = $request->domain_status;
         $service->save();
@@ -38,7 +39,7 @@ class ServiceController extends Controller{
         $general = GeneralSetting::first();
         $user = $service->user;
 
-        if($oldDomainStatus != 1 && $service->domain_status == 1){ 
+        if($oldStatus != 1 && $service->domain_status == 1){ 
             $product = $service->product;
             $act = welcomeEmail()[$product->welcome_email]['act'] ?? null; 
          
@@ -84,7 +85,30 @@ class ServiceController extends Controller{
             }
         }
 
-        $notify[] = ['success', 'Service details updated successfully'];
+        $notify[] = ['success', 'Hosting details updated successfully'];
+        return back()->withNotify($notify);
+    }
+
+    public function domainDetails($id){  
+        $domain = Domain::findOrFail($id);
+        $pageTitle = 'Domain Details';
+        return view('admin.service.domain_details', compact('pageTitle', 'domain'));
+    } 
+  
+    public function domainUpdate(Request $request){
+
+        $request->validate([
+            'id'=>'required' , 
+            'status'=>'required|in:1,2'
+        ]); 
+
+        $domain = Domain::findOrFail($request->id);
+        $domain->subscription_id = $request->subscription_id;
+        $domain->id_protection = $request->id_protection ? 1 : 0;
+        $domain->status = $request->status;
+        $domain->save();
+
+        $notify[] = ['success', 'Domain details updated successfully'];
         return back()->withNotify($notify);
     }
 

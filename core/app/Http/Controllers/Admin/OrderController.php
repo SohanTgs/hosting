@@ -43,7 +43,7 @@ class OrderController extends Controller{
     }
 
     public function details($id){   
-        $order = Order::with($this->with(['hostings.product.serviceCategory']))->findOrFail($id);
+        $order = Order::with($this->with(['hostings.product.serviceCategory', 'domains.details', 'hostings.details']))->findOrFail($id);
         $pageTitle = 'Order Details'; 
         return view('admin.order.details', compact('pageTitle', 'order'));
     }
@@ -58,56 +58,14 @@ class OrderController extends Controller{
         $order->status = 1; 
         $order->save();
 
-        // $general = GeneralSetting::first();
-        // $user = $order->user;
-
         foreach($order->hostings as $hosting){
             $hosting->status = 1;
             $hosting->save();
+        }
 
-            // $product = $hosting->product;
-            // $act = welcomeEmail()[$product->welcome_email]['act'] ?? null; 
-
-            // if($act == 'HOSTING_ACCOUNT'){
-            //     notify($user, $act, [
-            //         'service_product_name' => $product->name,
-            //         'service_domain' => $hosting->domain,
-            //         'service_first_payment_amount' => showAmount($hosting->first_payment_amount),
-            //         'service_recurring_amount' => showAmount($hosting->amount),
-            //         'service_billing_cycle' => billing(@$hosting->billing_cycle, true)['showText'],
-            //         'service_next_due_date' => showDateTime($hosting->next_due_date, 'd/m/Y'),
-            //         'currency' => $general->cur_text,
-            //     ]);
-            // }
-            // elseif($act == 'RESELLER_ACCOUNT'){
-            //     notify($user, $act, [
-            //         'service_domain' => $hosting->domain,
-            //         'service_username' => $hosting->username,
-            //         'service_password' => $hosting->password, 
-            //         'service_product_name' => $product->name,
-            //         'currency' => $general->cur_text,
-            //     ]);
-            // }
-            // elseif($act == 'VPS_SERVER'){
-            //     notify($user, $act, [
-            //         'service_product_name' => $product->name,
-            //         'service_dedicated_ip' => '',
-            //         'service_password' => $hosting->password, 
-            //         'service_assigned_ips' => '',
-            //         'service_domain' => $hosting->domain,
-            //         'currency' => $general->cur_text,
-            //     ]);
-            // }
-            // elseif($act == 'OTHER_PRODUCT'){
-            //     notify($user, $act, [
-            //         'service_product_name' => $product->name,
-            //         'service_payment_method' => 'Site Balance',
-            //         'service_recurring_amount' => showAmount($hosting->amount),
-            //         'service_billing_cycle' => billing(@$hosting->billing_cycle, true)['showText'],
-            //         'service_next_due_date' => showDateTime($hosting->next_due_date, 'd/m/Y'),
-            //         'currency' => $general->cur_text,
-            //     ]);
-            // }
+        foreach($order->domains as $domain){
+            $domain->status = 2;
+            $domain->save();
         }
 
         $notify[] = ['success', 'Order accepted successfully'];

@@ -90,8 +90,11 @@ Route::namespace('Admin')->prefix('admin')->name('admin.')->group(function () {
         Route::post('accept/order', 'OrderController@accept')->name('order.accept');
         Route::post('cancel/order', 'OrderController@cancel')->name('order.cancel');
 
-        Route::get('service/details/{id}', 'ServiceController@details')->name('order.service.details');
-        Route::post('service/update/', 'ServiceController@update')->name('service.update');
+        Route::get('hosting/details/{id}', 'ServiceController@hostingDetails')->name('order.hosting.details');
+        Route::post('hosting/update/', 'ServiceController@hostingUpdate')->name('order.hosting.update');
+
+        Route::get('domain/details/{id}', 'ServiceController@domainDetails')->name('order.domain.details');
+        Route::post('domain/update', 'ServiceController@domainUpdate')->name('order.domain.update'); 
 
         //Invoice     
         Route::get('all/invoice', 'InvoiceController@all')->name('invoice.all');
@@ -455,10 +458,14 @@ Route::name('user.')->prefix('user')->group(function () {
             Route::post('create/invoice', 'UserController@createInvoice')->name('create.invoice');
             Route::get('view/invoice/{id}', 'UserController@viewInvoice')->name('view.invoice');
 
-            Route::post('payment', 'UserController@payment')->name('payment');
+            Route::post('payment', 'UserController@payment')->name('payment'); 
 
             Route::get('my/services', 'UserController@myServices')->name('my.services');
             Route::get('service/details/{id}', 'UserController@serviceDetails')->name('service.details');
+
+            Route::get('my/domains', 'UserController@myDomains')->name('my.domains');
+            Route::get('domain/details/{id}', 'UserController@domainDetails')->name('domain.details');
+            Route::post('domain/nameserver/update', 'UserController@domainNameserverUpdate')->name('domain.nameserver.update');
 
             Route::get('my/invoices', 'UserController@myInvoices')->name('my.invoices');
             Route::get('invoices/download/{id}/{view?}', 'UserController@invoiceDownload')->name('invoice.download');
@@ -471,6 +478,7 @@ Route::name('user.')->prefix('user')->group(function () {
                 \DB::statement('TRUNCATE TABLE hosting_configs');
                 \DB::statement('TRUNCATE TABLE invoice_items');
                 \DB::statement('TRUNCATE TABLE transactions');
+                \DB::statement('TRUNCATE TABLE domains');
 
                 return 200;
             });

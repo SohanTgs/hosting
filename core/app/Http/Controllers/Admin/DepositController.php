@@ -231,10 +231,16 @@ class DepositController extends Controller
             $order->save();
 
             $hostings = $order->hostings;
+            $domains = $order->domains;
 
             foreach($hostings as $hosting){
                 $hosting->status = 1;
                 $hosting->save();
+            }
+
+            foreach($domains as $domain){
+                $domain->status = 2;
+                $domain->save();
             }
 
         }

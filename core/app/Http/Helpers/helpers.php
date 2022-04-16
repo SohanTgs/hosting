@@ -1106,8 +1106,15 @@ function shoppingCart($product = null, $request = null, $deleteId = null, $billi
         }
        
         if($request->domain_id){
-            $domain = domainRegister($domainData, $domain);
-            array_push($cart, $domain);
+            $response = domainRegister($domainData, $domain);
+
+            foreach($cart as $arrayIndex => $singleCart){
+                if($singleCart['domain_id'] == $domainData->id && $singleCart['domain'] == $domain && $singleCart['product_id'] == 0){
+                    unset($cart[$arrayIndex]);
+                }
+            }
+
+            array_push($cart, $response);
         }
 
         $cart = array_reverse($cart);  

@@ -12,6 +12,7 @@ use App\Models\Deposit;
 use App\Models\Order;
 use App\Models\Coupon;
 use App\Models\DomainSetup;
+use App\Models\Domain;
 use App\Models\Frontend;
 use App\Models\Hosting;
 use App\Models\Invoice;
@@ -397,7 +398,7 @@ class UserController extends Controller
     }  
 
     private function paymentByWallet($invoice, $order, $user){
-        
+  
         $general = GeneralSetting::first();
         $amount = $invoice->amount;
         
@@ -421,6 +422,11 @@ class UserController extends Controller
             $hosting->save();
         }
 
+        foreach($order->domains as $domain){
+            $domain->status = 2;
+            $domain->save();
+        }
+
         $transaction = new Transaction();
         $transaction->invoice_id = $invoice->id;
         $transaction->user_id = $user->id;
@@ -442,7 +448,7 @@ class UserController extends Controller
     }
 
     private function paymentByCheckout($gate, $amount, $orderId, $user){
-
+    
         Deposit::where('order_id', $orderId)->where('status', 0)->delete();
 
         $charge = $gate->fixed_charge + ($amount * $gate->percent_charge / 100);
@@ -740,12 +746,12 @@ class UserController extends Controller
     }
 
     public function createInvoice(Request $request){
-     
+    
         if(!shoppingCart()){
             $notify[] = ['info', 'Your shopping cart is empty'];
             return redirect()->route('home')->withNotify($notify);
         }
-
+    
         $shoppingCart = shoppingCart('get');
         $user = Auth::user();
  
@@ -753,7 +759,11 @@ class UserController extends Controller
         $products = Product::whereIn('id', $productsId)
                             ->where('status', 1)
                             ->get();
-     
+
+        $domainsId = array_unique(array_column($shoppingCart, 'domain_id'));
+        $domainSetups = DomainSetup::whereIn('id', $domainsId)
+                            ->where('status', 1)
+                            ->get();
         $totalPrice = 0;
         $allDiscount = 0;
         $coupon = null;
@@ -761,84 +771,117 @@ class UserController extends Controller
         $data = [];
 
         foreach($shoppingCart as $cart){
-
-            $product = $products->find($cart['product_id']);
-          
-            if(!$product){
-                session()->forget('shoppingCart');
-                session()->forget('coupon');
-
-                $notify[] = ['error', 'Sorry, Something went wrong. Please try again'];
-                return redirect()->route('home')->withNotify($notify); 
-            }
-
-            if($product->stock_control && !$product->stock_quantity){
-                session()->forget('shoppingCart');
-                session()->forget('coupon');
-
-                $notify[] = ['error', 'Sorry, Out of stock'];
-                return redirect()->route('home')->withNotify($notify);
-            }
-
-            $productPrice = pricing($product->payment_type, $product->price, 'price', false, $cart['billing_type']);
-            $productSetup =  pricing($product->payment_type, $product->price, 'setupFee', false, $cart['billing_type']);  
-            $productTotal = ($productPrice + $productSetup);
-
-            $totalPrice += $productTotal;       
-        
-            $append = [ 
-                'product_id'=>$product->id, 
-                'domain'=>@$cart['domain'], 
-                'first_payment_amount'=>$productTotal,
-                'amount'=>$productPrice,
-                'setup_fee'=>@$cart['setupFee'],
-                'discount'=>@$cart['discount'],
-                'billing_cycle'=>billing($cart['billing_type']),
-                'next_due_date'=>$product->payment_type == 1 ? null : billing(@$cart['billing_type'], true)['carbon'],
-                'next_invoice_date'=>$product->payment_type == 1 ? null : billing(@$cart['billing_type'], true)['carbon'],
-                'stock_control'=>$product->stock_control,
-                'billing'=> $product->payment_type == 1 ? 1 : 2,
-                'config_options'=> null
-            ];
             
-            if($cart['config_options']){
- 
-                foreach($cart['config_options'] as $option => $select){   
-                    
-                    if($option){
-                        $optionResponse = $this->getOptionAndSelect($product, 'option', $option);
-                
-                        if(!@$optionResponse['success']){
-                            session()->forget('shoppingCart');
-                            session()->forget('coupon');
+            if($cart['product_id']){
 
-                            $notify[] = ['error', 'Sorry, Something went wrong. Please try again'];
-                            return redirect()->route('home')->withNotify($notify); 
-                        } 
-                    } 
-                    
-                    if($select){
-                        $selectResponse = $this->getOptionAndSelect($product, 'select', $select, $cart['billing_type']); 
+                $product = $products->find($cart['product_id']);
 
-                        if(@$selectResponse['success']){ 
-                            $sum = (@$selectResponse['price'] + @$selectResponse['setupFee']);
-                            $totalPrice += $sum;
-                            $productTotal += $sum;
-    
-                            $append['first_payment_amount'] = $productTotal;
-                            $append['amount'] += @$selectResponse['price'];
+                if(!$product){
+                    session()->forget('shoppingCart');
+                    session()->forget('coupon');
 
-                            $append['config_options'] = $cart['config_options'];
-                        }else{
-                            session()->forget('shoppingCart');
-                            session()->forget('coupon');
-
-                            $notify[] = ['error', 'Sorry, Something went wrong. Please try again'];
-                            return redirect()->route('home')->withNotify($notify); 
-                        }
-                    }
+                    $notify[] = ['error', 'Sorry, Something went wrong. Please try again'];
+                    return redirect()->route('home')->withNotify($notify); 
                 }
 
+                if($product->stock_control && !$product->stock_quantity){
+                    session()->forget('shoppingCart');
+                    session()->forget('coupon');
+
+                    $notify[] = ['error', 'Sorry, Out of stock'];
+                    return redirect()->route('home')->withNotify($notify);
+                }
+
+                $productPrice = pricing($product->payment_type, $product->price, 'price', false, $cart['billing_type']);
+                $productSetup =  pricing($product->payment_type, $product->price, 'setupFee', false, $cart['billing_type']);  
+                $productTotal = ($productPrice + $productSetup);
+    
+                $totalPrice += $productTotal;       
+            
+                $append = [ 
+                    'product_id'=>$product->id, 
+                    'domain'=>@$cart['domain'], 
+                    'first_payment_amount'=>$productTotal,
+                    'amount'=>$productPrice,
+                    'setup_fee'=>@$cart['setupFee'],
+                    'discount'=>@$cart['discount'],
+                    'billing_cycle'=>billing($cart['billing_type']),
+                    'next_due_date'=>$product->payment_type == 1 ? null : billing(@$cart['billing_type'], true)['carbon'],
+                    'next_invoice_date'=>$product->payment_type == 1 ? null : billing(@$cart['billing_type'], true)['carbon'],
+                    'stock_control'=>$product->stock_control,
+                    'billing'=> $product->payment_type == 1 ? 1 : 2,
+                    'config_options'=> null
+                ];
+                
+                if($cart['config_options']){
+     
+                    foreach($cart['config_options'] as $option => $select){   
+                        
+                        if($option){
+                            $optionResponse = $this->getOptionAndSelect($product, 'option', $option);
+                    
+                            if(!@$optionResponse['success']){
+                                session()->forget('shoppingCart');
+                                session()->forget('coupon');
+    
+                                $notify[] = ['error', 'Sorry, Something went wrong. Please try again'];
+                                return redirect()->route('home')->withNotify($notify); 
+                            } 
+                        } 
+                        
+                        if($select){
+                            $selectResponse = $this->getOptionAndSelect($product, 'select', $select, $cart['billing_type']); 
+    
+                            if(@$selectResponse['success']){ 
+                                $sum = (@$selectResponse['price'] + @$selectResponse['setupFee']);
+                                $totalPrice += $sum;
+                                $productTotal += $sum;
+        
+                                $append['first_payment_amount'] = $productTotal;
+                                $append['amount'] += @$selectResponse['price'];
+    
+                                $append['config_options'] = $cart['config_options'];
+                            }else{
+                                session()->forget('shoppingCart');
+                                session()->forget('coupon');
+    
+                                $notify[] = ['error', 'Sorry, Something went wrong. Please try again'];
+                                return redirect()->route('home')->withNotify($notify); 
+                            }
+                        }
+                    }
+    
+                }
+
+            }else{
+                $domain = $domainSetups->find($cart['domain_id']);
+         
+                if(!$domain){
+                    session()->forget('shoppingCart');
+                    session()->forget('coupon');
+
+                    $notify[] = ['error', 'Sorry, Something went wrong. Please try again'];
+                    return redirect()->route('home')->withNotify($notify); 
+                }
+                
+                $domainPrice = @$domain->pricing->singlePrice(@$cart['reg_period']) ?? 0;
+                $domainIdProtection = $cart['id_protection'] != 0 ? $domain->pricing->singlePrice(@$cart['reg_period'], true) : 0;  
+                $productTotal = ($domainPrice + $domainIdProtection);
+
+                $totalPrice += $productTotal;       
+              
+                $append = [  
+                    'product_id'=>0, 
+                    'domain'=>@$cart['domain'], 
+                    'first_payment_amount'=>$productTotal,
+                    'amount'=>$productTotal,
+                    'setup_fee'=>@$cart['setupFee'],
+                    'discount'=>@$cart['discount'],
+                    'reg_period'=>@$cart['reg_period'],
+                    'id_protection'=>@$cart['id_protection'] ? 1 : 0,
+                    'next_due_date'=>Carbon::now()->addYear(@$cart['reg_period']),
+                    'next_invoice_date'=>Carbon::now()->addYear(@$cart['reg_period'])
+                ];
             }  
 
             if(session()->has('coupon')){  
@@ -884,26 +927,45 @@ class UserController extends Controller
         }, $data);
      
         foreach($data as $singleData){  
+            
+            if($singleData['product_id'] != 0){
+                $hosting = new Hosting();
+                $hosting->product_id = $singleData['product_id'];
+                $hosting->domain = $singleData['domain'];
+                $hosting->first_payment_amount = $singleData['first_payment_amount'];
+                $hosting->amount = $singleData['amount'];
+                $hosting->discount = $singleData['discount'];
+                $hosting->setup_fee = $singleData['setup_fee'];
+                $hosting->billing_cycle = $singleData['billing_cycle'];
+                $hosting->next_due_date = $singleData['next_due_date'];
+                $hosting->next_invoice_date = $singleData['next_invoice_date'];
+                $hosting->stock_control = $singleData['stock_control'];
+                $hosting->billing = $singleData['billing'];
+                $hosting->config_options = $singleData['config_options'];
+                $hosting->user_id = $singleData['user_id'];
+                $hosting->order_id = $singleData['order_id'];
+                $hosting->status = 0;
+                $hosting->save();
 
-            $hosting = new Hosting();
-            $hosting->product_id = $singleData['product_id'];
-            $hosting->domain = $singleData['domain'];
-            $hosting->first_payment_amount = $singleData['first_payment_amount'];
-            $hosting->amount = $singleData['amount'];
-            $hosting->discount = $singleData['discount'];
-            $hosting->setup_fee = $singleData['setup_fee'];
-            $hosting->billing_cycle = $singleData['billing_cycle'];
-            $hosting->next_due_date = $singleData['next_due_date'];
-            $hosting->next_invoice_date = $singleData['next_invoice_date'];
-            $hosting->stock_control = $singleData['stock_control'];
-            $hosting->billing = $singleData['billing'];
-            $hosting->config_options = $singleData['config_options'];
-            $hosting->user_id = $singleData['user_id'];
-            $hosting->order_id = $singleData['order_id'];
-            $hosting->status = 0;
-            $hosting->save();
-        
-            $this->makeHostingConfigs($hosting);
+                $this->makeHostingConfigs($hosting);
+            }
+            else{
+                $domain = new Domain();
+                $domain->user_id = $singleData['user_id'];
+                $domain->order_id = $singleData['order_id'];
+                $domain->coupon_id = $coupon ? $coupon->id : 0;
+                $domain->domain = $singleData['domain'];
+                $domain->id_protection = $singleData['id_protection'];
+                $domain->first_payment_amount = $singleData['first_payment_amount'];
+                $domain->recurring_amount = $singleData['amount'];
+                $domain->discount = $singleData['discount'];
+                $domain->reg_period = $singleData['reg_period'];
+                $domain->next_due_date = $singleData['next_due_date'];
+                $domain->next_invoice_date = $singleData['next_invoice_date'];
+                $domain->save();
+            }
+
+
         }
 
         $this->makeInvoiceItems($invoice);
@@ -954,8 +1016,10 @@ class UserController extends Controller
     }
 
     protected function makeInvoiceItems($invoice){
+     
         $order = $invoice->order;
         $hostings = $order->hostings;
+        $domains = $order->domains;
 
         foreach($hostings as $hosting){
             $product = $hosting->product;
@@ -964,6 +1028,7 @@ class UserController extends Controller
                 $item = new InvoiceItem();
                 $item->invoice_id = $invoice->id;
                 $item->user_id = $invoice->user_id;
+                $item->relation_id = $hosting->id;
                 $item->type = 1;
                 $item->description = $product->name.' '.'Setup Fee'."\n".$product->serviceCategory->name;
                 $item->amount = $hosting->setup_fee;
@@ -980,6 +1045,7 @@ class UserController extends Controller
             $item = new InvoiceItem(); 
             $item->invoice_id = $invoice->id;
             $item->user_id = $invoice->user_id;
+            $item->relation_id = $hosting->id;
             $item->type = 2; 
             $item->description = $text;
             $item->amount = $hosting->amount;
@@ -989,9 +1055,37 @@ class UserController extends Controller
                 $item = new InvoiceItem();
                 $item->invoice_id = $invoice->id;
                 $item->user_id = $invoice->user_id;
+                $item->relation_id = $hosting->id;
                 $item->type = 3;
-                $item->description = 'Coupon Code: '.$order->coupon->code."\n".$product->serviceCategory->name;
+                $item->description = 'Coupon Code: '.@$order->coupon->code.' '.$product->serviceCategory->name;
                 $item->amount = $hosting->discount;
+                $item->save();
+            }
+        }
+   
+        foreach($domains as $domain){
+            
+            $domainText = ' - '. $domain->domain .' - '. $domain->reg_period . ' Year/s';
+            $protection = $domain->id_protection ? '+ ID Protection' : null;
+            $text = 'Domain Registration' . $domainText. ' ('.showDateTime($domain->created_at, 'd/m/Y').' - '.showDateTime($domain->next_due_date, 'd/m/Y') .')'."\n".$protection;
+     
+            $item = new InvoiceItem();
+            $item->invoice_id = $invoice->id;
+            $item->user_id = $invoice->user_id;
+            $item->relation_id = $domain->id;
+            $item->type = 4;
+            $item->description = $text;
+            $item->amount = $domain->recurring_amount;
+            $item->save();
+
+            if($domain->discount != 0){
+                $item = new InvoiceItem();
+                $item->invoice_id = $invoice->id;
+                $item->user_id = $invoice->user_id;
+                $item->relation_id = $domain->id;
+                $item->type = 3;
+                $item->description = 'Coupon Code: '.@$order->coupon->code.' for domain Registration';
+                $item->amount = $domain->discount;
                 $item->save();
             }
         }
@@ -1020,7 +1114,7 @@ class UserController extends Controller
 
         return $pdf->download('invoice.pdf');
     } 
-
+ 
     public function deleteDomainCart($id, $domain){
         $cart = shoppingCart('get');
 
@@ -1066,7 +1160,7 @@ class UserController extends Controller
         $shoppingCart = shoppingCart('get');
         $array = [];
 
-        foreach($shoppingCart as $cart){
+        foreach($shoppingCart as $cart){ 
       
             if($cart['domain_id'] == $request->id && $cart['product_id'] == 0 && $cart['domain'] == $request->domain){
 
@@ -1092,6 +1186,25 @@ class UserController extends Controller
 
         $notify[] = ['success', 'Domains configuration updated successfully'];
         return redirect()->route('user.shopping.cart')->withNotify($notify);
+    }
+
+    public function myDomains(){
+        $pageTitle = 'My Domains';
+        $user = auth()->user();
+        $domains = Domain::whereBelongsTo($user)->where('status', '!=', 0)->latest()->paginate(getPaginate());
+        $emptyMessage = 'No Data Found';
+        return view($this->activeTemplate.'user.domain.list', compact('pageTitle', 'domains', 'emptyMessage'));
+    }
+
+    public function domainDetails($id){
+        $pageTitle = 'Domain Details';
+        $user = auth()->user();
+        $domain = Domain::whereBelongsTo($user)->where('status', '!=', 0)->where('id', $id)->firstOrFail();
+        return view($this->activeTemplate.'user.domain.details', compact('pageTitle', 'domain'));
+    }
+
+    public function domainNameserverUpdate(Request $request){
+        return $request;
     }
 
 }
