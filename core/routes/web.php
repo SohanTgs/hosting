@@ -96,6 +96,9 @@ Route::namespace('Admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('domain/details/{id}', 'ServiceController@domainDetails')->name('order.domain.details');
         Route::post('domain/update', 'ServiceController@domainUpdate')->name('order.domain.update'); 
 
+        //Module Command     
+        Route::post('module/command', 'ModuleController@moduleCommand')->name('module.command');
+
         //Invoice     
         Route::get('all/invoice', 'InvoiceController@all')->name('invoice.all');
         Route::get('paid/invoice', 'InvoiceController@paid')->name('invoice.paid');
@@ -498,6 +501,6 @@ Route::get('/cookie/accept', 'SiteController@cookieAccept')->name('cookie.accept
 Route::get('blog/{id}/{slug}', 'SiteController@blogDetails')->name('blog.details');
 
 Route::get('placeholder-image/{size}', 'SiteController@placeholderImage')->name('placeholder.image');
-
+ 
 Route::get('/{slug}', 'SiteController@pages')->name('pages');
 Route::get('/', 'SiteController@index')->name('home');

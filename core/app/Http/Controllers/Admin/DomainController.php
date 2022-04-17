@@ -98,6 +98,14 @@ class DomainController extends Controller{
             'six_year_id_protection'=>'required|numeric',
         ]);
 
+        if($request->one_year_price < 0 && $request->two_year_price < 0 && 
+           $request->three_year_price < 0 && $request->four_year_price < 0 && 
+           $request->five_year_price < 0 && $request->six_year_price < 0
+        ){
+            $notify[] = ['error', 'Minimum one price required'];
+            return back()->withNotify($notify);
+        }
+
         $pricing = DomainPricing::findOrFail($request->id);
 
         $pricing->one_year_price = $request->one_year_price;

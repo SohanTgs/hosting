@@ -11,19 +11,19 @@
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
                         @lang('Domain')  
-                        <span class="font-weight-bold">{{ __(@$domain->domain) ?? __('N/A') }}</span>
+                        <span class="font-weight-bold"><a href="http://{{ @$domain->domain }}" target="_blank">{{ @$domain->domain }}</a></span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
-                        @lang('First Payment Amount') 
-                        <span class="font-weight-bold">{{ $general->cur_sym }}{{ showAmount(@$domain->first_payment_amount) }}</span>
-                    </li> 
-                    <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
-                        @lang('Recurring Amount')
-                        @if($domain->billing == 1)
-                            <span class="font-weight-bold">{{ $general->cur_sym }}{{ showAmount(0) }}</span>
+                        @lang('Expiry Date')
+                        @if($domain->expiry_date) 
+                            <span class="font-weight-bold">{{ showDateTime(@$domain->expiry_date, 'd/m/Y') }}</span>
                         @else 
-                            <span class="font-weight-bold">{{ $general->cur_sym }}{{ showAmount(@$domain->recurring_amount ) }}</span>
-                        @endif 
+                            <span class="font-weight-bold">@lang('N/A')</span>
+                        @endif
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                        @lang('Next Due Date')
+                        <span class="font-weight-bold">{{ showDateTime(@$domain->next_due_date, 'd/m/Y') }}</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
                         @lang('Status')
@@ -38,20 +38,29 @@
             <div class="card-body">
                 <ul class="list-group">
                     <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
-                        @lang('Expiry Date')
-                        @if($domain->expiry_date) 
-                            <span class="font-weight-bold">{{ showDateTime(@$domain->expiry_date) }}</span>
-                        @else 
-                            <span class="font-weight-bold">@lang('N/A')</span>
-                        @endif
+                        @lang('First Payment Amount') 
+                        <span class="font-weight-bold">{{ $general->cur_sym }}{{ showAmount(@$domain->first_payment_amount) }}</span>
+                    </li> 
+                    <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                        @lang('Discount')
+                        <span class="font-weight-bold">{{ $general->cur_sym }}{{ showAmount(@$domain->discount) }}</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
-                        @lang('Next Due Date')
-                        <span class="font-weight-bold">{{ showDateTime(@$domain->next_due_date, 'd/m/Y') }}</span>
+                        @lang('Recurring Amount')
+                        @if($domain->billing == 1)
+                            <span class="font-weight-bold">{{ $general->cur_sym }}{{ showAmount(0) }}</span>
+                        @else 
+                            <span class="font-weight-bold">{{ $general->cur_sym }}{{ showAmount(@$domain->recurring_amount ) }}</span>
+                        @endif 
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
                         @lang('Billing Cycle')  
-                        <span class="font-weight-bold">{{ $domain->reg_period }} @lang('Year\s')</span>
+                        <span class="font-weight-bold">
+                            {{ $domain->reg_period }} @lang('Year\s') 
+                            @if($domain->id_protection)
+                                + @lang('ID Protection')
+                            @endif
+                        </span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
                         @lang('Payment Method') 
@@ -64,10 +73,6 @@
                                 @lang('N/A')
                             @endif
                         </span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
-                        @lang('Discount')
-                        <span class="font-weight-bold">{{ $general->cur_sym }}{{ showAmount(@$domain->discount) }}</span>
                     </li>
                 </ul>
             </div>

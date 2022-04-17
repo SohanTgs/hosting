@@ -161,6 +161,38 @@
                                             
                                     @endforeach
                                     
+                                    @if($product->product_type == 3)
+                                        <div class="col-md-12 mt-4">
+                                            <h5 class="text-center mb-1">@lang('Configure Server')</h5>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group"> 
+                                                        <label>@lang('Hostname')</label>
+                                                        <input type="text" name="username" class="form-control" placeholder="servername.example.com" required>
+                                                    </div>
+                                                </div> 
+                                                <div class="col-md-6">
+                                                    <div class="form-group"> 
+                                                        <label>@lang('Root Password')</label>
+                                                        <input type="password" name="password" class="form-control" placeholder="*******" required>
+                                                    </div>
+                                                </div> 
+                                                <div class="col-md-6">
+                                                    <div class="form-group"> 
+                                                        <label>@lang('NS1 Prefix')</label>
+                                                        <input type="text" name="ns1" class="form-control" placeholder="ns1" required>
+                                                    </div>
+                                                </div> 
+                                                <div class="col-md-6">
+                                                    <div class="form-group"> 
+                                                        <label>@lang('NS2 Prefix')</label>
+                                                        <input type="text" name="ns2" class="form-control" placeholder="ns2" required>
+                                                    </div>
+                                                </div> 
+                                            </div>
+                                        </div>
+                                    @endif
+
                                 </div>
                             </div> 
              
@@ -206,7 +238,7 @@
                         </div>
                     </form>
                 <div>
-            @endif 
+            @endif  
         </div>
     
 </div>
@@ -435,7 +467,7 @@
                                         <div class="card text-center">
                                             <div class="card-body">
                                                 <b>${value.extension}</b>
-                                                <div>${general.cur_sym}${parseFloat(value.pricing.firstPrice['price']).toFixed(2)} ${general.cur_text}</div>
+                                                <div>${general.cur_sym}${parseFloat(value.pricing.firstPrice['price'] ?? 0).toFixed(2)} ${general.cur_text}</div>
                                                 ${button}
                                             </div>
                                         </div>

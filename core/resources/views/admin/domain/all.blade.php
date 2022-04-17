@@ -32,7 +32,7 @@
                                         @endif
                                     </td>
                                     <td data-label="@lang('Action')">
-                                        <button class="icon-btn btn--success priceModal" data-toggle="tooltip" data-original-title="@lang('Pricing')" data-pricing="{{ $domain->pricing }}" data-id="{{ $domain->pricing->id }}">
+                                        <button class="icon-btn btn--success priceModal" data-toggle="tooltip" data-original-title="@lang('Pricing')" data-pricing="{{ $domain->pricing }}" data-id="{{ $domain->pricing->id }}" data-ex="{{ $domain->extension }}">
                                             <i class="las la-money-bill-wave text--shadow"></i>
                                         </button>
                                         <button class="icon-btn editBtn" data-toggle="tooltip" data-original-title="@lang('Edit')" data-data="{{ $domain }}">
@@ -140,7 +140,7 @@
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title">@lang('Domain Pricing')</h4>
+                <h4 class="modal-title">@lang('Domain Pricing') <span class="domainExtension"></span></h4>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -154,9 +154,12 @@
                         <div class="col-lg-4 mt-4">
                             <div class="custom-pricing">
                                 <div class="border-line-area">
-                                    <h6 class="border-line-title text-center font-weight-bold">@lang('One Year')</h6>
+                                    <h6 class="border-line-title text-center font-weight-bold">
+                                        <label for="one_active">@lang('One Year')</label>
+                                        <input type="checkbox" name="one_active" id="one_active" class="price_active">
+                                    </h6>
                                 </div>
-                                <div class="row">
+                                <div class="row one_active">
                                     <div class="col-md-6 col-lg-12 col-xl-6">
                                         <div class="form-group">
                                             <label>@lang('Price')</label>
@@ -185,9 +188,12 @@
                         <div class="col-lg-4  mt-4">
                             <div class="custom-pricing">
                                 <div class="border-line-area">
-                                    <h6 class="border-line-title text-center font-weight-bold">@lang('Two Year')</h6>
+                                    <h6 class="border-line-title text-center font-weight-bold">
+                                        <label for="two_active">@lang('Two Year')</label>
+                                        <input type="checkbox" name="two_active" id="two_active" class="price_active">
+                                    </h6>
                                 </div>
-                                <div class="row">
+                                <div class="row two_active">
                                     <div class="col-md-6 col-lg-12 col-xl-6">
                                         <div class="form-group">
                                             <label>@lang('Price')</label>
@@ -216,9 +222,12 @@
                         <div class="col-lg-4 mt-4">
                             <div class="custom-pricing">
                                 <div class="border-line-area">
-                                    <h6 class="border-line-title text-center font-weight-bold">@lang('Three Year')</h6>
+                                    <h6 class="border-line-title text-center font-weight-bold">
+                                        <label for="three_active">@lang('Three Year')</label>
+                                        <input type="checkbox" name="three_active" id="three_active" class="price_active">
+                                    </h6>
                                 </div>
-                                <div class="row">
+                                <div class="row three_active">
                                     <div class="col-md-6 col-lg-12 col-xl-6">
                                         <div class="form-group">
                                             <label>@lang('Price')</label>
@@ -250,9 +259,12 @@
                         <div class="col-lg-4 mt-4">
                             <div class="custom-pricing">
                                 <div class="border-line-area">
-                                    <h6 class="border-line-title text-center font-weight-bold">@lang('Four Year')</h6>
+                                    <h6 class="border-line-title text-center font-weight-bold">
+                                        <label for="four_active">@lang('Four Year')</label>
+                                        <input type="checkbox" name="four_active" id="four_active" class="price_active">
+                                    </h6>
                                 </div>
-                                <div class="row">
+                                <div class="row four_active">
                                     <div class="col-md-6 col-lg-12 col-xl-6">
                                         <div class="form-group">
                                             <label>@lang('Price')</label>
@@ -281,9 +293,12 @@
                         <div class="col-lg-4 mt-4">
                             <div class="custom-pricing">
                                 <div class="border-line-area">
-                                    <h6 class="border-line-title text-center font-weight-bold">@lang('Five Year')</h6>
+                                    <h6 class="border-line-title text-center font-weight-bold">
+                                        <label for="five_active">@lang('Five Year')</label>
+                                        <input type="checkbox" name="five_active" id="five_active" class="price_active">
+                                    </h6>
                                 </div>
-                                <div class="row">
+                                <div class="row five_active">
                                     <div class="col-md-6 col-lg-12 col-xl-6">
                                         <div class="form-group">
                                             <label>@lang('Price')</label>
@@ -312,9 +327,12 @@
                         <div class="col-lg-4 mt-4">
                             <div class="custom-pricing">
                                 <div class="border-line-area">
-                                    <h6 class="border-line-title text-center font-weight-bold">@lang('Six Year')</h6>
+                                    <h6 class="border-line-title text-center font-weight-bold">
+                                        <label for="six_active">@lang('Six Year')</label>
+                                        <input type="checkbox" name="six_active" id="six_active" class="price_active">
+                                    </h6>
                                 </div>
-                                <div class="row">
+                                <div class="row six_active">
                                     <div class="col-md-6 col-lg-12 col-xl-6">
                                         <div class="form-group">
                                             <label>@lang('Price')</label>
@@ -372,7 +390,7 @@
     .custom-pricing .form-control {
         background: white;
     }
-</style>
+</style> 
 @endpush
 
 @push('script')
@@ -407,37 +425,94 @@
                 modal.modal('show');
             });
 
-            $('input[type=checkbox]').on('click', function(){
+            $('table input[type=checkbox]').on('click', function(){
                 return false;
             });
 
             $('.priceModal').on('click', function () {
                 var modal = $('#priceModal');
-                var pricing = $(this).data('pricing');
 
+                modal.find('.domainExtension').text($(this).data('ex'));
+                modal.find('form')[0].reset();     
+ 
+                var pricing = $(this).data('pricing');
                 modal.find('input[name=id]').val($(this).data('id'));
 
                 modal.find('input[name=one_year_price]').val(parseFloat(pricing.one_year_price).toFixed(2));
                 modal.find('input[name=one_year_id_protection]').val(parseFloat(pricing.one_year_id_protection).toFixed(2));
+                if(pricing.one_year_price >= 0){
+                    $('#one_active').prop('checked', true);
+                    $('.one_active').removeClass('d-none');
+                }else{
+                    $('.one_active').addClass('d-none');
+                    $('#one_active').prop('checked', false);
+                }
                 
                 modal.find('input[name=two_year_price]').val(parseFloat(pricing.two_year_price).toFixed(2));
                 modal.find('input[name=two_year_id_protection]').val(parseFloat(pricing.two_year_id_protection).toFixed(2));
+                if(pricing.two_year_price >= 0){
+                    $('#two_active').prop('checked', true);
+                    $('.two_active').removeClass('d-none');
+                }else{
+                    $('.two_active').addClass('d-none');
+                    $('#two_active').prop('checked', false);
+                }
 
                 modal.find('input[name=three_year_price]').val(parseFloat(pricing.three_year_price).toFixed(2));
                 modal.find('input[name=three_year_id_protection]').val(parseFloat(pricing.three_year_id_protection).toFixed(2));
+                if(pricing.three_year_price >= 0){
+                    $('#three_active').prop('checked', true);
+                    $('.three_active').removeClass('d-none');
+                }else{
+                    $('.three_active').addClass('d-none');
+                    $('#three_active').prop('checked', false);
+                }
 
                 modal.find('input[name=four_year_price]').val(parseFloat(pricing.four_year_price).toFixed(2));
                 modal.find('input[name=four_year_id_protection]').val(parseFloat(pricing.four_year_id_protection).toFixed(2));
+                if(pricing.four_year_price >= 0){
+                    $('#four_active').prop('checked', true);
+                    $('.four_active').removeClass('d-none');
+                }else{
+                    $('.four_active').addClass('d-none');
+                    $('#four_active').prop('checked', false);
+                }
 
                 modal.find('input[name=five_year_price]').val(parseFloat(pricing.five_year_price).toFixed(2));
                 modal.find('input[name=five_year_id_protection]').val(parseFloat(pricing.five_year_id_protection).toFixed(2));
+                if(pricing.five_year_price >= 0){
+                    $('#five_active').prop('checked', true);
+                    $('.five_active').removeClass('d-none');
+                }else{
+                    $('.five_active').addClass('d-none');
+                    $('#five_active').prop('checked', false);
+                }
 
                 modal.find('input[name=six_year_price]').val(parseFloat(pricing.six_year_price).toFixed(2));
                 modal.find('input[name=six_year_id_protection]').val(parseFloat(pricing.six_year_id_protection).toFixed(2));
+                if(pricing.six_year_price >= 0){
+                    $('#six_active').prop('checked', true);
+                    $('.six_active').removeClass('d-none');
+                }else{
+                    $('.six_active').addClass('d-none');
+                    $('#six_active').prop('checked', false);
+                }
 
                 modal.modal('show');
             });
- 
+  
+            $('.price_active').on('click', function(){
+                var selectorName = $(this).prop('name');
+
+                if($(this).prop('checked') == true){ 
+                    $('.'+selectorName).removeClass('d-none');
+                    $(`.${selectorName} :input`).first().val(0);
+                }else{
+                    $('.'+selectorName).addClass('d-none');
+                    $(`.${selectorName} :input`).first().val(-1);
+                }
+            }); 
+
         })(jQuery);
     </script>
 @endpush

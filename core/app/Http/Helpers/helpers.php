@@ -1008,7 +1008,7 @@ function pricing($billingType = null, $price = null, $type = null, $showText = f
 }
 
 function shoppingCart($product = null, $request = null, $deleteId = null, $billingType = null, $array = [], $domainData = null){
-
+    
     $cart = session()->get('shoppingCart') ?? [];
 
     if($product == 'get'){
@@ -1053,6 +1053,11 @@ function shoppingCart($product = null, $request = null, $deleteId = null, $billi
             'domain'=> $domain,
             'domain_id'=> $request->domain_id,
 
+            'username'=> $request->username ?? null,
+            'password'=> $request->password ?? null,
+            'ns1'=> $request->ns1 ?? null,
+            'ns2'=> $request->ns2 ?? null,
+
             'price'=> $array['price'],
             'setupFee'=> $array['setupFee'],
             'discount'=> 0,
@@ -1084,6 +1089,11 @@ function shoppingCart($product = null, $request = null, $deleteId = null, $billi
 
                 $cart[$foundIndex]['domain'] = $domain;
                 $cart[$foundIndex]['domain_id'] = $request->domain_id;
+
+                $cart[$foundIndex]['username'] = $request->username ?? null;
+                $cart[$foundIndex]['password'] = $request->password ?? null;
+                $cart[$foundIndex]['ns1'] = $request->ns1 ?? null;
+                $cart[$foundIndex]['ns2'] = $request->ns2 ?? null;
                 
                 $cart[$foundIndex]['setupFee'] = $array['setupFee'];
                 $cart[$foundIndex]['discount'] = 0;
@@ -1163,13 +1173,13 @@ function domainRegister($domainData, $domainName){
         'domain'=> $domainName,
         'id_protection'=> 0,
 
-        'reg_period'=>@$domainData->pricing->firstPrice['year'],
+        'reg_period'=>@$domainData->pricing->firstPrice['year'] ?? 0,
 
-        'price'=> @$domainData->pricing->firstPrice['price'],
+        'price'=> @$domainData->pricing->firstPrice['price'] ?? 0,
         'setupFee'=> 0,
         'discount'=> 0,
-        'total'=> @$domainData->pricing->firstPrice['price'],
-        'afterDiscount'=> @$domainData->pricing->firstPrice['price']
+        'total'=> @$domainData->pricing->firstPrice['price'] ?? 0,
+        'afterDiscount'=> @$domainData->pricing->firstPrice['price'] ?? 0
     ];
 
     return $array;

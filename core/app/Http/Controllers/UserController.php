@@ -420,10 +420,11 @@ class UserController extends Controller
         foreach($order->hostings as $hosting){
             $hosting->status = 1;
             $hosting->save();
-        }
+        } 
 
         foreach($order->domains as $domain){
             $domain->status = 2;
+            $domain->expiry_date = Carbon::now()->addYear($domain->reg_period);
             $domain->save();
         }
 
@@ -517,12 +518,30 @@ class UserController extends Controller
     }  
  
     public function addCart(Request $request){ 
-        
+       
         $request->validate([
             'product_id' => 'required',
             'billing_type' => 'required|in:'.pricing(),
         ]);
   
+        $product = Product::where('status', 1)->whereHas('price', function($price){
+                $price->filter($price);
+            }) 
+            ->whereHas('serviceCategory', function($category){
+                $category->where('status', 1);
+            })
+            ->with('getConfigs.activeGroup.activeOptions.activeSubOptions', 'price')
+        ->findOrFail($request->product_id); 
+
+        if($product->product_type == 3){
+            $request->validate([
+                'username' => 'required',
+                'password' => 'required',
+                'ns1' => 'required',
+                'ns2' => 'required',
+            ]);
+        }
+
         if($request->domain_id){
 
             $general = GeneralSetting::first();
@@ -542,21 +561,12 @@ class UserController extends Controller
             }
 
         }
-
-        $product = Product::where('status', 1)->whereHas('price', function($price){
-                        $price->filter($price);
-                    }) 
-                    ->whereHas('serviceCategory', function($category){
-                        $category->where('status', 1);
-                    })
-                    ->with('getConfigs.activeGroup.activeOptions.activeSubOptions', 'price')
-        ->findOrFail($request->product_id); 
-      
+        
         if($product->stock_control && !$product->stock_quantity){
             $notify[] = ['error', 'Sorry, Out of stock'];
             return back()->withNotify($notify);
         }
-                                
+                    
         $productPrice = pricing($product->payment_type, $product->price, 'price', false, $request->billing_type);
         $productSetup = pricing($product->payment_type, $product->price, 'setupFee', false, $request->billing_type);
 
@@ -587,6 +597,10 @@ class UserController extends Controller
         }
  
         shoppingCart($product, $request, null, null, ['price'=>$productPrice, 'setupFee'=>$productSetup], $domain ?? null);
+
+        if($request->domain_id && $request->domain){  
+            return redirect()->route('user.config.domain', [$request->domain_id, $request->domain, @$domain->pricing->firstPrice['year'] ?? 0]);
+        }
 
         return redirect()->route('user.shopping.cart');
     } 
@@ -746,7 +760,7 @@ class UserController extends Controller
     }
 
     public function createInvoice(Request $request){
-    
+       
         if(!shoppingCart()){
             $notify[] = ['info', 'Your shopping cart is empty'];
             return redirect()->route('home')->withNotify($notify);
@@ -797,10 +811,14 @@ class UserController extends Controller
                 $productTotal = ($productPrice + $productSetup);
     
                 $totalPrice += $productTotal;       
-            
+             
                 $append = [ 
                     'product_id'=>$product->id, 
                     'domain'=>@$cart['domain'], 
+                    'username'=>@$cart['username'], 
+                    'password'=>@$cart['password'], 
+                    'ns1'=>@$cart['ns1'], 
+                    'ns2'=>@$cart['ns2'], 
                     'first_payment_amount'=>$productTotal,
                     'amount'=>$productPrice,
                     'setup_fee'=>@$cart['setupFee'],
@@ -927,7 +945,7 @@ class UserController extends Controller
         }, $data);
      
         foreach($data as $singleData){  
-            
+         
             if($singleData['product_id'] != 0){
                 $hosting = new Hosting();
                 $hosting->product_id = $singleData['product_id'];
@@ -944,6 +962,10 @@ class UserController extends Controller
                 $hosting->config_options = $singleData['config_options'];
                 $hosting->user_id = $singleData['user_id'];
                 $hosting->order_id = $singleData['order_id'];
+                $hosting->username = $singleData['username'];
+                $hosting->password = $singleData['password'];
+                $hosting->ns1 = $singleData['ns1'];
+                $hosting->ns2 = $singleData['ns2'];
                 $hosting->status = 0;
                 $hosting->save();
 
@@ -995,7 +1017,7 @@ class UserController extends Controller
         $address = Frontend::where('data_keys','invoice_address.content')->first();
 
         return view($this->activeTemplate.'user.invoice.view', compact('pageTitle', 'user', 'invoice', 'gatewayCurrency', 'address', 'hostings', 'order'));
-    }
+    } 
 
     protected function makeHostingConfigs($hosting){
         $array = [];  
@@ -1023,7 +1045,7 @@ class UserController extends Controller
 
         foreach($hostings as $hosting){
             $product = $hosting->product;
-      
+            
             if($hosting->setup_fee != 0){
                 $item = new InvoiceItem();
                 $item->invoice_id = $invoice->id;
@@ -1036,7 +1058,8 @@ class UserController extends Controller
             }
           
             $domainText = $hosting->domain ? ' - ' .$hosting->domain : null;
-            $text = $product->name . $domainText. ' ('.showDateTime($hosting->created_at, 'd/m/Y').' - '.showDateTime($hosting->next_due_date, 'd/m/Y') .')'."\n".$product->serviceCategory->name;
+            $date = $hosting->billing == 2 ? ' ('.showDateTime($hosting->created_at, 'd/m/Y').' - '.showDateTime($hosting->next_due_date, 'd/m/Y') .')' : ' (One Time)';
+            $text = $product->name . $domainText. $date ."\n".$product->serviceCategory->name;
        
             foreach($hosting->hostingConfigs as $config){
                 $text = $text ."\n". $config->select->name.': '.$config->option->name;
@@ -1139,8 +1162,14 @@ class UserController extends Controller
 
     public function configDomain($id, $domain, $regPeriod){
 
+        $domainSetup = DomainSetup::findOrFail($id);
+   
+        if(empty($domainSetup->pricing->firstPrice)){
+            return redirect()->route('user.shopping.cart');
+        }
+
         $pageTitle = 'Domains Configuration';
-        return view($this->activeTemplate.'domain_config', compact('pageTitle', 'regPeriod', 'id', 'domain'));
+        return view($this->activeTemplate.'domain_config', compact('pageTitle', 'regPeriod', 'id', 'domain', 'domainSetup'));
     }
 
     public function configDomainUpdate(Request $request){

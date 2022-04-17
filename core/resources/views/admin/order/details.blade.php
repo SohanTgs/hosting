@@ -92,7 +92,7 @@
                                         @php echo nl2br($hosting->details->description); @endphp
                                     </td>
                                     <td data-label="@lang('Billing Cycle')">
-                                        @if($hosting->billing == 1)
+                                        @if($hosting->billing == 1) 
                                             @lang('One Time')
                                         @else 
                                             {{ billing(@$hosting->billing_cycle, true)['showText'] }}

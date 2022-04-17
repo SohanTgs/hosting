@@ -33,7 +33,7 @@ class DomainPricing extends Model
             $array = ['year'=>6, 'price'=> getAmount($data->six_year_price)];
         }
 
-        return $array;
+        return $array ?? [];
     }
 
     public function singlePrice($regPeriod, $type = false){

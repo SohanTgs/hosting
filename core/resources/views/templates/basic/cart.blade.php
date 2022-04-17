@@ -11,7 +11,7 @@
                 <div class="col-md-12"><h1>{{ __($pageTitle) }}</h1></div>
        
                 @foreach($carts as $cart)  
-                    <div class="col-md-12 cart_child">  @dump($cart)
+                    <div class="col-md-12 cart_child"> 
                         <div class="card fz-12"> 
                             <div class="card-body">  
                                 @if(@$cart['product_id'])
@@ -53,10 +53,10 @@
                                             </a>
                                         </div>
                                     </div>
-                                @else 
+                                @else  
                                     <div class="row">
                                         <div class="col-md-11 d-flex justify-content-between">
-                                            <div>
+                                            <div>  
                                                 <h6 class="d-inline">{{ @$cart['name'] }}</h6> 
                                                 <a href="{{ route('user.config.domain', [@$cart['domain_id'], @$cart['domain'], @$cart['reg_period']]) }}?protection={{ @$cart['id_protection'] }}">
                                                     <i class="fa fa-pencil"></i> @lang('Edit')

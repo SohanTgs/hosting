@@ -52,6 +52,8 @@
                                             @elseif(@$deposit->status == 3)
                                                 <span class="badge badge--danger">@lang('Rejected')</span>
                                             @endif
+                                        @elseif($order->status != 0)
+                                            @lang('Wallet Balance')
                                         @else 
                                             @lang('N/A')
                                         @endif 

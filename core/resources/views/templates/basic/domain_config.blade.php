@@ -17,7 +17,11 @@
                         <p>@lang('Please review your domain name selections and any addons that are available for them')</p>
                     </div>
 
-                    <div class="col-md-4 form-group">
+                    @php
+                        $pricing = $domainSetup->pricing;
+                    @endphp
+
+                    <div class="col-md-4 form-group {{ $pricing->one_year_price >= 0 ? '' : 'd-none' }}">
                         <div class="card">
                             <div class="card-body">
                                 <div>
@@ -31,7 +35,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 form-group">
+                    <div class="col-md-4 form-group {{ $pricing->two_year_price >= 0 ? '' : 'd-none' }}">
                         <div class="card">
                             <div class="card-body">
                                 <div>
@@ -45,7 +49,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 form-group">
+                    <div class="col-md-4 form-group {{ $pricing->three_year_price >= 0 ? '' : 'd-none' }}">
                         <div class="card">
                             <div class="card-body">
                                 <div>
@@ -59,7 +63,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 form-group">
+                    <div class="col-md-4 form-group {{ $pricing->four_year_price >= 0 ? '' : 'd-none' }}">
                         <div class="card">
                             <div class="card-body">
                                 <div>
@@ -73,7 +77,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 form-group">
+                    <div class="col-md-4 form-group {{ $pricing->five_year_price >= 0 ? '' : 'd-none' }}">
                         <div class="card">
                             <div class="card-body">
                                 <div>
@@ -87,7 +91,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 form-group">
+                    <div class="col-md-4 form-group {{ $pricing->six_year_price >= 0 ? '' : 'd-none' }}">
                         <div class="card">
                             <div class="card-body">
                                 <div>
@@ -117,8 +121,8 @@
 
 @push('script')
 <script>
-    (function ($) {
-        "use strict";
+    (function ($) { 
+        "use strict"; 
 
         $(`input[name='reg_period'][value=@json($regPeriod)]`).prop('checked', true);
         $(`input[name='id_protection'][value=@json($regPeriod)]`).prop('disabled', false);
