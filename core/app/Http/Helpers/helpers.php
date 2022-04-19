@@ -729,6 +729,9 @@ function imagePath()
         'path' => 'assets/images/extensions',
         'size' => '36x36',
     ];
+    $data['helps'] = [
+        'path' => 'assets/images/helps'
+    ];
     $data['seo'] = [
         'path' => 'assets/images/seo',
         'size' => '600x315'

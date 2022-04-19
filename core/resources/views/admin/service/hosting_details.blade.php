@@ -161,8 +161,11 @@
                         </div> 
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label class="form-control-label font-weight-bold">@lang('Password')</label>
-                                <input class="form-control form-control-lg" type="text" name="password" value="{{@$hosting->password}}">
+                                <div class="justify-content-between d-flex flex-wrap">
+                                    <label class="form-control-label font-weight-bold">@lang('Password')</label>
+                                    <a href="javascript:void(0)" class="generatePassword">@lang('Generate Strong Password')</a>
+                                </div>
+                                <input class="form-control form-control-lg" type="text" name="password" value="{{@$hosting->password}}" id="password">
                             </div>
                         </div>
                         <div class="col-md-4">   
@@ -202,6 +205,27 @@
                 <div class="modal-body">
                     <div class="form-group">
                         @lang('Are you sure you want to run the') <span class="moduleName font-weight-bold"></span> @lang('function')?
+
+                        <div class="form-group mt-4 passwordArea d-none">
+                            <div class="justify-content-between d-flex flex-wrap">
+                                <label class="form-control-label font-weight-bold">@lang('Password')</label>
+                                <a href="javascript:void(0)" class="newGeneratePassword">@lang('Generate Strong Password')</a>
+                            </div>
+                            <input type="text" class="form-control newPassword" name="password" autocomplete="off">
+                        </div>
+
+                        <div class="form-group mt-4 suspendArea">
+                            <label class="form-control-label font-weight-bold">@lang('Reason')</label>
+                            <input type="text" class="form-control" name="suspend_reason" autocomplete="off">
+                        </div> 
+                        <div class="form-group suspendArea">
+                            <input type="checkbox" name="suspend_email" id="suspend"> <label for="suspend">@lang('Send Suspension Email')</label>
+                        </div>
+
+                        <div class="form-group mt-4 unSuspendArea">
+                            <input type="checkbox" name="unSuspend_email" id="unSuspend"> <label for="unSuspend">@lang('Send Unsuspension Email')</label>
+                        </div> 
+
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -214,7 +238,8 @@
 </div>
 @endsection
 
-@push('breadcrumb-plugins') 
+@push('breadcrumb-plugins')
+
 <a href="{{ route('admin.order.details', @$hosting->order_id) }}" class="btn btn-sm btn--primary box--shadow1 text-white text--small">
     <i class="fa fa-fw fa-backward"></i>@lang('Go Back')
 </a>
@@ -236,14 +261,69 @@
 
                 var moduleName = $(this).text();
                 var moduleType =  $(this).data('type');
-               
+
+                if(moduleType == 2){
+                   $('.suspendArea').removeClass('d-none'); 
+                }else{
+                    $('.suspendArea').addClass('d-none'); 
+                }
+
+                if(moduleType == 3){
+                   $('.unSuspendArea').removeClass('d-none'); 
+                }else{
+                    $('.unSuspendArea').addClass('d-none'); 
+                }
+
+                if(moduleType == 6){
+                   $('.passwordArea').removeClass('d-none'); 
+                }else{
+                    $('.passwordArea').addClass('d-none'); 
+                }
+
                 modal.find('.moduleName').text(moduleName);
                 modal.find('input[name=module_type]').val(moduleType);
 
                 modal.modal('show');
             });
+
+            $('.generatePassword').on('click', function(){
+                var password = generatePassword(10);
+                $('#password').val(password);
+            });
+
+            $('.newGeneratePassword').on('click', function(){
+                var password = generatePassword(10);
+                $('.newPassword').val(password);
+            });
+
+            function generatePassword(passwordLength) {
+                var numberChars = "0123456789";
+                var upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                var lowerChars = "abcdefghijklmnopqrstuvwxyz";
+                var specialChars = "!@#$%^&*()_+-*/?><{}:|.";
+                var allChars = numberChars + upperChars + lowerChars + specialChars;
+                var randPasswordArray = Array(passwordLength);
+
+                randPasswordArray[0] = numberChars;
+                randPasswordArray[1] = upperChars;
+                randPasswordArray[2] = lowerChars;
+                randPasswordArray[3] = specialChars;
+                randPasswordArray = randPasswordArray.fill(allChars, 4);
+
+                return shuffleArray(randPasswordArray.map(function(x) { return x[Math.floor(Math.random() * x.length)] })).join('');
+            }
+
+            function shuffleArray(array) {
+                for (var i = array.length - 1; i > 0; i--) {
+                    var j = Math.floor(Math.random() * (i + 1));
+                    var temp = array[i];
+                    array[i] = array[j];
+                    array[j] = temp;
+                }
+                return array;
+            }
+
         })(jQuery);
-        
     </script>
-@endpush
+@endpush 
 

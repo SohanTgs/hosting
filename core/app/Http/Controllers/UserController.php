@@ -760,7 +760,7 @@ class UserController extends Controller
     }
 
     public function createInvoice(Request $request){
-       
+      
         if(!shoppingCart()){
             $notify[] = ['info', 'Your shopping cart is empty'];
             return redirect()->route('home')->withNotify($notify);

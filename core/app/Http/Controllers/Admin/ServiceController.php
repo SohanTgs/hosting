@@ -7,12 +7,44 @@ use Illuminate\Http\Request;
 use App\Models\Hosting; 
 use App\Models\Domain; 
 use App\Models\GeneralSetting; 
+use Illuminate\Support\Facades\Http;
 
 class ServiceController extends Controller{
 
     public function hostingDetails($id){  
         $hosting = Hosting::with('hostingConfigs.select', 'hostingConfigs.option')->findOrFail($id);
         $pageTitle = 'Hosting Details';
+
+        // try{    
+
+        //     $general = GeneralSetting::first(); 
+            
+        //     $response = Http::withHeaders([
+        //         'Authorization' => 'WHM '.$general->whm_username.':'.$general->whm_api_token,
+        //     ])->get($general->whm_server.'/cpsess'.$general->whm_security_token.'/json-api/listpkgs?api.version=1');
+ 
+        //     $response = json_decode($response);
+ 
+        //     if($response->metadata->result == 0){
+
+        //         if(str_contains($response->metadata->reason, '. at') !== false){
+        //             $message = explode('. at', $response->metadata->reason)[0];
+        //         }else{
+        //             $message = $response->metadata->reason;
+        //         }
+
+        //         $notify[] = ['error', $message];
+        //         return back()->withNotify($notify);
+        //     } 
+
+        //     $notify[] = ['success', explode('\n', $response->metadata->reason)[0]];
+        //     return back()->withNotify($notify);
+
+        // }catch(\Exception  $error){
+        //     $notify[] = ['error', $error->getMessage()];
+        //     return back()->withNotify($notify);
+        // }
+
         return view('admin.service.hosting_details', compact('pageTitle', 'hosting'));
     }  
   

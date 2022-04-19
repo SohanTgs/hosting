@@ -45,6 +45,11 @@ class GeneralSettingController extends Controller
 
         $general->api_key = $request->api_key;
 
+        $general->whm_server = $request->whm_server;
+        $general->whm_security_token = $request->whm_security_token;
+        $general->whm_username = $request->whm_username;
+        $general->whm_api_token = $request->whm_api_token;
+        
         $general->save();
 
         $timezoneFile = config_path('timezone.php');
