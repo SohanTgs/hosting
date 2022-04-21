@@ -24,25 +24,33 @@ class ServerController extends Controller{
     }
 
     public function addServer(Request $request){
-        
+       
         $request->validate([
     		'name' => 'required|max:255',
-    		'hostname' => 'required|max:255',
+    		'hostname' => 'required|url|max:255',
     		'username' => 'required|max:255',
     		'password' => 'required|max:255',
     		'api_token' => 'required',
+    		'security_token' => 'required',
     		'server_group_id' => 'required|exists:server_groups,id',
     	]);
-    
+  
+        $hostname = $request->hostname;
+
+        if(substr($hostname, -5) != ':2087'){
+            $hostname = $hostname.':2087';
+        }
+
         $server = new Server();
         $server->type = 'cPanel';
         $server->server_group_id = $request->server_group_id;
 
         $server->name = $request->name;
-        $server->hostname = $request->hostname;
+        $server->hostname = $hostname;
         $server->username = $request->username;
         $server->password = $request->password;
         $server->api_token = $request->api_token;
+        $server->security_token = $request->security_token;
         $server->save();
 
         $notify[] = ['success', 'Server added successfully'];
@@ -61,21 +69,29 @@ class ServerController extends Controller{
         $request->validate([
     		'id' => 'required',
     		'name' => 'required|max:255',
-    		'hostname' => 'required|max:255',
+    		'hostname' => 'required|url|max:255',
     		'username' => 'required|max:255',
     		'password' => 'required|max:255',
     		'api_token' => 'required',
+            'security_token' => 'required',
     		'server_group_id' => 'required|exists:server_groups,id',
     	]);
-      
+
+        $hostname = $request->hostname;
+
+        if(substr($hostname, -5) != ':2087'){
+            $hostname = $hostname.':2087';
+        }
+     
         $server = Server::findOrFail($request->id);
         $server->server_group_id = $request->server_group_id;
 
         $server->name = $request->name;
-        $server->hostname = $request->hostname;
+        $server->hostname = $hostname;
         $server->username = $request->username;
         $server->password = $request->password;
         $server->api_token = $request->api_token;
+        $server->security_token = $request->security_token;
 
         $server->status = $request->status ? 1 : 0;
         $server->save();

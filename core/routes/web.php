@@ -96,6 +96,8 @@ Route::namespace('Admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('domain/details/{id}', 'ServiceController@domainDetails')->name('order.domain.details');
         Route::post('domain/update', 'ServiceController@domainUpdate')->name('order.domain.update'); 
 
+        Route::get('change/order/hosting/product/{hostingId}/{productId}', 'ServiceController@changeHostingProduct')->name('change.order.hosting.product'); 
+
         //Module Command     
         Route::post('module/command', 'ModuleController@moduleCommand')->name('module.command');
 
@@ -163,6 +165,8 @@ Route::namespace('Admin')->prefix('admin')->name('admin.')->group(function () {
         Route::post('add/product','ProductController@addProduct')->name('product.add');
         Route::get('edit/product/{id}','ProductController@editProductPage')->name('product.update.page');
         Route::post('update/product','ProductController@updateProduct')->name('product.update');
+
+        Route::post('get/whm/package','AdminController@getWhmPackage')->name('get.whm.package');
 
         //Notification
         Route::get('notifications','AdminController@notifications')->name('notifications');

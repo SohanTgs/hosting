@@ -51,36 +51,6 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <div class="justify-content-between d-flex">
-                                        <label class="form-control-label font-weight-bold">@lang('WHM Server With Port')</label>
-                                        <label class="whmHelp"><a href="javascript:void(0)">@lang('Help')?</a></label>
-                                    </div>
-                                    <input class="form-control form-control-lg" type="text" name="whm_server" placeholder="https://hostname.example.com:2087" value="{{ $general->whm_server }}">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label class="form-control-label font-weight-bold">@lang('WHM Security Token')</label>
-                                    <input class="form-control form-control-lg" type="text" name="whm_security_token" placeholder="*******" value="{{ $general->whm_security_token }}">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label class="form-control-label font-weight-bold">@lang('WHM Username')</label>
-                                    <input class="form-control form-control-lg" type="text" name="whm_username" placeholder="@lang('WHM Username')" value="{{ $general->whm_username }}">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label class="form-control-label font-weight-bold">@lang('WHM API Token')</label>
-                                    <input class="form-control form-control-lg" type="text" name="whm_api_token" placeholder="*******" value="{{ $general->whm_api_token }}">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
                             <div class="form-group col-md-3">
                                 <label class="form-control-label font-weight-bold"> @lang('Site Base Color')</label>
                                 <div class="input-group">
@@ -134,7 +104,7 @@
                                 <label class="form-control-label font-weight-bold">@lang('SMS Notification')</label>
                                 <input type="checkbox" data-width="100%" data-size="large" data-onstyle="-success" data-offstyle="-danger" data-toggle="toggle" data-on="@lang('Enable')" data-off="@lang('Disable')" name="sn" @if($general->sn) checked @endif>
                             </div>
-                        </div>
+                        </div> 
 
                         <div class="form-group">
                             <button type="submit" class="btn btn--primary btn-block btn-lg">@lang('Update')</button>

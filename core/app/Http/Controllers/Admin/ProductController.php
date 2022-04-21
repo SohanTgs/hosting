@@ -10,16 +10,15 @@ use App\Models\ServerGroup;
 use App\Models\ServiceCategory;
 use App\Models\Pricing;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller{
  
     public function allProduct(){
-
         $groupByCategories = ServiceCategory::with('products')->get();
-
         $pageTitle = 'Manage Products';
         $emptyMessage = 'No data found';
-
         return view('admin.product.all',compact('pageTitle', 'emptyMessage', 'groupByCategories'));
     }
  
@@ -38,7 +37,7 @@ class ProductController extends Controller{
 			$notify[] = ['error', 'Please provide a valid slug'];
 			return back()->withNotify($notify);
 		}
-       
+   
         $request->validate([ 
     		'name' => 'required|max:255',
     		'product_type' => 'required|integer|between:1,4',
@@ -55,12 +54,17 @@ class ProductController extends Controller{
                 }), 
             ],
 
+            'server_id'=> 'nullable|exists:servers,id',
+
     	]);
 
         $product = new Product();
 
         $product->module_type = $request->module_type;
         $product->module_option = $request->module_option ?? 0;
+
+        $product->package_name = $request->package_name;
+        $product->server_id = $request->server_id ?? 0;
 
         $product->category_id = $request->service_category;
         $product->server_group_id = $request->server_group ?? 0;
@@ -86,18 +90,34 @@ class ProductController extends Controller{
 	    return redirect()->route('admin.product.update.page', $product->id)->withNotify($notify);
     } 
      
-    public function editProductPage($id){
+    public function editProductPage($id){ 
+        $pageTitle = 'Update Product';
+        $packages = [];
+
         $product = Product::with('getConfigs')->findOrFail($id);
         $categories = ServiceCategory::where('status', 1)->get();
         $configGroups = ConfigurableGroup::where('status', 1)->latest()->get();
         $serverGroups = ServerGroup::where('status', 1)->latest()->get();
         
-        $pageTitle = 'Update Product';
-        return view('admin.product.edit',compact('pageTitle', 'categories', 'configGroups', 'serverGroups', 'product'));
+        try{
+            foreach($product->serverGroup->servers as $server){
+                $response = Http::withHeaders([
+                    'Authorization' => 'WHM '.$server->username.':'.$server->api_token,
+                ])->get($server->hostname.'/cpsess'.$server->security_token.'/json-api/listpkgs?api.version=1');
+        
+                $response = json_decode($response);
+            
+                $packages[$server->id] = array_column($response->data->pkg, 'name');
+            } 
+        }catch(\Exception  $error){
+            Log::error($error->getMessage());
+        }
+
+        return view('admin.product.edit',compact('pageTitle', 'categories', 'configGroups', 'serverGroups', 'product', 'packages'));
     }
  
     public function updateProduct(Request $request){
-       
+
         if(!preg_match("/^[0-9a-zA-Z-]+$/", $request->slug)){
 			$notify[] = ['error', 'Please provide a valid slug'];
 			return back()->withNotify($notify);
@@ -142,9 +162,11 @@ class ProductController extends Controller{
             'biennially_setup_fee'=> 'required|numeric',
             'biennially'=> 'required|numeric',
             'triennially_setup_fee'=> 'required|numeric',
-            'triennially'=> 'required|numeric'
+            'triennially'=> 'required|numeric',
+
+            'server_id'=> 'nullable|exists:servers,id',
     	]);
-       
+
         $product = Product::findOrFail($request->id);
         $product->category_id = $request->service_category; 
         $product->payment_type = $request->payment_type; 
@@ -152,6 +174,9 @@ class ProductController extends Controller{
         $product->server_group_id = $request->server_group ?? 0; 
         $product->module_type = $request->module_type;  
         $product->module_option = $request->module_option ?? 0; 
+
+        $product->package_name = $request->package_name;
+        $product->server_id = $request->server_id ?? 0;
 
         $product->name = $request->name;
         $product->slug = $request->slug;

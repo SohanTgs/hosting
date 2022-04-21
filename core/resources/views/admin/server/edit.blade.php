@@ -28,7 +28,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>@lang('Hostname or IP Address')</label>
+                                 <label>@lang('Hostname')</label>
                                 <input type="text" class="form-control" name="hostname" required value="{{ $server->hostname }}">
                             </div>
                         </div>
@@ -38,16 +38,22 @@
                                 <input type="text" class="form-control" name="username" required value="{{ $server->username }}">
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label>@lang('Password')</label>
-                                <input type="password" class="form-control" name="password" value="{{ $server->password }}" required>
+                                <input type="text" class="form-control" name="password" value="{{ $server->password }}" required>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label>@lang('API Token')</label>
                                 <input type="text" class="form-control" name="api_token" value="{{ $server->api_token }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>@lang('Security Token')</label>
+                                <input type="text" class="form-control" name="security_token" value="{{ $server->security_token }}" required>
                             </div>
                         </div>
  
@@ -60,6 +66,7 @@
         </div>
     </div>
 </div>
+
 @endsection
 
 @push('breadcrumb-plugins')

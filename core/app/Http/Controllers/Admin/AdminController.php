@@ -9,6 +9,7 @@ use App\Models\ServiceCategory;
 use App\Models\User;
 use App\Models\UserLogin;
 use App\Models\Product;
+use App\Models\ServerGroup;
 use App\Models\Withdrawal;
 use App\Rules\FileTypeValidate;
 use Carbon\Carbon;
@@ -16,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Validator;
+use Illuminate\Support\Facades\Http;
 
 class AdminController extends Controller
 {
@@ -152,7 +154,7 @@ class AdminController extends Controller
                 $notify[] = ['error', 'Image could not be uploaded.'];
                 return back()->withNotify($notify);
             }
-        }
+        } 
 
         $user->name = $request->name;
         $user->email = $request->email;
@@ -288,6 +290,55 @@ class AdminController extends Controller
         }
         return ['success'=>true, 'message'=>'OK'];
 
+    }
+
+    public function getWhmPackage(Request $request){ 
+       
+        $validator = Validator::make($request->all(), [
+            'server_group_id' => 'required'
+        ]);
+
+        if(!$validator->passes()) {
+            return response()->json(['error'=>$validator->errors()->all()]);
+        }
+
+        $serverGroup = ServerGroup::find($request->server_group_id);
+
+        if(!$serverGroup) {
+            return response()->json(['success'=>false, 'message'=>'Sorry, Invalid request']);
+        }
+
+        $packages = [];
+        $servers = $serverGroup->servers;
+
+        try{
+            foreach($servers as $server){
+
+                $response = Http::withHeaders([
+                    'Authorization' => 'WHM '.$server->username.':'.$server->api_token,
+                ])->get($server->hostname.'/cpsess'.$server->security_token.'/json-api/listpkgs?api.version=1');
+    
+                $response = json_decode($response);
+            
+                if($response->metadata->result == 0){
+
+                    if(str_contains($response->metadata->reason, '. at') !== false){
+                        $message = explode('. at', $response->metadata->reason)[0];
+                    }else{
+                        $message = $response->metadata->reason;
+                    }
+
+                    return response()->json(['success'=>false, 'message'=>$message]);
+                } 
+
+                $packages[$server->id] = array_column(@$response->data->pkg, 'name');
+            }
+
+            return response()->json(['success'=>true, 'data'=>$packages]);
+        }catch(\Exception  $error){
+            return response()->json(['success'=>false, 'message'=>$error->getMessage()]);
+        }
+        
     }
 
 

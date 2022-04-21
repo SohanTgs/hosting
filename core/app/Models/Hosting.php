@@ -10,7 +10,7 @@ class Hosting extends Model
     use HasFactory;
 
     protected $guarded = [];
-    protected $casts = ['config_options' => 'object'];
+    protected $casts = ['config_options' => 'object', 'reg_time'=>'date', 'termination_date'=>'date', 'suspend_date'=>'date'];
 
     public function user(){
         return $this->belongsTo(User::class)->withDefault();

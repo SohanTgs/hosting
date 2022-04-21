@@ -65,30 +65,47 @@
                             </div>
                         </div>  
  
-                        <div class="col-lg-6 mt-2">
+                        <div class="col-lg-6 mt-3">
                             <div class="card border--primary h-100">
                                 <h5 class="card-header bg--primary">@lang('Module Settings')</h5>
                                 <div class="card-body">
-                                    <div class="input-group has_append mb-3">
-                                        <label class="w-100">@lang('Module Name')</label>
-                                        <select name="module_type" class="form-control">
-                                           @foreach (productModule() as $index => $module)
-                                                <option value="{{ $index }}">{{ __($module) }}</option>
-                                           @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="input-group has_append mb-3">
-                                        <label class="w-100">@lang('Server Group')</label>
-                                        <select name="server_group" class="form-control">
-                                            <option value="">@lang('None')</option>
-                                            @foreach ($serverGroups as $serverGroup)
-                                                <option value="{{ $serverGroup->id }}">{{ __($serverGroup->name) }}</option>
-                                            @endforeach
-                                        </select>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="input-group has_append mb-3">
+                                                <label class="w-100">@lang('Module Name')</label>
+                                                <select name="module_type" class="form-control">
+                                                @foreach (productModule() as $index => $module)
+                                                    <option value="{{ $index }}">{{ __($module) }}</option>
+                                                @endforeach
+                                                </select>
+                                            </div> 
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="input-group has_append mb-3">
+                                                <label class="w-100">@lang('Server Group')</label>
+                                                <select name="server_group" class="form-control">
+                                                    <option value="">@lang('None')</option>
+                                                    @foreach ($serverGroups as $serverGroup)
+                                                        <option value="{{ $serverGroup->id }}">{{ __($serverGroup->name) }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <input type="hidden" name="server_id" class="server_id">
+                                            <div class="input-group has_append mb-3">
+                                                <label class="w-100">@lang('WHM Package Name') 
+                                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                                </label>
+                                                <select name="package_name" class="form-control">
+                                                    <option value="">@lang('Select One')</option>
+                                                </select>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> 
 
                         <div class="col-lg-12 mt-3">
                             <div class="card border--primary">
@@ -122,6 +139,60 @@
     </a>
 @endpush
  
+@push('script')
+<script>
+    (function($){
+        "use strict"; 
+
+        $('select[name=server_group]').on('change', function(){
+            var id = $(this).val();
+            
+            if(!id){
+                return false;
+            }
+
+            $.ajax({
+                type: 'post',
+                url: '{{ route("admin.get.whm.package") }}',
+                data: {
+                    '_token': '{{ csrf_token() }}',
+                    'server_group_id': id
+                },
+                beforeSend: function(){
+                    $('.spinner-border').removeClass('d-none');
+                },
+                complete: function(){
+                    $('.spinner-border').addClass('d-none');
+                },
+                success: function (response){
+           
+                    $('select[name=package_name] option:not(:first)').remove();
+         
+                    if(response.success){ 
+                        Object.entries(response.data).forEach(function(data, index){
+                            data[1].forEach(function(value){
+                                var name = value.split('_').pop();
+                                $('select[name=package_name]').append($('<option>', {value: value, text: value}).attr('data-server_id', data[0]));
+                            });
+                        });
+                    }else{
+                        notify('error', response.message);
+                    }
+                },
+
+            });
+
+        });
+
+        $('select[name=package_name]').on('change', function(){
+            var serverId = $(this).children('option:selected').data('server_id');
+            $('.server_id').val(serverId);
+        });
+
+    })(jQuery);    
+    </script> 
+@endpush
+
 @push('script')
     <script>
         (function($){

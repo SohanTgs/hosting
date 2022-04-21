@@ -7,58 +7,43 @@ use Illuminate\Http\Request;
 use App\Models\Hosting; 
 use App\Models\Domain; 
 use App\Models\GeneralSetting; 
-use Illuminate\Support\Facades\Http;
+use App\Models\ServiceCategory; 
+use App\Models\Product; 
+
 
 class ServiceController extends Controller{
 
-    public function hostingDetails($id){  
-        $hosting = Hosting::with('hostingConfigs.select', 'hostingConfigs.option')->findOrFail($id);
+    public function hostingDetails($id){ 
+        $hosting = Hosting::with('hostingConfigs.select', 'hostingConfigs.option', 'product.getConfigs.group.options')->findOrFail($id);
         $pageTitle = 'Hosting Details';
-
-        // try{    
-
-        //     $general = GeneralSetting::first(); 
-            
-        //     $response = Http::withHeaders([
-        //         'Authorization' => 'WHM '.$general->whm_username.':'.$general->whm_api_token,
-        //     ])->get($general->whm_server.'/cpsess'.$general->whm_security_token.'/json-api/listpkgs?api.version=1');
- 
-        //     $response = json_decode($response);
- 
-        //     if($response->metadata->result == 0){
-
-        //         if(str_contains($response->metadata->reason, '. at') !== false){
-        //             $message = explode('. at', $response->metadata->reason)[0];
-        //         }else{
-        //             $message = $response->metadata->reason;
-        //         }
-
-        //         $notify[] = ['error', $message];
-        //         return back()->withNotify($notify);
-        //     } 
-
-        //     $notify[] = ['success', explode('\n', $response->metadata->reason)[0]];
-        //     return back()->withNotify($notify);
-
-        // }catch(\Exception  $error){
-        //     $notify[] = ['error', $error->getMessage()];
-        //     return back()->withNotify($notify);
-        // }
-
-        return view('admin.service.hosting_details', compact('pageTitle', 'hosting'));
+        $productDropdown = $this->productDropdown();
+        return view('admin.service.hosting_details', compact('pageTitle', 'hosting', 'productDropdown'));
     }  
   
     public function hostingUpdate(Request $request){
 
         $request->validate([
             'id'=>'required' , 
-            'domain_status'=>'required|between:1,3'
+            'domain_status'=>'required|between:1,3',
+            'server_id'=>'nullable|exists:servers,id',
         ]);
 
         $oldStatus = 0;
 
         $service = Hosting::findOrFail($request->id);
         $service->domain = $request->domain;
+        $service->first_payment_amount = $request->first_payment_amount;
+        $service->amount = $request->amount;
+        $service->next_due_date = $request->next_due_date;
+        $service->billing_cycle = $request->billing_cycle;
+
+        if($request->server_id){
+            $service->server_id = $request->server_id; 
+        }
+
+        $service->termination_date = $request->termination_date ?? null; 
+        $service->admin_notes = $request->admin_notes ?? null; 
+
         $service->dedicated_ip = $request->dedicated_ip; 
         $service->username = $request->username;
         $service->password = $request->password;
@@ -66,6 +51,7 @@ class ServiceController extends Controller{
         $oldStatus = $service->domain_status;
 
         $service->domain_status = $request->domain_status;
+        $service->reg_time = $request->reg_time;
         $service->save();
    
         $general = GeneralSetting::first();
@@ -142,6 +128,39 @@ class ServiceController extends Controller{
 
         $notify[] = ['success', 'Domain details updated successfully'];
         return back()->withNotify($notify);
+    }
+
+    public function changeHostingProduct($hostingId, $productId){
+
+        Product::findOrFail($productId);
+        $hosting = Hosting::findOrFail($hostingId);
+        $hosting->product_id = $productId;
+        $hosting->save();
+
+        $notify[] = ['success', 'Your changes saved successfully'];
+        return back()->withNotify($notify);
+    }
+
+    protected function productDropdown(){
+       
+        $option = null;
+        $allCategory = ServiceCategory::with(['products'=>function($product){
+            $product->select('id', 'category_id', 'name');
+        }])->get(['id', 'name']);
+    
+        foreach($allCategory as $category){
+            $option .= "<option value='' class='font-weight-bold'>".trans($category->name)."</option>";
+
+            if(count($category->products)){
+                foreach($category->products as $product){
+                    $option .= "<option value='$product->id'>&nbsp;&nbsp;&nbsp;".trans($product->name)."</option>";
+                }
+            }else{
+                $option .= "<option value=''>&nbsp;&nbsp;&nbsp;".trans('N/A')."</option>";
+            }
+        }
+        
+        return $option;
     }
 
 }

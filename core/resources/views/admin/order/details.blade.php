@@ -112,7 +112,7 @@
                                         </span>
                                     </td>
                                     <td data-label="@lang('Description')"> 
-                                        @php echo nl2br($domain->details->description); @endphp
+                                        @php echo nl2br(@$domain->details->description); @endphp
                                     </td>
                                     <td data-label="@lang('Billing Cycle')">
                                         {{ __($domain->reg_period) }} @lang('Year/s')

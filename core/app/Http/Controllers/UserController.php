@@ -760,7 +760,7 @@ class UserController extends Controller
     }
 
     public function createInvoice(Request $request){
-      
+    
         if(!shoppingCart()){
             $notify[] = ['info', 'Your shopping cart is empty'];
             return redirect()->route('home')->withNotify($notify);
@@ -811,7 +811,7 @@ class UserController extends Controller
                 $productTotal = ($productPrice + $productSetup);
     
                 $totalPrice += $productTotal;       
-             
+                
                 $append = [ 
                     'product_id'=>$product->id, 
                     'domain'=>@$cart['domain'], 
@@ -819,6 +819,7 @@ class UserController extends Controller
                     'password'=>@$cart['password'], 
                     'ns1'=>@$cart['ns1'], 
                     'ns2'=>@$cart['ns2'], 
+                    'server_id'=>$product->server_id, 
                     'first_payment_amount'=>$productTotal,
                     'amount'=>$productPrice,
                     'setup_fee'=>@$cart['setupFee'],
@@ -950,6 +951,7 @@ class UserController extends Controller
                 $hosting = new Hosting();
                 $hosting->product_id = $singleData['product_id'];
                 $hosting->domain = $singleData['domain'];
+                $hosting->server_id = $singleData['server_id'];
                 $hosting->first_payment_amount = $singleData['first_payment_amount'];
                 $hosting->amount = $singleData['amount'];
                 $hosting->discount = $singleData['discount'];

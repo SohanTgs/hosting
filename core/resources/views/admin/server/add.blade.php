@@ -28,7 +28,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>@lang('Hostname or IP Address')</label>
+                                <label>@lang('Hostname')</label>
                                 <input type="text" class="form-control" name="hostname" placeholder="@lang('Hostname')" required value="{{old('hostname')}}">
                             </div>
                         </div>
@@ -38,16 +38,22 @@
                                 <input type="text" class="form-control" name="username" placeholder="@lang('Username')" required value="{{old('username')}}">
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label>@lang('Password')</label>
-                                <input type="password" class="form-control" name="password" placeholder="@lang('Password')" required>
+                                <input type="text" class="form-control" name="password" placeholder="@lang('Password')" required>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label>@lang('API Token')</label>
                                 <input type="text" class="form-control" name="api_token" value="{{ old('api_token') }}" placeholder="@lang('API Token')" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>@lang('Security Token')</label>
+                                <input type="text" class="form-control" name="security_token" value="{{ old('security_token') }}" placeholder="@lang('Security Token')" required>
                             </div>
                         </div>
  

@@ -8339,3 +8339,32 @@ ul, ol {
 .table--bg{
     background:#f0f8ff;
 } 
+.billing-form {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+.form-select {
+    display: block;
+    width: 100%;
+    flex-grow: 1;
+}
+@media screen and (min-width: 1200px) {
+    .billing-form {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+ }
+@media screen and (min-width: 1200px) {
+    .billing-form__label {
+        min-width: 150px;
+    }
+ }
+ .button-group {
+     display: flex;
+     align-items: center;
+     gap: .3rem;
+     flex-wrap: wrap;
+ }
