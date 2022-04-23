@@ -16,8 +16,7 @@ class ModuleController extends Controller{
         $request->validate([
             'hosting_id'=> 'required',
             'module_type'=> 'required|between:1,6',
-            'suspend_reason'=> 'required_if:module_type,==,2',
-            'password'=> 'required_if:module_type,==,6',
+            'suspend_reason'=> 'required_if:module_type,==,2'
         ]);
 
         $hosting = Hosting::where('status', 1)->findOrFail($request->hosting_id);
@@ -43,7 +42,7 @@ class ModuleController extends Controller{
             return $this->changePackage($hosting, $request);
         }
         elseif($request->module_type == 6){
-            return $this->changePassword($hosting, $request);
+            return $this->changePassword($hosting);
         }
 
     } 
@@ -55,57 +54,63 @@ class ModuleController extends Controller{
         $product = $hosting->product; 
         $server = $hosting->server;
 
-        try{
 
-            $response = Http::withHeaders([
-                'Authorization' => 'WHM '.$server->username.':'.$server->api_token,
-            ])->get($server->hostname.'/cpsess'.$server->security_token.'/json-api/createacct?api.version=1&username='.$hosting->username.'&domain='.$hosting->domain.'&contactemail='.$user->email.'&ip='.$hosting->dedicated_ip.'&password='.$hosting->password.'&pkgname='.$product->package_name);
+        return $general;
+        
+
+
+
+        // try{
+
+        //     $response = Http::withHeaders([
+        //         'Authorization' => 'WHM '.$server->username.':'.$server->api_token,
+        //     ])->get($server->hostname.'/cpsess'.$server->security_token.'/json-api/createacct?api.version=1&username='.$hosting->username.'&domain='.$hosting->domain.'&contactemail='.$user->email.'&ip='.$hosting->dedicated_ip.'&password='.$hosting->password.'&pkgname='.$product->package_name);
     
-            $response = json_decode($response);
-            $responseStatus = $this->whmApiResponse($response);
+        //     $response = json_decode($response);
+        //     $responseStatus = $this->whmApiResponse($response);
  
-            if(!@$responseStatus['success']){
-                $notify[] = ['error', @$responseStatus['message']];
-                return back()->withNotify($notify);
-            }
+        //     if(!@$responseStatus['success']){
+        //         $notify[] = ['error', @$responseStatus['message']];
+        //         return back()->withNotify($notify);
+        //     }
 
-            $hosting->ns1 = $response->data->nameserver;
-            $hosting->ns2 = $response->data->nameserver2;
-            $hosting->ns3 = $response->data->nameserver3;
-            $hosting->ns4 = $response->data->nameserver4;
-            $hosting->package_name = $product->package_name;
-            $hosting->save(); 
+        //     $hosting->ns1 = $response->data->nameserver;
+        //     $hosting->ns2 = $response->data->nameserver2;
+        //     $hosting->ns3 = $response->data->nameserver3;
+        //     $hosting->ns4 = $response->data->nameserver4;
+        //     $hosting->package_name = $product->package_name;
+        //     $hosting->save(); 
 
-            $act = welcomeEmail()[$product->welcome_email]['act'] ?? null; 
+        //     $act = welcomeEmail()[$product->welcome_email]['act'] ?? null; 
            
-            if($act == 'HOSTING_ACCOUNT'){
-                notify($user, $act, [
-                    'service_product_name' => $product->name,
-                    'service_domain' => $hosting->domain,
-                    'service_first_payment_amount' => showAmount($hosting->first_payment_amount),
-                    'service_recurring_amount' => showAmount($hosting->amount),
-                    'service_billing_cycle' => billing(@$hosting->billing_cycle, true)['showText'],
-                    'service_next_due_date' => showDateTime($hosting->next_due_date, 'd/m/Y'),
-                    'currency' => $general->cur_text,
+        //     if($act == 'HOSTING_ACCOUNT'){
+        //         notify($user, $act, [
+        //             'service_product_name' => $product->name,
+        //             'service_domain' => $hosting->domain,
+        //             'service_first_payment_amount' => showAmount($hosting->first_payment_amount),
+        //             'service_recurring_amount' => showAmount($hosting->amount),
+        //             'service_billing_cycle' => billing(@$hosting->billing_cycle, true)['showText'],
+        //             'service_next_due_date' => showDateTime($hosting->next_due_date, 'd/m/Y'),
+        //             'currency' => $general->cur_text,
 
-                    'service_username' => $hosting->username,
-                    'service_password' => $hosting->password,
-                    'service_server_ip' => $response->data->ip,
+        //             'service_username' => $hosting->username,
+        //             'service_password' => $hosting->password,
+        //             'service_server_ip' => $response->data->ip,
 
-                    'ns1' => $response->data->nameserver,
-                    'ns2' => $response->data->nameserver2,
-                    'ns3' => $response->data->nameserver3 != null ? $response->data->nameserver3 : 'N/A',
-                    'ns4' => $response->data->nameserver4 != null ? $response->data->nameserver4 : 'N/A',
-                ]);
-            }
+        //             'ns1' => $response->data->nameserver,
+        //             'ns2' => $response->data->nameserver2,
+        //             'ns3' => $response->data->nameserver3 != null ? $response->data->nameserver3 : 'N/A',
+        //             'ns4' => $response->data->nameserver4 != null ? $response->data->nameserver4 : 'N/A',
+        //         ]);
+        //     }
 
-            $notify[] = ['success', 'Create module command run successfully'];
-            return back()->withNotify($notify);
+        //     $notify[] = ['success', 'Create module command run successfully'];
+        //     return back()->withNotify($notify)->with('response', $response);
 
-        }catch(\Exception  $error){
-            $notify[] = ['error', $error->getMessage()];
-            return back()->withNotify($notify);
-        }
+        // }catch(\Exception  $error){
+        //     $notify[] = ['error', $error->getMessage()];
+        //     return back()->withNotify($notify);
+        // }
 
     }
 
@@ -249,14 +254,14 @@ class ModuleController extends Controller{
         }
     }
 
-    protected function changePassword($hosting, $request){
+    protected function changePassword($hosting){
         $server = $hosting->server;
 
         try{
 
             $response = Http::withHeaders([
                 'Authorization' => 'WHM '.$server->username.':'.$server->api_token,
-            ])->get($server->hostname.'/cpsess'.$server->security_token.'/json-api/passwd?api.version=1&user='.$hosting->username.'&password='.$request->password);
+            ])->get($server->hostname.'/cpsess'.$server->security_token.'/json-api/passwd?api.version=1&user='.$hosting->username.'&password='.$hosting->password);
  
             $response = json_decode($response);
             $responseStatus = $this->whmApiResponse($response);
@@ -265,9 +270,6 @@ class ModuleController extends Controller{
                 $notify[] = ['error', @$responseStatus['message']];
                 return back()->withNotify($notify);
             }
-        
-            $hosting->password = @$request->password;
-            $hosting->save(); 
 
             $notify[] = ['success', explode('\n', $response->metadata->reason)[0]];
             return back()->withNotify($notify);

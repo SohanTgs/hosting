@@ -40,7 +40,10 @@
                                         </td>
 
                                         <td data-label="@lang('Type')">
-                                            <span class="font-weight-bold">{{ productType()[$product->product_type] }}</span>
+                                            <span class="font-weight-bold">
+                                                {{ productType()[$product->product_type] }}
+                                            </span>
+                                            {{ $product->module_type == 1 ? '(cPanel)' : null }}
                                         </td>
 
                                         <td data-label="@lang('Payment Type')">

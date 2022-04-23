@@ -522,7 +522,7 @@
         
         $('select[name=billing_type]').on('change', function() {
             var value = $(this).val();
-
+    
             var price =  pricing(productPrice, 'price', value);
             var setup =  pricing(productPrice, 'setupFee', value);
             var type = pricing(0, null, value);

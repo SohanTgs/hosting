@@ -5,6 +5,7 @@ namespace App\Http\Controllers\admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Hosting; 
+use App\Models\HostingConfig; 
 use App\Models\Domain; 
 use App\Models\GeneralSetting; 
 use App\Models\ServiceCategory; 
@@ -14,7 +15,7 @@ use App\Models\Product;
 class ServiceController extends Controller{
 
     public function hostingDetails($id){ 
-        $hosting = Hosting::with('hostingConfigs.select', 'hostingConfigs.option', 'product.getConfigs.group.options')->findOrFail($id);
+        $hosting = Hosting::with('hostingConfigs.select', 'hostingConfigs.option', 'product.getConfigs.group.options.subOptions.getOnlyPrice')->findOrFail($id);
         $pageTitle = 'Hosting Details';
         $productDropdown = $this->productDropdown();
         return view('admin.service.hosting_details', compact('pageTitle', 'hosting', 'productDropdown'));
@@ -31,6 +32,8 @@ class ServiceController extends Controller{
         $oldStatus = 0;
 
         $service = Hosting::findOrFail($request->id);
+        $product = $service->product;
+
         $service->domain = $request->domain;
         $service->first_payment_amount = $request->first_payment_amount;
         $service->amount = $request->amount;
@@ -52,6 +55,50 @@ class ServiceController extends Controller{
 
         $service->domain_status = $request->domain_status;
         $service->reg_time = $request->reg_time;
+
+        if($request->config_options){
+            foreach($request->config_options as $option => $select){
+                
+                if($option){
+                    $optionResponse = $this->getOptionAndSelect($product, 'option', $option);
+                    
+                    if(!@$optionResponse['success']){
+                        $notify[] = ['error', @$optionResponse['message']];
+                        return back()->withNotify($notify);
+                    } 
+                } 
+            
+                if($select){
+                    $selectResponse = $this->getOptionAndSelect($product, 'select', $select); 
+                   
+                    if(!@$selectResponse['success']){
+                        $notify[] = ['error', @$selectResponse['message']];
+                        return back()->withNotify($notify);
+                    }
+                }
+
+                if($select){
+                    $exists = HostingConfig::where('hosting_id', $service->id)->where('configurable_group_option_id', $option)->first();
+
+                    if($exists){
+                        $exists->update(['configurable_group_sub_option_id'=>$select]);
+                    }else{
+                        $new = new HostingConfig();
+                        $new->hosting_id = $service->id;
+                        $new->configurable_group_option_id = $option;
+                        $new->configurable_group_sub_option_id = $select;
+                        $new->save();
+                    }
+                }
+            }
+        }
+
+        if($product->product_type == 3){
+            $service->assigned_ips = $request->assigned_ips;
+            $service->ns1 = $request->ns1;
+            $service->ns2 = $request->ns2;
+        }
+
         $service->save();
    
         $general = GeneralSetting::first();
@@ -132,9 +179,11 @@ class ServiceController extends Controller{
 
     public function changeHostingProduct($hostingId, $productId){
 
-        Product::findOrFail($productId);
+        $product = Product::findOrFail($productId);
         $hosting = Hosting::findOrFail($hostingId);
+
         $hosting->product_id = $productId;
+        $hosting->server_id = $product->server_id;
         $hosting->save();
 
         $notify[] = ['success', 'Your changes saved successfully'];
@@ -162,5 +211,38 @@ class ServiceController extends Controller{
         
         return $option;
     }
+
+    private function getOptionAndSelect($product, $type, $value){
+        
+        foreach($product->getConfigs as $config){
+            $options = $config->group->options;
+
+            foreach($options as $option){
+                $subOptions = $option->subOptions;
+              
+                if($type == 'option'){
+                
+                    if(!$option->find($value)){
+                        return ['success'=>false, 'message'=>'The selected option is invalid'];
+                    }
+         
+                }
+ 
+                if($type != 'option'){
+                    foreach($subOptions as $subOption){
+                        
+                        if(!$subOption->find($value)){
+                            return ['success'=>false, 'message'=>'The selected value is invalid'];
+                        }
+                        
+                    }
+                }
+
+                return ['success'=>true];
+            }
+
+        }
+
+    } 
 
 }

@@ -1141,7 +1141,7 @@ function billing($getIndex, $showNextDate = false){
     try{
 
         $array = [
-            0 => ['billing_type'=>'monthly', 'showText'=>'One Time'], 
+            0 => ['billing_type'=>'one_time', 'showText'=>'One Time'], 
             1 => ['billing_type'=>'monthly', 'carbon'=>Carbon::now()->addMonth()->toDateTimeString(), 'showText'=>'Monthly'], 
             2 => ['billing_type'=>'quarterly', 'carbon'=>Carbon::now()->addMonth(3)->toDateTimeString(), 'showText'=>'Quarterly'], 
             3 => ['billing_type'=>'semi_annually', 'carbon'=>Carbon::now()->addMonth(6)->toDateTimeString(), 'showText'=>'Semi Annually'], 
@@ -1191,12 +1191,12 @@ function domainRegister($domainData, $domainName){
 
 function billing_cycle(){
     return [
-        0=> 'One Time',
-        1=> 'Monthly',
-        2=> 'Quarterly',
-        3=> 'Semi Annually',
-        4=> 'Annually',
-        5=> 'Biennially',
-        6=> 'Triennially',
+        0=> ['name'=>'One Time', 'data'=>'One Time'],
+        1=> ['name'=>'Monthly', 'data'=>'monthly'],
+        2=> ['name'=>'Quarterly', 'data'=>'quarterly'],
+        3=> ['name'=>'Semi Annually', 'data'=>'semi_annually'],
+        4=> ['name'=>'Annually', 'data'=>'annually'],
+        5=> ['name'=>'Biennially', 'data'=>'biennially'],
+        6=> ['name'=>'Triennially', 'data'=>'triennially']
     ];
 }

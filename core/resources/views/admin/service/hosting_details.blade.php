@@ -1,9 +1,21 @@
 @extends('admin.layouts.app')
 @section('panel') 
+
 <form action="{{ route('admin.order.hosting.update') }}" method="POST">
     @csrf
 <input type="hidden" name="id" value="{{ @$hosting->id }}">
 <div class="row mb-none-30 mb-2">
+
+    @if(session()->has('response'))
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    @php echo @session()->get('response')->metadata->output->raw; @endphp
+                </div>
+            </div>
+        </div>
+    @endif
+
     <div class="col-xl-6 col-md-6 mb-30">
         <div class="card b-radius--10 overflow-hidden box--shadow1">
             <div class="card-body">
@@ -30,16 +42,6 @@
                                 @lang('Order')
                             </span>
                             <a href="{{ route('admin.order.details', $hosting->order_id) }}">@lang('View Order')</a>
-                        </div>
-                    </li>
-                    <li class="list-group-item">
-                        <div class="billing-form">
-                            <span class="billing-form__label d-block flex-shrink-0">
-                                @lang('Invoice')
-                            </span>
-                            <a href="{{ route('admin.invoice.download', ['id'=>$hosting->order->invoice->id, 'view'=>'preview']) }}" target="_blank">
-                                @lang('View Invoice')
-                            </a>
                         </div>
                     </li>
                     <li class="list-group-item">
@@ -94,6 +96,34 @@
                             <input class="form-control" type="text" name="dedicated_ip" value="{{@$hosting->dedicated_ip}}">
                         </div>
                     </li>
+
+                    @if($hosting->product->product_type == 3)
+                        <li class="list-group-item">
+                            <div class="billing-form">
+                                <span class="billing-form__label d-block flex-shrink-0">
+                                    @lang('Assigned IPs')  
+                                </span>
+                                <textarea name="assigned_ips" class="form-control" rows="3">{{@$hosting->assigned_ips}}</textarea>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="billing-form">
+                                <span class="billing-form__label d-block flex-shrink-0">
+                                    @lang('Nameserver 1')  
+                                </span>
+                                <input class="form-control" type="text" name="ns1" value="{{@$hosting->ns1}}">
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="billing-form">
+                                <span class="billing-form__label d-block flex-shrink-0">
+                                    @lang('Nameserver 2')  
+                                </span>
+                                <input class="form-control" type="text" name="ns2" value="{{@$hosting->ns2}}">
+                            </div>
+                        </li>
+                    @endif
+
                     <li class="list-group-item">
                         <div class="billing-form">
                             <span class="billing-form__label d-block flex-shrink-0">
@@ -187,27 +217,34 @@
                             </span>
                             <select name="billing_cycle" class="form-control">
                                 @foreach(billing_cycle() as $index => $data)
-                                    <option value="{{ $index }}" {{ $hosting->billing_cycle == $index ? 'selected' : null }}>{{ __($data) }}</option>
+                                    <option value="{{ $index }}" {{ $hosting->billing_cycle == $index ? 'selected' : null }} data-data='{{ $data['data'] }}'>
+                                        {{ __($data['name']) }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
-                    </li>
+                    </li> 
                    
-                    @foreach($hosting->product->getConfigs as $index => $config)                      
-                        <li class="list-group-item">
-                            <div class="billing-form">
-                                <span class="billing-form__label d-block flex-shrink-0">
-                                    {{ __($config->group->name) }}
-                                </span>
-                                <select name="" class="form-control">
-                                    @forelse($config->group->options as $option)
-                                        <option value="{{ $option->id }}">{{ __($option->name) }}</option>
-                                    @empty
-                                        <option value="">@lang('N/A')</option>
-                                    @endforelse
-                                </select>
-                            </div>
-                        </li>
+                    @foreach($hosting->product->getConfigs as $index => $config)                 
+                        @foreach($config->group->options as $option)     
+                            <li class="list-group-item">
+                                <div class="billing-form">
+                                    <span class="billing-form__label d-block flex-shrink-0">
+                                        {{ __($option->name) }}
+                                    </span>
+                                    <select name="config_options[{{ $option->id }}]" class="form-control options">
+                                        <option value="">@lang('Select One')</option>
+                                        @forelse($option->subOptions as $subOption)
+                                            <option value="{{ $subOption->id }}" data-price='{{ $subOption->getOnlyPrice }}' data-text='{{ $subOption->name }}'>
+                                                {{ __($subOption->name) }}
+                                            </option> 
+                                        @empty
+                                            <option value="">@lang('N/A')</option>
+                                        @endforelse
+                                    </select>
+                                </div>
+                            </li>
+                        @endforeach
                     @endforeach
 
                     <li class="list-group-item">
@@ -223,20 +260,9 @@
         </div>
     </div>
 
-    @if(count(@$hosting->hostingConfigs))
-        @foreach(@$hosting->hostingConfigs as $config)
-            <div class="col-xl-3 col-md-6 mb-30">
-                <div class="card b-radius--10 overflow-hidden">
-                    <div class="card-body">
-                        <span class="font-weight-bold">{{ __($config->select->name) }}</span>
-                        <p>{{ __($config->option->name) }}</p>
-                    </div>
-                </div>
-            </div>
-        @endforeach
-    @endif
 </div>
 
+@if($hosting->product->module_type)
 <div class="row mb-none-30 mb-3">
     <div class="col-lg-12 col-md-12 mb-30">
         <div class="card">
@@ -246,22 +272,22 @@
                         <div class="form-group">
                             <label class="form-control-label font-weight-bold d-block">@lang('Module Commands')</label>
                             <div class="button-group">
-                                <button class="btn btn--primary moduleMoal" data-module="1" data-type="1" type="button">
+                                <button class="btn btn--primary moduleModal" data-module="1" data-type="1" type="button">
                                     <i class="las la-plus"></i>@lang('Create')
                                 </button>
-                                <button class="btn btn--primary moduleMoal" data-module="2" data-type="2" type="button">
+                                <button class="btn btn--primary moduleModal" data-module="2" data-type="2" type="button">
                                     <i class="las la-ban"></i>@lang('Suspend')
                                 </button>
-                                <button class="btn btn--primary moduleMoal" data-module="3" data-type="3" type="button">
+                                <button class="btn btn--primary moduleModal" data-module="3" data-type="3" type="button">
                                     <i class="las la-undo"></i>@lang('Unsuspend')
                                 </button>
-                                <button class="btn btn--primary moduleMoal" data-module="4" data-type="4" type="button">
+                                <button class="btn btn--primary moduleModal" data-module="4" data-type="4" type="button">
                                     <i class="las la-trash"></i>@lang('Terminate')
                                 </button>
-                                <button class="btn btn--primary moduleMoal" data-module="5" data-type="5" type="button">
+                                <button class="btn btn--primary moduleModal" data-module="5" data-type="5" type="button">
                                     <i class="las la-exchange-alt"></i>@lang('Change Package')
                                 </button>
-                                <button class="btn btn--primary moduleMoal" data-module="6" data-type="6" type="button">
+                                <button class="btn btn--primary moduleModal" data-module="6" data-type="6" type="button">
                                     <i class="las la-key"></i>@lang('Change Password')
                                 </button>
                             </div>
@@ -279,6 +305,7 @@
         </div>
     </div>
 </div>
+@endif
 
 <div class="row mb-none-30">
     <div class="col-lg-12 col-md-12 mb-30">
@@ -302,7 +329,7 @@
 </form>
 
 {{-- Module Modal --}}
-<div class="modal fade" id="moduleMoal" tabindex="-1" role="dialog" aria-labelledby="createModalLabel" aria-hidden="true">
+<div class="modal fade" id="moduleModal" tabindex="-1" role="dialog" aria-labelledby="createModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -318,14 +345,6 @@
                 <div class="modal-body"> 
                     <div class="form-group">
                         @lang('Are you sure you want to run the') <span class="moduleName font-weight-bold"></span> @lang('function')?
-
-                        <div class="form-group mt-4 passwordArea">
-                            <div class="justify-content-between d-flex flex-wrap">
-                                <label class="form-control-label font-weight-bold">@lang('Password')</label>
-                                <a href="javascript:void(0)" class="newGeneratePassword">@lang('Generate Strong Password')</a>
-                            </div>
-                            <input type="text" class="form-control newPassword" name="password" autocomplete="off">
-                        </div>
 
                         <div class="form-group mt-4 suspendArea">
                             <label class="form-control-label font-weight-bold">@lang('Reason')</label>
@@ -352,7 +371,6 @@
 @endsection
 
 @push('breadcrumb-plugins')
-
 <a href="{{ route('admin.order.details', @$hosting->order_id) }}" class="btn btn-sm btn--primary box--shadow1 text-white text--small">
     <i class="fa fa-fw fa-backward"></i>@lang('Go Back')
 </a>
@@ -374,8 +392,8 @@
                 });
             }
 
-            $('.moduleMoal').on('click', function () {
-                var modal = $('#moduleMoal');
+            $('.moduleModal').on('click', function () {
+                var modal = $('#moduleModal');
 
                 var moduleName = $(this).text();
                 var moduleType =  $(this).data('type');
@@ -390,12 +408,6 @@
                    $('.unSuspendArea').removeClass('d-none'); 
                 }else{
                     $('.unSuspendArea').addClass('d-none'); 
-                }
-
-                if(moduleType == 6){
-                   $('.passwordArea').removeClass('d-none'); 
-                }else{
-                    $('.passwordArea').addClass('d-none'); 
                 }
 
                 modal.find('.moduleName').text(moduleName);
@@ -453,6 +465,117 @@
             });
 
             $('.change_product_id option[value=@json($hosting->product->id)]').prop('selected', true);
+
+            var product = @json($hosting->product);
+            var hosting = @json($hosting);
+
+            $('select[name=billing_cycle]').on('change', function() {
+                var value = $('select[name=billing_cycle] option:selected').data('data');
+               
+                if($(this).val() == 0){
+                    value = 'monthly';
+                }
+
+                showSelect(value, product);
+            }).change(); 
+
+            function showSelect(value, product){
+                try{
+                   
+                    var getColumn = value;
+                    var getFeeColumn = value+'_setup_fee';
+
+                    $('.options').each(function(index, data){
+                        var options = $(data).find('option');
+                        var general = @json($general);
+                        var finalText = null;
+
+                        options.each(function(iteration, dropdown) { 
+                            var dropdown = $(dropdown);
+                            var dropdownOptions = null; 
+                            var optionSetupFee = ''; 
+          
+                            if( dropdown.data('price') ){ 
+                                var priceForThisItem = dropdown.data('price');
+                                var mainText = dropdown.data('text');
+                        
+                                var display = hosting.billing_cycle == 0 ? 'One Time' : pricing(0, null, getColumn);
+
+                                if(hosting.billing_cycle == 0){
+                                    getColumn = 'monthly'
+                                }
+                      
+                                if(priceForThisItem[getFeeColumn] > 0){
+                                    optionSetupFee = ` + ${general.cur_sym}${getAmount(priceForThisItem[getFeeColumn])} ${general.cur_text} Setup Fee`
+                                }
+            
+                                dropdownOptions = `${general.cur_sym}${getAmount(priceForThisItem[getColumn])} ${general.cur_text} ${display} ${optionSetupFee}`;
+
+                                finalText = mainText+' '+dropdownOptions;
+                                dropdown.text(finalText);
+                            }
+
+                        });
+                    });
+
+                }catch(message){
+                    console.log(message);
+                }
+            }
+
+            function pricing(price, type, column){ 
+                try{ 
+
+                    if(!price){
+                        column = column.replaceAll('_', ' ');
+
+                        if(product.payment_type == 1){
+                            column = 'One Time:';
+                        }
+
+                        return column.replaceAll(/(?:^|\s)\S/g, function(word){
+                            return word.toUpperCase(); 
+                        });
+                    }
+
+                    if(!type){
+                        var price = productPrice[column];
+                        var fee = productPrice[column+'_setup_fee'];
+                        var sum = (parseFloat(fee) + parseFloat(price));
+                        
+                        return getAmount(sum);
+                    }
+
+                    var amount = 0;
+
+                    if(type == 'price'){
+                        amount = productPrice[column];
+                    }else{
+                        column = column+'_setup_fee';
+                        amount = productPrice[column];
+                    }
+
+                    return getAmount(amount);
+
+                }catch(message){
+                    console.log(message);
+                }
+            }
+
+            function getAmount(getAmount, length = 2){
+                var amount = parseFloat(getAmount).toFixed(length);
+                return amount;
+            }
+
+            var hostingConfigs = @json(@$hosting->hostingConfigs);
+            
+            for(var i = 0; i < hostingConfigs.length; i++){
+
+                var selectName = hostingConfigs[i]['configurable_group_option_id'];
+                var selectOption = hostingConfigs[i]['configurable_group_sub_option_id'];
+                    
+                $(`select[name='config_options[${selectName}]'] option[value=${selectOption}]`).prop('selected', true);
+            }
 
         })(jQuery);
     </script>

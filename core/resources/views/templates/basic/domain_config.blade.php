@@ -27,10 +27,12 @@
                                 <div>
                                     <input type="radio" name="reg_period" id="one_year_price" value="1" required>
                                     <label for="one_year_price">@lang('One year')</label>
+                                    <small>({{ showAmount($pricing->one_year_price) }} {{ __($general->cur_text) }})</small>
                                 </div>
                                 <div>
                                     <input type="radio" value="1" id="one_year_id_protection" name="id_protection" disabled>
                                     <label for="one_year_id_protection">@lang('With ID Protection')</label>
+                                    <small class="d-block">({{ showAmount($pricing->one_year_id_protection) }} {{ __($general->cur_text) }})</small>  
                                 </div>
                             </div>
                         </div>
@@ -41,10 +43,12 @@
                                 <div>
                                     <input type="radio" name="reg_period" id="two_year_price" value="2" required> 
                                     <label for="two_year_price">@lang('Two year')</label>
+                                    <small>({{ showAmount($pricing->two_year_price) }} {{ __($general->cur_text) }})</small>
                                 </div>
                                 <div>
                                     <input type="radio" value="2" id="two_year_id_protection" name="id_protection" disabled>
                                     <label for="two_year_id_protection">@lang('With ID Protection')</label>
+                                    <small class="d-block">({{ showAmount($pricing->two_year_id_protection) }} {{ __($general->cur_text) }})</small>  
                                 </div>
                             </div>
                         </div>
@@ -55,10 +59,12 @@
                                 <div>
                                     <input type="radio" name="reg_period" id="three_year_price" value="3" required> 
                                     <label for="three_year_price">@lang('Three year')</label>
+                                    <small>({{ showAmount($pricing->three_year_price) }} {{ __($general->cur_text) }})</small>
                                 </div>
                                 <div>
                                     <input type="radio" value="3" id="three_year_id_protection" name="id_protection" disabled>
                                     <label for="three_year_id_protection">@lang('With ID Protection')</label>
+                                    <small class="d-block">({{ showAmount($pricing->three_year_id_protection) }} {{ __($general->cur_text) }})</small>  
                                 </div>
                             </div>
                         </div>
@@ -69,10 +75,12 @@
                                 <div>
                                     <input type="radio" name="reg_period" id="four_year_price" value="4" required> 
                                     <label for="four_year_price">@lang('Four year')</label>
+                                    <small>({{ showAmount($pricing->four_year_price) }} {{ __($general->cur_text) }})</small>
                                 </div>
                                 <div>
                                     <input type="radio" value="4" id="four_year_id_protection" name="id_protection" disabled>   
                                     <label for="four_year_id_protection">@lang('With ID Protection')</label>
+                                    <small class="d-block">({{ showAmount($pricing->four_year_id_protection) }} {{ __($general->cur_text) }})</small>  
                                 </div>
                             </div>
                         </div>
@@ -83,10 +91,12 @@
                                 <div>
                                     <input type="radio" name="reg_period" id="five_year_price" value="5" required> 
                                     <label for="five_year_price">@lang('Five year')</label>
+                                    <small>({{ showAmount($pricing->five_year_price) }} {{ __($general->cur_text) }})</small>
                                 </div>
                                 <div>
                                     <input type="radio" value="5" id="five_year_id_protection" name="id_protection" disabled>  
                                     <label for="five_year_id_protection">@lang('With ID Protection')</label>
+                                    <small class="d-block">({{ showAmount($pricing->five_year_id_protection) }} {{ __($general->cur_text) }})</small>
                                 </div>
                             </div>
                         </div>
@@ -97,10 +107,12 @@
                                 <div>
                                     <input type="radio" name="reg_period" id="six_year_price" value="6" required> 
                                     <label for="six_year_price">@lang('Six year')</label>
+                                    <small>({{ showAmount($pricing->six_year_price) }} {{ __($general->cur_text) }})</small>
                                 </div>
                                 <div>
                                     <input type="radio" value="6" id="six_year_id_protection" name="id_protection" disabled>
                                     <label for="six_year_id_protection">@lang('With ID Protection')</label>
+                                    <small class="d-block">({{ showAmount($pricing->six_year_id_protection) }} {{ __($general->cur_text) }})</small>
                                 </div>
                             </div>
                         </div>
@@ -116,7 +128,7 @@
 
         </div> 
     </div>
-</form>
+</form> 
 @endsection
 
 @push('script')

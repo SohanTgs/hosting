@@ -594,7 +594,7 @@ class UserController extends Controller
                     }
                }
             }
-        }
+        } 
  
         shoppingCart($product, $request, null, null, ['price'=>$productPrice, 'setupFee'=>$productSetup], $domain ?? null);
 
@@ -825,8 +825,8 @@ class UserController extends Controller
                     'setup_fee'=>@$cart['setupFee'],
                     'discount'=>@$cart['discount'],
                     'billing_cycle'=>billing($cart['billing_type']),
-                    'next_due_date'=>$product->payment_type == 1 ? null : billing(@$cart['billing_type'], true)['carbon'],
-                    'next_invoice_date'=>$product->payment_type == 1 ? null : billing(@$cart['billing_type'], true)['carbon'],
+                    'next_due_date'=>$product->payment_type == 1 ? null : @billing(@$cart['billing_type'], true)['carbon'], 
+                    'next_invoice_date'=>$product->payment_type == 1 ? null : @billing(@$cart['billing_type'], true)['carbon'],
                     'stock_control'=>$product->stock_control,
                     'billing'=> $product->payment_type == 1 ? 1 : 2,
                     'config_options'=> null
