@@ -374,7 +374,28 @@
 <a href="{{ route('admin.order.details', @$hosting->order_id) }}" class="btn btn-sm btn--primary box--shadow1 text-white text--small">
     <i class="fa fa-fw fa-backward"></i>@lang('Go Back')
 </a>
+
+@if($hosting->product->module_type == 1)
+<form class="d-init" action="{{ route('admin.module.cpanel.login') }}" method="post">
+    @csrf
+    <input type="hidden" name="hosting_id" value="{{ $hosting->id }}" required>
+    <button type="submit" class="btn btn-sm btn--success box--shadow1 text-white text--small">
+        <i class="fa fa-fw fa-sign-in-alt"></i>@lang('Login to cPanel')
+    </button>
+</form>
+
+<a href="{{ session()->get('url') ?? '#' }}" class="cPanelLogin" target="_blank"></a>
+@endif
+
 @endpush 
+
+@push('style')
+<style>
+    .d-init{
+        display: initial;
+    }
+</style>
+@endpush
 
 @push('script-lib')
     <script src="{{ asset('assets/admin/js/vendor/datepicker.min.js') }}"></script>
@@ -575,6 +596,12 @@
                 var selectOption = hostingConfigs[i]['configurable_group_sub_option_id'];
                     
                 $(`select[name='config_options[${selectName}]'] option[value=${selectOption}]`).prop('selected', true);
+            }
+
+            var cpanelLoginUrl = @json(session()->get('url'));
+
+            if(cpanelLoginUrl){
+                document.querySelector('.cPanelLogin').click();
             }
 
         })(jQuery);

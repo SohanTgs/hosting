@@ -18,7 +18,7 @@
                                         <option value="{{ $group->id }}" >{{ __($group->name) }}</option>
                                     @endforeach
                                 </select>
-                            </div>
+                            </div> 
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
@@ -28,8 +28,11 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>@lang('Hostname')</label>
-                                <input type="text" class="form-control" name="hostname" placeholder="@lang('Hostname')" required value="{{old('hostname')}}">
+                                <div class="justify-content-between d-flex">
+                                    <label>@lang('Hostname')</label>
+                                    <small>https://hostname.example.com</small>
+                                </div>
+                                <input type="url" class="form-control" name="hostname" placeholder="https://hostname.example.com:2087" required value="{{old('hostname')}}">
                             </div>
                         </div>
                         <div class="col-md-6">

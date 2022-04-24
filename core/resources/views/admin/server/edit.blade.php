@@ -23,37 +23,46 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>@lang('Name')</label>
-                                <input type="text" class="form-control" name="name" required value="{{ $server->name }}">
+                                <input type="text" class="form-control" name="name" required value="{{ $server->name }}" placeholder="@lang('Name')">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                 <label>@lang('Hostname')</label>
-                                <input type="text" class="form-control" name="hostname" required value="{{ $server->hostname }}">
+                                <div class="justify-content-between d-flex">
+                                    <label>@lang('Hostname')</label>
+                                    <small>https://hostname.example.com</small>
+                                </div>
+                                <input type="text" class="form-control" name="hostname" required value="{{ $server->hostname }}" placeholder="https://hostname.example.com:2087">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>@lang('Username')</label>
-                                <input type="text" class="form-control" name="username" required value="{{ $server->username }}">
+                                <input type="text" class="form-control" name="username" required value="{{ $server->username }}" placeholder="@lang('Username')">
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="form-group">
                                 <label>@lang('Password')</label>
-                                <input type="text" class="form-control" name="password" value="{{ $server->password }}" required>
+                                <input type="text" class="form-control" name="password" value="{{ $server->password }}" required placeholder="@lang('Password')">
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="form-group">
                                 <label>@lang('API Token')</label>
-                                <input type="text" class="form-control" name="api_token" value="{{ $server->api_token }}" required>
+                                <input type="text" class="form-control" name="api_token" value="{{ $server->api_token }}" required placeholder="@lang('API Token')">
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="form-group">
                                 <label>@lang('Security Token')</label>
-                                <input type="text" class="form-control" name="security_token" value="{{ $server->security_token }}" required>
+                                <input type="text" class="form-control" name="security_token" value="{{ $server->security_token }}" required placeholder="@lang('Security Token')">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>@lang('Status')</label>
+                                <input type="checkbox" data-width="100%" data-size="sm" data-onstyle="-success" data-offstyle="-danger" data-toggle="toggle" data-on="@lang('Enable')" data-off="@lang('Disabled')" name="status" @if($server->status) checked @endif>
                             </div>
                         </div>
  

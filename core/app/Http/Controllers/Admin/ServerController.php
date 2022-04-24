@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\ServiceCategory;
 use App\Models\Server;
 use App\Models\ServerGroup;
+use Illuminate\Support\Facades\Http;
 
 class ServerController extends Controller{
      
@@ -22,9 +22,9 @@ class ServerController extends Controller{
         $groups = ServerGroup::where('status', 1)->latest()->get();
         return view('admin.server.add',compact('pageTitle', 'groups'));
     }
-
+ 
     public function addServer(Request $request){
-       
+ 
         $request->validate([
     		'name' => 'required|max:255',
     		'hostname' => 'required|url|max:255',
@@ -41,6 +41,13 @@ class ServerController extends Controller{
             $hostname = $hostname.':2087';
         }
 
+        $whmResponse = $this->WHM($request, false, $hostname);
+
+        if(@$whmResponse['error']){
+            $notify[] = ['error', @$whmResponse['message']];
+            return back()->withNotify($notify);
+        }
+
         $server = new Server();
         $server->type = 'cPanel';
         $server->server_group_id = $request->server_group_id;
@@ -51,6 +58,7 @@ class ServerController extends Controller{
         $server->password = $request->password;
         $server->api_token = $request->api_token;
         $server->security_token = $request->security_token;
+        $server->status = 1;
         $server->save();
 
         $notify[] = ['success', 'Server added successfully'];
@@ -84,8 +92,15 @@ class ServerController extends Controller{
         }
      
         $server = Server::findOrFail($request->id);
-        $server->server_group_id = $request->server_group_id;
 
+        $whmResponse = $this->WHM($request, false, $hostname);
+
+        if(@$whmResponse['error']){
+            $notify[] = ['error', @$whmResponse['message']];
+            return back()->withNotify($notify);
+        }
+
+        $server->server_group_id = $request->server_group_id;
         $server->name = $request->name;
         $server->hostname = $hostname;
         $server->username = $request->username;
@@ -141,9 +156,52 @@ class ServerController extends Controller{
 	    return back()->withNotify($notify);
     } 
 
- 
-    
+    public function loginWHM($id){
+        $server = Server::findOrFail($id);
+        return $this->WHM($server, true);
+    }
 
+    protected function WHM($server, $login, $host = null){
+
+        $username = $server->username;
+        $password = $server->password;
+        $hostname = $host ?? $server->hostname;
+
+        try{
+            $response = Http::withHeaders([
+                'Authorization' => 'Basic '.base64_encode($username.':'.$password),
+            ])->get($hostname.'/json-api/create_user_session?api.version=1&user='.$username.'&service=whostmgrd');
+    
+            $response = json_decode($response);
+
+            if(@$response->cpanelresult->error){
+                
+                if($login){ 
+                    $notify[] = ['error', @$response->cpanelresult->data->reason];
+                    return back()->withNotify($notify);
+                }
+              
+                return ['error'=>true, 'message'=>@$response->cpanelresult->data->reason];
+            }
+
+            if($login){
+                $redirectUrl = $response->data->url;
+                return back()->with('url', $redirectUrl);
+            }
+
+            return 200;
+
+        }catch(\Exception  $error){
+            if($login){ 
+                $notify[] = ['error', $error->getMessage()];
+                return back()->withNotify($notify);
+            }
+          
+            return ['error'=>true, 'message'=>$error->getMessage()];
+        }
+
+    }
+ 
 } 
 
  

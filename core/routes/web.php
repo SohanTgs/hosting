@@ -100,6 +100,7 @@ Route::namespace('Admin')->prefix('admin')->name('admin.')->group(function () {
 
         //Module Command     
         Route::post('module/command', 'ModuleController@moduleCommand')->name('module.command');
+        Route::post('login/cPanel', 'ModuleController@loginCpanel')->name('module.cpanel.login');
 
         //Invoice     
         Route::get('all/invoice', 'InvoiceController@all')->name('invoice.all');
@@ -153,6 +154,7 @@ Route::namespace('Admin')->prefix('admin')->name('admin.')->group(function () {
         Route::post('add/server','ServerController@addServer')->name('server.add');
         Route::get('edit/server/{id}','ServerController@editServerPage')->name('server.edit.page');
         Route::post('update/server','ServerController@updateServer')->name('server.update');
+        Route::get('login/WHM/{id}','ServerController@loginWHM')->name('server.login.WHM');
 
         //Server Group
         Route::get('all/group/server','ServerController@allGroupServer')->name('group.server.all');

@@ -26,11 +26,11 @@
                                     <td data-label="@lang('Group')">
                                         <span class="font-weight-bold">{{ __(@$server->group->name) }}</span>
                                     </td>
-                                    <td data-label="@lang('Server Name')">
-                                        {{ __($server->hostname) }}
+                                    <td data-label="@lang('Hostname')">
+                                        {{ $server->hostname }}
                                     </td>
 
-                                    <td data-label="@lang('Server Name')">
+                                    <td data-label="@lang('Username')">
                                         {{ __($server->username) }}
                                     </td>
 
@@ -43,6 +43,10 @@
                                     </td>
 
                                     <td data-label="@lang('Action')">
+                                        <a class="icon-btn btn--success" data-toggle="tooltip" data-original-title="@lang('Login to WHM')" 
+                                            href="{{ route('admin.server.login.WHM', $server->id) }}">
+                                            <i class="lab la-whmcs text--shadow"></i>
+                                        </a>
                                         <a class="icon-btn" data-toggle="tooltip" data-original-title="@lang('Edit')" href="{{ route('admin.server.edit.page', $server->id) }}">
                                             <i class="las la-edit text--shadow"></i>
                                         </a>
@@ -116,7 +120,20 @@
     <a class="btn btn-sm btn--primary box--shadow1 text-white text--small" href="{{ route('admin.server.add.page') }}">
         <i class="fa fa-fw fa-plus"></i>@lang('Add New')
     </a>
+    <a href="{{ session()->get('url') ?? '#' }}" class="whmLogin" target="_blank"></a>
 @endpush 
 
+@push('script')
+    <script>
+        (function ($) {
+            "use strict";
 
- 
+            var whmLoginUrl = @json(session()->get('url'));
+
+            if(whmLoginUrl){
+                document.querySelector('.whmLogin').click();
+            }
+
+        })(jQuery);
+    </script>
+@endpush 
