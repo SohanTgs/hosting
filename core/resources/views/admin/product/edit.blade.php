@@ -542,13 +542,13 @@
         $('select[name=package_name]').on('change', function(){
             var serverId = $(this).children('option:selected').data('server_id');
             $('.server_id').val(serverId);
-        });
+        }).change();
 
     })(jQuery);    
     </script> 
 @endpush
 
-@push('script')
+@push('script') 
     <script>
         (function($){
             "use strict"; 
@@ -737,7 +737,7 @@
                 return input.toLowerCase().replace(/ /g,'-').replace(/[^\w-]+/g,'');
             } 
 
-            function checkSlug(input, slug, category){
+            function checkSlug(input, slug, category){ 
                 $.ajax({
                     type:'POST',
                     url:'{{ route("admin.check.slug") }}',
@@ -779,6 +779,14 @@
                     }
                 });
             }
+
+            $('select[name=module_type]').on('change', function(){
+                if( $(this).val() == 0 ){
+                    $('select[name=package_name]').find('option:eq(0)').prop('selected', true);
+                }else{
+                    $('select[name=package_name] option[value=@json($product->package_name)]').prop('selected', true);
+                }
+            });
 
         })(jQuery);    
     </script> 

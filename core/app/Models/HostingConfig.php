@@ -15,8 +15,8 @@ class HostingConfig extends Model
         return $this->belongsTo(ConfigurableGroupOption::class, 'configurable_group_option_id')->withDefault();
     }
  
-    public function option(){
-        return $this->belongsTo(ConfigurableGroupSubOption::class, 'configurable_group_option_id')->withDefault();
+    public function option(){ 
+        return $this->belongsTo(ConfigurableGroupSubOption::class, 'configurable_group_sub_option_id')->withDefault();
     }
 
 }

@@ -754,7 +754,7 @@ class UserController extends Controller
 
         $pageTitle = 'Service Details';
         $user = auth()->user();
-        $service = Hosting::whereBelongsTo($user)->with('hostingConfigs.select', 'hostingConfigs.option')->findOrFail($id);
+        $service = Hosting::whereBelongsTo($user)->with('hostingConfigs.select', 'hostingConfigs.option', 'product.getConfigs.group.options')->findOrFail($id);
 
         return view($this->activeTemplate . 'user.service.details', compact('pageTitle', 'service'));
     }
@@ -1236,6 +1236,39 @@ class UserController extends Controller
 
     public function domainNameserverUpdate(Request $request){
         return $request;
+    }
+
+    public function loginCpanel($id){
+
+        $service = Hosting::where('user_id', auth()->user()->id)->findOrFail($id);
+        $product = $service->product;
+        $server = $service->server;
+
+        if($product->module_type == 0){
+            $notify[] = ['error', 'Unable to auto-login'];
+            return back()->withNotify($notify);
+        }
+
+        try{
+            $response = Http::withHeaders([
+                'Authorization' => 'Basic '.base64_encode($server->username.':'.$server->password),
+            ])->get($server->hostname.'/json-api/create_user_session?api.version=1&user='.$service->username.'&service=cpaneld');
+    
+            $response = json_decode($response);
+      
+            if(@$response->cpanelresult->error){
+                $notify[] = ['error', @$response->cpanelresult->data->reason];
+                return back()->withNotify($notify);
+            }
+
+            $redirectUrl = $response->data->url;
+            return back()->with('url', $redirectUrl);
+
+        }catch(\Exception  $error){
+            $notify[] = ['error', $error->getMessage()];
+            return back()->withNotify($notify);
+        }
+      
     }
 
 }

@@ -23,7 +23,7 @@ class Hosting extends Model
     public function deposit(){ 
         return $this->belongsTo(Deposit::class, 'deposit_id');
     }
- 
+  
     public function server(){
         return $this->belongsTo(Server::class, 'server_id');
     }

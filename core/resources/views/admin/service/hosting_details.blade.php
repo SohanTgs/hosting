@@ -367,7 +367,7 @@
             </form> 
         </div>
     </div>
-</div>
+</div> 
 @endsection
 
 @push('breadcrumb-plugins')

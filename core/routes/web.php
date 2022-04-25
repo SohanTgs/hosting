@@ -471,6 +471,8 @@ Route::name('user.')->prefix('user')->group(function () {
 
             Route::get('my/services', 'UserController@myServices')->name('my.services');
             Route::get('service/details/{id}', 'UserController@serviceDetails')->name('service.details');
+            
+            Route::get('login/cPanel/{id}', 'UserController@loginCpanel')->name('login.cpanel');
 
             Route::get('my/domains', 'UserController@myDomains')->name('my.domains');
             Route::get('domain/details/{id}', 'UserController@domainDetails')->name('domain.details');

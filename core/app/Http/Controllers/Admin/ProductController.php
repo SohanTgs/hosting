@@ -215,7 +215,7 @@ class ProductController extends Controller{
 
         $notify[] = ['success', 'Product updated successfully'];
 	    return back()->withNotify($notify);
-    }
+    } 
 
 }
     
