@@ -40,7 +40,7 @@ class ProductController extends Controller{
    
         $request->validate([ 
     		'name' => 'required|max:255',
-    		'product_type' => 'required|integer|between:1,4',
+    		'product_type' => 'required|integer|between:1,3',
     		'service_category' => 'required|exists:service_categories,id',
     		'module_type' => 'required|in:0,1',
     		'module_option' => 'sometimes|between:1,4',
@@ -126,7 +126,7 @@ class ProductController extends Controller{
         $request->validate([
     		'id' => 'required',
     		'name' => 'required|max:255',
-    		'product_type' => 'required|integer|between:1,4',
+    		'product_type' => 'required|integer|between:1,3',
     		'welcome_email' => 'required|integer|between:0,4',
     		'service_category' => 'required|exists:service_categories,id',
     		'domain_registration' => 'required|integer|in:0,1',

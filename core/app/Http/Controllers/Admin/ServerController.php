@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Server;
 use App\Models\ServerGroup;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ServerController extends Controller{
      
@@ -42,7 +43,6 @@ class ServerController extends Controller{
         }
 
         $whmResponse = $this->WHM($request, false, $hostname);
-
         if(@$whmResponse['error']){
             $notify[] = ['error', @$whmResponse['message']];
             return back()->withNotify($notify);
@@ -58,11 +58,25 @@ class ServerController extends Controller{
         $server->password = $request->password;
         $server->api_token = $request->api_token;
         $server->security_token = $request->security_token;
+
+        $server->ns1 = $request->ns1;
+        $server->ns_ip1 = $request->ns_ip1;
+        $server->ns2 = $request->ns2;
+        $server->ns_ip2 = $request->ns_ip2;
+        $server->ns3 = $request->ns3;
+        $server->ns_ip3 = $request->ns_ip3;
+        $server->ns4 = $request->ns4;
+        $server->ns_ip4 = $request->ns_ip4;
+        $server->ns5 = $request->ns5;
+        $server->ns_ip5 = $request->ns_ip5;
+
+        $server->ip_address = $this->getIP($request);
+
         $server->status = 1;
         $server->save();
 
         $notify[] = ['success', 'Server added successfully'];
-	    return back()->withNotify($notify);
+	    return redirect()->route('admin.server.edit.page', $server->id)->withNotify($notify);
     }
 
     public function editServerPage($id){
@@ -70,7 +84,7 @@ class ServerController extends Controller{
         $pageTitle = 'Update Server';
         $groups = ServerGroup::where('status', 1)->latest()->get();
         return view('admin.server.edit',compact('pageTitle', 'groups', 'server'));
-    }
+    } 
 
     public function updateServer(Request $request){
        
@@ -92,7 +106,6 @@ class ServerController extends Controller{
         }
      
         $server = Server::findOrFail($request->id);
-
         $whmResponse = $this->WHM($request, false, $hostname);
 
         if(@$whmResponse['error']){
@@ -107,6 +120,19 @@ class ServerController extends Controller{
         $server->password = $request->password;
         $server->api_token = $request->api_token;
         $server->security_token = $request->security_token;
+
+        $server->ns1 = $request->ns1;
+        $server->ns_ip1 = $request->ns_ip1;
+        $server->ns2 = $request->ns2;
+        $server->ns_ip2 = $request->ns_ip2;
+        $server->ns3 = $request->ns3;
+        $server->ns_ip3 = $request->ns_ip3;
+        $server->ns4 = $request->ns4;
+        $server->ns_ip4 = $request->ns_ip4;
+        $server->ns5 = $request->ns5;
+        $server->ns_ip5 = $request->ns_ip5;
+
+        $server->ip_address = $request->ip_address;
 
         $server->status = $request->status ? 1 : 0;
         $server->save();
@@ -159,7 +185,7 @@ class ServerController extends Controller{
     public function loginWHM($id){
         $server = Server::findOrFail($id);
         return $this->WHM($server, true);
-    }
+    } 
 
     protected function WHM($server, $login, $host = null){
 
@@ -200,6 +226,20 @@ class ServerController extends Controller{
             return ['error'=>true, 'message'=>$error->getMessage()];
         }
 
+    }
+
+    protected function getIP($server){
+
+        try{
+            $response = Http::withHeaders([
+                'Authorization' => 'WHM '.$server->username.':'.$server->api_token,
+            ])->get($server->hostname.'/cpsess'.$server->security_token.'/json-api/accountsummary?api.version=1&user='.$server->username);
+        }catch(\Exception  $error){
+            Log::error($error->getMessage());
+        }
+        
+        $response = json_decode(@$response);
+        return @$response->data->acct[0]->ip ?? null;
     }
  
 } 

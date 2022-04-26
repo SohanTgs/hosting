@@ -467,7 +467,7 @@ Route::name('user.')->prefix('user')->group(function () {
             Route::post('create/invoice', 'UserController@createInvoice')->name('create.invoice');
             Route::get('view/invoice/{id}', 'UserController@viewInvoice')->name('view.invoice');
 
-            Route::post('payment', 'UserController@payment')->name('payment'); 
+            Route::post('payment', 'UserController@payment')->name('payment');  
 
             Route::get('my/services', 'UserController@myServices')->name('my.services');
             Route::get('service/details/{id}', 'UserController@serviceDetails')->name('service.details');

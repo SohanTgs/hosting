@@ -28,6 +28,7 @@ use Illuminate\Validation\Rules\Password;
 use Carbon\Carbon;
 use PDF;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -396,7 +397,7 @@ class UserController extends Controller
         }
         return back()->withNotify($notify); 
     }  
-
+ 
     private function paymentByWallet($invoice, $order, $user){
   
         $general = GeneralSetting::first();
@@ -420,6 +421,12 @@ class UserController extends Controller
         foreach($order->hostings as $hosting){
             $hosting->status = 1;
             $hosting->save();
+
+            $product = $hosting->product; 
+
+            if($product->product_type == 1){
+                $this->createCpanelAccount($hosting);
+            }          
         } 
 
         foreach($order->domains as $domain){
@@ -478,7 +485,7 @@ class UserController extends Controller
 
         session()->put('Track', $data->trx);
         return redirect()->route('user.deposit.preview');
-    }  
+    }   
  
     private function getOptionAndSelect($product, $type, $value, $billing_type = null){
    
@@ -515,10 +522,10 @@ class UserController extends Controller
 
         }
 
-    }  
+    }   
  
     public function addCart(Request $request){ 
-       
+    
         $request->validate([
             'product_id' => 'required',
             'billing_type' => 'required|in:'.pricing(),
@@ -542,24 +549,38 @@ class UserController extends Controller
             ]);
         }
 
-        if($request->domain_id){
-
-            $general = GeneralSetting::first();
-            $domain = DomainSetup::where('status', 1)->findOrFail($request->domain_id); 
-
-            try{
-                $url = 'https://domain-availability.whoisxmlapi.com/api/v1?'. "apiKey={$general->api_key}&domainName={$request->domain}";
-                $response = Http::get($url);
-
-                if(json_decode($response)->DomainInfo->domainAvailability != 'AVAILABLE'){
-                    $notify[] = ['error', $request->domain.' is unavailable'];
-                    return back()->withNotify($notify);
-                } 
-            }catch(\Exception $error){
-                $notify[] = ['error', $error->getMessage()];
+        if($product->domain_register){
+    
+            if(!$request->domain){
+                $notify[] = ['error', 'Domain field is required'];
                 return back()->withNotify($notify);
             }
 
+            if($request->domain_id){
+    
+                $general = GeneralSetting::first();
+                $domain = DomainSetup::where('status', 1)->findOrFail($request->domain_id); 
+    
+                try{
+                    $url = 'https://domain-availability.whoisxmlapi.com/api/v1?'."apiKey={$general->api_key}&domainName={$request->domain}";
+                    $response = Http::get($url);
+    
+                    if(json_decode($response)->DomainInfo->domainAvailability != 'AVAILABLE'){
+                        $notify[] = ['error', $request->domain.' is unavailable'];
+                        return back()->withNotify($notify);
+                    } 
+                }catch(\Exception $error){
+                    $notify[] = ['error', $error->getMessage()];
+                    return back()->withNotify($notify);
+                }
+    
+            }
+            else{
+                if(!preg_match('/((http|https|ftp|ftps)\:\/\/)?[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,4}(\/\S*)?/', $request->domain)){
+                    $notify[] = ['error', 'Please provide valid domain name'];
+                    return back()->withNotify($notify);
+                }
+            }
         }
         
         if($product->stock_control && !$product->stock_quantity){
@@ -734,7 +755,7 @@ class UserController extends Controller
 
         return $this->paymentByCheckout($gate, $amount, $order->id, $user);
     }
-
+ 
     public function myServices(){
 
         $pageTitle = 'My Services';
@@ -755,8 +776,25 @@ class UserController extends Controller
         $pageTitle = 'Service Details';
         $user = auth()->user();
         $service = Hosting::whereBelongsTo($user)->with('hostingConfigs.select', 'hostingConfigs.option', 'product.getConfigs.group.options')->findOrFail($id);
+        $server = $service->server;
+        $diskUsed = 0; 
+        $diskLimit = 1;
 
-        return view($this->activeTemplate . 'user.service.details', compact('pageTitle', 'service'));
+        try{
+            $response = Http::withHeaders([
+                'Authorization' => 'WHM '.$server->username.':'.$server->api_token,
+            ])->get($server->hostname.'/cpsess'.$server->security_token.'/json-api/accountsummary?api.version=1&user='.$service->username);
+            
+            $response = json_decode(@$response)->data->acct[0];
+            
+            $diskUsed = @$response->diskused;
+            $diskLimit = @$response->disklimit;
+
+        }catch(\Exception  $error){
+            Log::error($error->getMessage());
+        }
+
+        return view($this->activeTemplate . 'user.service.details', compact('pageTitle', 'service', 'diskUsed', 'diskLimit'));
     }
 
     public function createInvoice(Request $request){
@@ -1269,6 +1307,70 @@ class UserController extends Controller
             return back()->withNotify($notify);
         }
       
+    }
+
+    protected function createCpanelAccount($hosting){
+        
+        $general = GeneralSetting::first('cur_text');
+        $user = $hosting->user;
+        $product = $hosting->product; 
+        $server = $hosting->server;
+
+        try{
+
+            $response = Http::withHeaders([
+                'Authorization' => 'WHM '.$server->username.':'.$server->api_token,
+            ])->get($server->hostname.'/cpsess'.$server->security_token.'/json-api/createacct?api.version=1&username='.$hosting->username.'&domain='.$hosting->domain.'&contactemail='.$user->email.'&password='.$hosting->password.'&pkgname='.$product->package_name);
+    
+            $response = json_decode($response);
+ 
+            if($response->metadata->result == 0){
+
+                $message = null;
+    
+                if(str_contains($response->metadata->reason, '. at') !== false){
+                    $message = explode('. at', $response->metadata->reason)[0];
+                }else{
+                    $message = $response->metadata->reason;
+                }
+
+                Log::error($message);
+            }
+
+            $hosting->ns1 = $response->data->nameserver;
+            $hosting->ns2 = $response->data->nameserver2;
+            $hosting->ns3 = $response->data->nameserver3;
+            $hosting->ns4 = $response->data->nameserver4;
+            $hosting->package_name = $product->package_name;
+            $hosting->save(); 
+
+            $act = welcomeEmail()[$product->welcome_email]['act'] ?? null; 
+           
+            if($act == 'HOSTING_ACCOUNT'){
+                notify($user, $act, [
+                    'service_product_name' => $product->name,
+                    'service_domain' => $hosting->domain,
+                    'service_first_payment_amount' => showAmount($hosting->first_payment_amount),
+                    'service_recurring_amount' => showAmount($hosting->amount),
+                    'service_billing_cycle' => billing(@$hosting->billing_cycle, true)['showText'],
+                    'service_next_due_date' => showDateTime($hosting->next_due_date, 'd/m/Y'),
+                    'currency' => $general->cur_text,
+
+                    'service_username' => $hosting->username,
+                    'service_password' => $hosting->password,
+                    'service_server_ip' => $response->data->ip,
+
+                    'ns1' => $response->data->nameserver,
+                    'ns2' => $response->data->nameserver2,
+                    'ns3' => $response->data->nameserver3 != null ? $response->data->nameserver3 : 'N/A',
+                    'ns4' => $response->data->nameserver4 != null ? $response->data->nameserver4 : 'N/A',
+                ]);
+            }
+
+        }catch(\Exception  $error){
+            Log::error($error->getMessage());
+        }
+
     }
 
 }

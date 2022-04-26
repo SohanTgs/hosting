@@ -21,7 +21,7 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
-    ];
+    ]; 
 
     /**
      * Register any events for your application.
@@ -30,6 +30,6 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        // Hosting::observe(HostingObserver::class); 
+        Hosting::observe(HostingObserver::class); 
     }
 }

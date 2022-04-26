@@ -391,7 +391,7 @@
             $(this).siblings().removeClass('option-selected');
         })
 
-        var product = @json($product);
+        var product = @json($product); 
 
         if(product.domain_register){
 
@@ -423,7 +423,7 @@
                 var extension = $(this).find('.extension').val();
                 var domain = domainName+'.'+extension;
                 
-                var regexDomain = /^\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+                var regexDomain = /((http|https|ftp|ftps)\:\/\/)?[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,4}(\/\S*)?/;
                 if(domain.match(regexDomain)){
                     $('.domain').val(domain);
                     $('.domain_id').val(0);
@@ -738,3 +738,4 @@
 </script>
 @endpush
 
+ 

@@ -213,7 +213,7 @@ class ServiceController extends Controller{
         return $option;
     }
 
-    private function getOptionAndSelect($product, $type, $value){
+    protected function getOptionAndSelect($product, $type, $value){
         
         foreach($product->getConfigs as $config){
             $options = $config->group->options;
@@ -245,5 +245,6 @@ class ServiceController extends Controller{
         }
 
     } 
+
 
 }

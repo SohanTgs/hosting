@@ -58,7 +58,7 @@ class ModuleController extends Controller{
 
             $response = Http::withHeaders([
                 'Authorization' => 'WHM '.$server->username.':'.$server->api_token,
-            ])->get($server->hostname.'/cpsess'.$server->security_token.'/json-api/createacct?api.version=1&username='.$hosting->username.'&domain='.$hosting->domain.'&contactemail='.$user->email.'&ip='.$hosting->dedicated_ip.'&password='.$hosting->password.'&pkgname='.$product->package_name);
+            ])->get($server->hostname.'/cpsess'.$server->security_token.'/json-api/createacct?api.version=1&username='.$hosting->username.'&domain='.$hosting->domain.'&contactemail='.$user->email.'&password='.$hosting->password.'&pkgname='.$product->package_name);
     
             $response = json_decode($response);
             $responseStatus = $this->whmApiResponse($response);

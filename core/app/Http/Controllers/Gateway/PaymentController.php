@@ -12,6 +12,8 @@ use App\Models\User;
 use App\Rules\FileTypeValidate;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
@@ -198,9 +200,13 @@ class PaymentController extends Controller
                     $hosting->deposit_id = $data->id;
                     $hosting->save();
 
+                    $product = $hosting->product;
+
+                    if($product->product_type == 1){
+                        static::createCpanelAccount($hosting);
+                    } 
+
                     if($hosting->stock_control){
-                        $product = $hosting->product;
-    
                         $product->decrement('stock_quantity');
                         $product->save();
                     }
@@ -216,6 +222,70 @@ class PaymentController extends Controller
 
             }
 
+        }
+
+    }
+
+    protected function createCpanelAccount($hosting){
+        
+        $general = GeneralSetting::first('cur_text');
+        $user = $hosting->user;
+        $product = $hosting->product; 
+        $server = $hosting->server;
+
+        try{
+
+            $response = Http::withHeaders([
+                'Authorization' => 'WHM '.$server->username.':'.$server->api_token,
+            ])->get($server->hostname.'/cpsess'.$server->security_token.'/json-api/createacct?api.version=1&username='.$hosting->username.'&domain='.$hosting->domain.'&contactemail='.$user->email.'&password='.$hosting->password.'&pkgname='.$product->package_name);
+    
+            $response = json_decode($response);
+ 
+            if($response->metadata->result == 0){
+
+                $message = null;
+    
+                if(str_contains($response->metadata->reason, '. at') !== false){
+                    $message = explode('. at', $response->metadata->reason)[0];
+                }else{
+                    $message = $response->metadata->reason;
+                }
+
+                Log::error($message);
+            }
+
+            $hosting->ns1 = $response->data->nameserver;
+            $hosting->ns2 = $response->data->nameserver2;
+            $hosting->ns3 = $response->data->nameserver3;
+            $hosting->ns4 = $response->data->nameserver4;
+            $hosting->package_name = $product->package_name;
+            $hosting->save(); 
+
+            $act = welcomeEmail()[$product->welcome_email]['act'] ?? null; 
+           
+            if($act == 'HOSTING_ACCOUNT'){
+                notify($user, $act, [
+                    'service_product_name' => $product->name,
+                    'service_domain' => $hosting->domain,
+                    'service_first_payment_amount' => showAmount($hosting->first_payment_amount),
+                    'service_recurring_amount' => showAmount($hosting->amount),
+                    'service_billing_cycle' => billing(@$hosting->billing_cycle, true)['showText'],
+                    'service_next_due_date' => showDateTime($hosting->next_due_date, 'd/m/Y'),
+                    'currency' => $general->cur_text,
+
+                    'service_username' => $hosting->username,
+                    'service_password' => $hosting->password,
+                    'service_server_ip' => $response->data->ip,
+
+                    'ns1' => $response->data->nameserver,
+                    'ns2' => $response->data->nameserver2,
+                    'ns3' => $response->data->nameserver3 != null ? $response->data->nameserver3 : 'N/A',
+                    'ns4' => $response->data->nameserver4 != null ? $response->data->nameserver4 : 'N/A',
+                ]);
+            }
+
+        }catch(\Exception  $error){
+            Log::error($error->getMessage());
         }
 
     }
@@ -320,6 +390,7 @@ class PaymentController extends Controller
         $adminNotification->save();
 
         $general = GeneralSetting::first();
+
         notify($data->user, 'DEPOSIT_REQUEST', [
             'method_name' => $data->gatewayCurrency()->name,
             'method_currency' => $data->method_currency,

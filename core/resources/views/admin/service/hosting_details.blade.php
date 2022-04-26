@@ -260,7 +260,7 @@
         </div>
     </div>
 
-</div>
+</div> 
 
 @if($hosting->product->module_type)
 <div class="row mb-none-30 mb-3">
@@ -438,20 +438,15 @@
             });
 
             $('.generatePassword').on('click', function(){
-                var password = generatePassword(10);
+                var password = generatePassword(15);
                 $('#password').val(password);
-            });
-
-            $('.newGeneratePassword').on('click', function(){
-                var password = generatePassword(10);
-                $('.newPassword').val(password);
             });
 
             function generatePassword(passwordLength) {
                 var numberChars = "0123456789";
                 var upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
                 var lowerChars = "abcdefghijklmnopqrstuvwxyz";
-                var specialChars = "!@#$%^&*()_+-*/?><{}:|.";
+                var specialChars = "!#$%&()*+,-./:;<=>?@[\]^_`{|}~";
                 var allChars = numberChars + upperChars + lowerChars + specialChars;
                 var randPasswordArray = Array(passwordLength);
 
