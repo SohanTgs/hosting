@@ -25,7 +25,7 @@ class ServerController extends Controller{
     }
  
     public function addServer(Request $request){
- 
+
         $request->validate([
     		'name' => 'required|max:255',
     		'hostname' => 'required|url|max:255',
@@ -34,6 +34,10 @@ class ServerController extends Controller{
     		'api_token' => 'required',
     		'security_token' => 'required',
     		'server_group_id' => 'required|exists:server_groups,id',
+            'ns1' => 'required',
+    		'ns1_ip' => 'required',
+    		'ns2' => 'required',
+    		'ns2_ip' => 'required', 
     	]);
   
         $hostname = $request->hostname;
@@ -60,15 +64,15 @@ class ServerController extends Controller{
         $server->security_token = $request->security_token;
 
         $server->ns1 = $request->ns1;
-        $server->ns_ip1 = $request->ns_ip1;
+        $server->ns1_ip = $request->ns1_ip;
         $server->ns2 = $request->ns2;
-        $server->ns_ip2 = $request->ns_ip2;
+        $server->ns2_ip = $request->ns2_ip;
         $server->ns3 = $request->ns3;
-        $server->ns_ip3 = $request->ns_ip3;
+        $server->ns3_ip = $request->ns3_ip;
         $server->ns4 = $request->ns4;
-        $server->ns_ip4 = $request->ns_ip4;
+        $server->ns4_ip = $request->ns4_ip;
         $server->ns5 = $request->ns5;
-        $server->ns_ip5 = $request->ns_ip5;
+        $server->ns5_ip = $request->ns5_ip;
 
         $server->ip_address = $this->getIP($request);
 
@@ -87,7 +91,7 @@ class ServerController extends Controller{
     } 
 
     public function updateServer(Request $request){
-       
+     
         $request->validate([
     		'id' => 'required',
     		'name' => 'required|max:255',
@@ -97,6 +101,10 @@ class ServerController extends Controller{
     		'api_token' => 'required',
             'security_token' => 'required',
     		'server_group_id' => 'required|exists:server_groups,id',
+            'ns1' => 'required',
+    		'ns1_ip' => 'required',
+    		'ns2' => 'required',
+    		'ns2_ip' => 'required', 
     	]);
 
         $hostname = $request->hostname;
@@ -122,15 +130,15 @@ class ServerController extends Controller{
         $server->security_token = $request->security_token;
 
         $server->ns1 = $request->ns1;
-        $server->ns_ip1 = $request->ns_ip1;
+        $server->ns1_ip = $request->ns1_ip;
         $server->ns2 = $request->ns2;
-        $server->ns_ip2 = $request->ns_ip2;
+        $server->ns2_ip = $request->ns2_ip;
         $server->ns3 = $request->ns3;
-        $server->ns_ip3 = $request->ns_ip3;
+        $server->ns3_ip = $request->ns3_ip;
         $server->ns4 = $request->ns4;
-        $server->ns_ip4 = $request->ns_ip4;
+        $server->ns4_ip = $request->ns4_ip;
         $server->ns5 = $request->ns5;
-        $server->ns_ip5 = $request->ns_ip5;
+        $server->ns5_ip = $request->ns5_ip;
 
         $server->ip_address = $request->ip_address;
 

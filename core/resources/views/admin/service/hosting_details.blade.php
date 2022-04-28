@@ -23,22 +23,6 @@
                     <li class="list-group-item">
                         <div class="billing-form">
                             <span class="billing-form__label d-block flex-shrink-0">
-                                @lang('Payment Method') 
-                            </span>
-                            <span class="font-weight-bold">
-                                @if(@$hosting->deposit_id) 
-                                    <a href="{{ route('admin.deposit.details', @$hosting->deposit_id) }}">{{ __(@$hosting->deposit->gateway->name) }}</a>
-                                @elseif($hosting->status != 0)
-                                    @lang('Wallet Balance')
-                                @else
-                                    @lang('N/A')
-                                @endif
-                            </span>
-                        </div>
-                    </li>
-                    <li class="list-group-item">
-                        <div class="billing-form">
-                            <span class="billing-form__label d-block flex-shrink-0">
                                 @lang('Order')
                             </span>
                             <a href="{{ route('admin.order.details', $hosting->order_id) }}">@lang('View Order')</a>
@@ -49,7 +33,7 @@
                             <span class="billing-form__label d-block flex-shrink-0">
                                 @lang('Registration Date')
                             </span>
-                            <input type="text" class="datepicker-here form-control reg_time flex-grow-1" data-language='en' data-position='bottom left' value="{{ showDateTime($hosting->reg_time, 'd-m-Y') }}" name="reg_time" autocomplete="off">
+                            <input type="text" class="timePicker form-control reg_time flex-grow-1" data-language='en' data-position='bottom left' value="{{ showDateTime($hosting->reg_time, 'd-m-Y') }}" name="reg_time" autocomplete="off">
                         </div>
                     </li>
                     <li class="list-group-item">
@@ -66,9 +50,10 @@
                         <div class="billing-form">
                             <span class="billing-form__label d-block flex-shrink-0">
                                 @lang('Server')
-                            </span>
+                            </span> 
                             <select name="server_id" class="server_id form-control"> 
                                 @if(@$hosting->product->serverGroup)
+                                    <option value="">@lang('Select One')</option>
                                     @foreach(@$hosting->product->serverGroup->servers as $index => $server) 
                                         <option value="{{ $server->id }}" {{ $server->id == $hosting->server_id ? 'selected' : null }}>
                                             {{ $server->hostname }} - {{ $server->name }}
@@ -83,7 +68,11 @@
                     <li class="list-group-item ">
                         <div class="billing-form">
                             <span class="billing-form__label d-block flex-shrink-0">
-                                @lang('Domain')  
+                                @if($hosting->product->product_type == 3)
+                                    @lang('Hostname')  
+                                @else 
+                                    @lang('Domain')  
+                                @endif
                             </span>
                             <input class="form-control" type="text" name="domain" value="{{@$hosting->domain}}">
                         </div>
@@ -158,7 +147,90 @@
                 </ul> 
             </div>
         </div> 
+        
+        @if($hosting->product->module_type == 1)
+            <div class="card mt-4">
+                <div class="card-header">
+                    @lang('Metric Statistics')
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive--md table-responsive border">
+                        <table class="table table--light style--two">
+                            <thead>
+                            <tr>
+                                <th>@lang('Metric')</th>
+                                <th>@lang('Info')</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td data-label="@lang('Metric')">
+                                        @lang('Disk Limit')
+                                    </td>
+                                    <td data-label="@lang('Info')">
+                                        <span class="font-weight-bold" data-toggle="tooltip" data-original-title="{{ @$user->address->country }}">
+                                            {{ @$accountSummary->disklimit ?? 'N/A' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td data-label="@lang('Metric')">
+                                        @lang('Disk Used')
+                                    </td>
+                                    <td data-label="@lang('Info')">
+                                        <span class="font-weight-bold" data-toggle="tooltip" data-original-title="{{ @$user->address->country }}">
+                                            {{ @$accountSummary->diskused ?? 'N/A' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td data-label="@lang('Metric')">
+                                        @lang('Max Subdomains')
+                                    </td>
+                                    <td data-label="@lang('Info')">
+                                        <span class="font-weight-bold" data-toggle="tooltip" data-original-title="{{ @$user->address->country }}">
+                                            {{ @$accountSummary->maxsub ?? 'N/A' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td data-label="@lang('Metric')">
+                                        @lang('Max Addons')
+                                    </td>
+                                    <td data-label="@lang('Info')">
+                                        <span class="font-weight-bold" data-toggle="tooltip" data-original-title="{{ @$user->address->country }}">
+                                            {{ @$accountSummary->maxaddons ?? 'N/A' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td data-label="@lang('Metric')">
+                                        @lang('Max SQL Databases')
+                                    </td>
+                                    <td data-label="@lang('Info')">
+                                        <span class="font-weight-bold" data-toggle="tooltip" data-original-title="{{ @$user->address->country }}">
+                                            {{ @$accountSummary->maxsql ?? 'N/A' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td data-label="@lang('Metric')">
+                                        @lang('Theme')
+                                    </td>
+                                    <td data-label="@lang('Info')">
+                                        <span class="font-weight-bold" data-toggle="tooltip" data-original-title="{{ @$user->address->country }}">
+                                            {{ @$accountSummary->theme ?? 'N/A' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>  
+
     <div class="col-xl-6 col-md-6 mb-30">
         <div class="card b-radius--10 overflow-hidden box--shadow1">
             <div class="card-body">
@@ -198,15 +270,15 @@
                             <span class="billing-form__label d-block flex-shrink-0">
                                 @lang('Next Due Date') 
                             </span>
-                            <input type="text" class="datepicker-here form-control" data-language='en' data-position='bottom left' value="{{ showDateTime(@$hosting->next_due_date, 'd-m-Y') }}" name="next_due_date" autocomplete="off">
+                            <input type="text" class="timePicker form-control" data-language='en' data-position='bottom left' value="{{ showDateTime(@$hosting->next_due_date, 'd-m-Y') }}" name="next_due_date" autocomplete="off">
                         </div>
                     </li>
-                    <li class="list-group-item">
+                    <li class="list-group-item"> 
                         <div class="billing-form">
                             <span class="billing-form__label d-block flex-shrink-0">
                                 @lang('Termination Date') 
                             </span>
-                            <input type="text" class="datepicker-here form-control" data-language='en' data-position='bottom left' 
+                            <input type="text" class="timePicker form-control" data-language='en' data-position='bottom left' 
                             value="{{ @$hosting->termination_date ? showDateTime(@$hosting->termination_date, 'd-m-Y') : null }}" name="termination_date" autocomplete="off">
                         </div>
                     </li>
@@ -216,12 +288,12 @@
                                 @lang('Billing Cycle')  
                             </span>
                             <select name="billing_cycle" class="form-control">
-                                @foreach(billing_cycle() as $index => $data)
-                                    <option value="{{ $index }}" {{ $hosting->billing_cycle == $index ? 'selected' : null }} data-data='{{ $data['data'] }}'>
-                                        {{ __($data['name']) }}
+                                @foreach(billingCycle() as $index => $data) 
+                                    <option value="{{ $index }}" {{ $hosting->billing_cycle == $index ? 'selected' : null }} data-data='{{ $data['billing_type'] }}'>
+                                        {{ __($data['showText']) }}
                                     </option>
-                                @endforeach
-                            </select>
+                                @endforeach 
+                            </select> 
                         </div>
                     </li> 
                    
@@ -259,69 +331,71 @@
             </div>
         </div>
     </div>
-
+ 
 </div> 
 
-@if($hosting->product->module_type)
-<div class="row mb-none-30 mb-3">
-    <div class="col-lg-12 col-md-12 mb-30">
-        <div class="card">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            <label class="form-control-label font-weight-bold d-block">@lang('Module Commands')</label>
-                            <div class="button-group">
-                                <button class="btn btn--primary moduleModal" data-module="1" data-type="1" type="button">
-                                    <i class="las la-plus"></i>@lang('Create')
-                                </button>
-                                <button class="btn btn--primary moduleModal" data-module="2" data-type="2" type="button">
-                                    <i class="las la-ban"></i>@lang('Suspend')
-                                </button>
-                                <button class="btn btn--primary moduleModal" data-module="3" data-type="3" type="button">
-                                    <i class="las la-undo"></i>@lang('Unsuspend')
-                                </button>
-                                <button class="btn btn--primary moduleModal" data-module="4" data-type="4" type="button">
-                                    <i class="las la-trash"></i>@lang('Terminate')
-                                </button>
-                                <button class="btn btn--primary moduleModal" data-module="5" data-type="5" type="button">
-                                    <i class="las la-exchange-alt"></i>@lang('Change Package')
-                                </button>
-                                <button class="btn btn--primary moduleModal" data-module="6" data-type="6" type="button">
-                                    <i class="las la-key"></i>@lang('Change Password')
-                                </button>
-                            </div>
-                            @if($hosting->suspend_reason)
-                                <div class="mt-2">
-                                    <span class="d-block font-weight-bold">@lang('Account Suspended')</span>
-                                    <span class="d-block"><span class="font-weight-bold">@lang('Reason')</span> {{ $hosting->suspend_reason }}</span>
-                                    <span class="d-block"><span class="font-weight-bold">@lang('Suspended')</span> {{ showDateTime($hosting->suspend_date) }}</span>
+@if($hosting->product->module_type == 1)
+    <div class="row mb-none-30 mb-3">
+        <div class="col-lg-12 col-md-12 mb-30">
+            <div class="card">
+                <div class="card-header">
+                    @lang('Module Commands')
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="row">
+                                <div class="col-lg-2 col-md-4 form-group">
+                                    <button class="btn btn--primary moduleModal w-100" data-module="1" data-type="1" type="button">
+                                        <i class="lab la-cpanel"></i>@lang('Create')
+                                    </button>
                                 </div>
-                            @endif
+                                <div class="col-lg-2 col-md-4 form-group">
+                                    <button class="btn btn--primary moduleModal w-100" data-module="2" data-type="2" type="button">
+                                        <i class="las la-ban"></i>@lang('Suspend')
+                                    </button>
+                                </div>
+                                <div class="col-lg-2 col-md-4 form-group">
+                                    <button class="btn btn--primary moduleModal w-100" data-module="3" data-type="3" type="button">
+                                        <i class="las la-undo"></i>@lang('Unsuspend')
+                                    </button>
+                                </div>
+                                <div class="col-lg-2 col-md-4 form-group">
+                                    <button class="btn btn--primary moduleModal w-100" data-module="4" data-type="4" type="button">
+                                        <i class="las la-trash"></i>@lang('Terminate')
+                                    </button>
+                                </div>
+                                <div class="col-lg-2 col-md-4 form-group">
+                                    <button class="btn btn--primary moduleModal w-100" data-module="5" data-type="5" type="button">
+                                        <i class="las la-exchange-alt"></i>@lang('Change Package')
+                                    </button>
+                                </div>
+                                <div class="col-lg-2 col-md-4 form-group">
+                                    <button class="btn btn--primary moduleModal w-100" data-module="6" data-type="6" type="button">
+                                        <i class="las la-key"></i>@lang('Change Password')
+                                    </button>
+                                </div>
+                                @if($hosting->suspend_reason)
+                                    <div class="col-md-12 mt-3">
+                                        <span class="d-block font-weight-bold">@lang('Account Suspended')</span>
+                                        <span class="d-block"><span class="font-weight-bold">@lang('Reason')</span> {{ $hosting->suspend_reason }}</span>
+                                        <span class="d-block"><span class="font-weight-bold">@lang('Suspended')</span> {{ showDateTime($hosting->suspend_date) }}</span>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
+    </div> 
 @endif
 
 <div class="row mb-none-30">
     <div class="col-lg-12 col-md-12 mb-30">
         <div class="card">
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            {{-- <label class="form-control-label font-weight-bold">@lang('Password')</label>
-                            <input class="form-control form-control-lg" type="text" name="password" value="{{@$hosting->password}}" id="password"> --}}
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <button type="submit" class="btn btn--primary btn-block btn-lg">@lang('Submit')</button>
-                </div>
+                <button type="submit" class="btn btn--primary btn-block btn-lg">@lang('Submit')</button>
             </div>
         </div>
     </div>
@@ -394,6 +468,10 @@
     .d-init{
         display: initial;
     }
+    @media (max-width: 991px){
+    .table-responsive--md tbody tr:nth-child(odd) {
+        background-color: #1208080d;
+    }
 </style>
 @endpush
 
@@ -407,11 +485,9 @@
         (function ($) {
             "use strict";
            
-            if(!$('.datepicker-here').val()){
-                $('.datepicker-here').datepicker({
-                    dateFormat: 'dd-mm-yyyy'
-                });
-            }
+            $('.timePicker').datepicker({
+                dateFormat: 'dd-mm-yyyy'
+            });
 
             $('.moduleModal').on('click', function () {
                 var modal = $('#moduleModal');

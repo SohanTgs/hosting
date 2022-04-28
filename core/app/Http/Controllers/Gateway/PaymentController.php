@@ -202,8 +202,8 @@ class PaymentController extends Controller
 
                     $product = $hosting->product;
 
-                    if($product->product_type == 1){
-                        static::createCpanelAccount($hosting);
+                    if($product->module_type == 1 && $product->module_option == 1){ 
+                        static::createCpanelAccount($hosting, $product);
                     } 
 
                     if($hosting->stock_control){
@@ -226,11 +226,10 @@ class PaymentController extends Controller
 
     }
 
-    protected function createCpanelAccount($hosting){
+    protected function createCpanelAccount($hosting, $product){
         
         $general = GeneralSetting::first('cur_text');
         $user = $hosting->user;
-        $product = $hosting->product; 
         $server = $hosting->server;
 
         try{
@@ -254,11 +253,20 @@ class PaymentController extends Controller
                 Log::error($message);
             }
 
-            $hosting->ns1 = $response->data->nameserver;
-            $hosting->ns2 = $response->data->nameserver2;
-            $hosting->ns3 = $response->data->nameserver3;
-            $hosting->ns4 = $response->data->nameserver4;
             $hosting->package_name = $product->package_name;
+
+            $hosting->ns1 = $server->ns1;
+            $hosting->ns2 = $server->ns2;
+            $hosting->ns3 = $server->ns3;
+            $hosting->ns4 = $server->ns4;
+
+            $hosting->ns1_ip = $server->ns1_ip;
+            $hosting->ns2_ip = $server->ns2_ip;
+            $hosting->ns3_ip = $server->ns3_ip;
+            $hosting->ns4_ip = $server->ns4_ip;
+            $hosting->domain_status = 1;
+            $hosting->ip = $response->data->ip;
+
             $hosting->save(); 
 
             $act = welcomeEmail()[$product->welcome_email]['act'] ?? null; 
@@ -269,18 +277,23 @@ class PaymentController extends Controller
                     'service_domain' => $hosting->domain,
                     'service_first_payment_amount' => showAmount($hosting->first_payment_amount),
                     'service_recurring_amount' => showAmount($hosting->amount),
-                    'service_billing_cycle' => billing(@$hosting->billing_cycle, true)['showText'],
+                    'service_billing_cycle' => billingCycle(@$hosting->billing_cycle, true)['showText'],
                     'service_next_due_date' => showDateTime($hosting->next_due_date, 'd/m/Y'),
                     'currency' => $general->cur_text,
 
                     'service_username' => $hosting->username,
                     'service_password' => $hosting->password,
-                    'service_server_ip' => $response->data->ip,
+                    'service_server_ip' => $hosting->ip,
 
-                    'ns1' => $response->data->nameserver,
-                    'ns2' => $response->data->nameserver2,
-                    'ns3' => $response->data->nameserver3 != null ? $response->data->nameserver3 : 'N/A',
-                    'ns4' => $response->data->nameserver4 != null ? $response->data->nameserver4 : 'N/A',
+                    'ns1' => $hosting->ns1,
+                    'ns2' => $hosting->ns2,
+                    'ns3' => $hosting->ns3,
+                    'ns4' => $hosting->ns4,
+
+                    'ns1_ip' => $hosting->ns1_ip,
+                    'ns2_ip' => $hosting->ns2_ip,
+                    'ns3_ip' => $hosting->ns3_ip,
+                    'ns4_ip' => $hosting->ns4_ip, 
                 ]);
             }
 

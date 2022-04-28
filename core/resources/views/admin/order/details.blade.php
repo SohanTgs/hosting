@@ -75,7 +75,7 @@
                             <tr>
                                 <th>@lang('Service')</th>
                                 <th>@lang('Description')</th>
-                                <th>@lang('Billing Cycle')</th>
+                                <th>@lang('Billing Cycle')</th> 
                                 <th>@lang('Amount')</th>
                             </tr>
                             </thead>
@@ -94,8 +94,8 @@
                                     <td data-label="@lang('Billing Cycle')">
                                         @if($hosting->billing == 1) 
                                             @lang('One Time')
-                                        @else 
-                                            {{ billing(@$hosting->billing_cycle, true)['showText'] }}
+                                        @else  
+                                            {{ @billingCycle(@$hosting->billing_cycle, true)['showText'] }}
                                         @endif
                                     </td>
                                     <td data-label="@lang('Amount')">

@@ -7,11 +7,11 @@ use Illuminate\Http\Request;
 use App\Models\Hosting; 
 use App\Models\HostingConfig; 
 use App\Models\Domain; 
-use App\Models\GeneralSetting; 
+use App\Models\GeneralSetting;  
 use App\Models\ServiceCategory; 
 use App\Models\Product; 
 use Illuminate\Support\Facades\Http;
-
+use Illuminate\Support\Facades\Log; 
 
 class ServiceController extends Controller{
 
@@ -19,18 +19,21 @@ class ServiceController extends Controller{
         $hosting = Hosting::with('hostingConfigs.select', 'hostingConfigs.option', 'product.getConfigs.group.options.subOptions.getOnlyPrice')->findOrFail($id);
         $pageTitle = 'Hosting Details';
         $productDropdown = $this->productDropdown();
-        return view('admin.service.hosting_details', compact('pageTitle', 'hosting', 'productDropdown'));
-    }  
-  
+        $accountSummary = $this->accountSummary($hosting->server, $hosting->username) ?? null; 
+        return view('admin.service.hosting_details', compact('pageTitle', 'hosting', 'productDropdown', 'accountSummary'));
+    }   
+    
     public function hostingUpdate(Request $request){
-
+ 
         $request->validate([
             'id'=>'required' , 
-            'domain_status'=>'required|between:1,3',
+            'domain_status'=>'required|between:0,5',
             'server_id'=>'nullable|exists:servers,id',
+            'next_due_date'=>'nullable|date_format:d-m-Y',
+            'termination_date'=>'nullable|date_format:d-m-Y',
+            'reg_time'=>'nullable|date_format:d-m-Y',
+            'billing_cycle'=>'required|between:0,6',
         ]);
-
-        $oldStatus = 0;
 
         $service = Hosting::findOrFail($request->id);
         $product = $service->product;
@@ -41,18 +44,14 @@ class ServiceController extends Controller{
         $service->next_due_date = $request->next_due_date;
         $service->billing_cycle = $request->billing_cycle;
 
-        if($request->server_id){
-            $service->server_id = $request->server_id; 
-        }
-
-        $service->termination_date = $request->termination_date ?? null; 
-        $service->admin_notes = $request->admin_notes ?? null; 
+        $service->server_id = $request->server_id; 
+        
+        $service->termination_date = $request->termination_date; 
+        $service->admin_notes = $request->admin_notes; 
 
         $service->dedicated_ip = $request->dedicated_ip; 
         $service->username = $request->username;
         $service->password = $request->password;
-
-        $oldStatus = $service->domain_status;
 
         $service->domain_status = $request->domain_status;
         $service->reg_time = $request->reg_time;
@@ -101,75 +100,36 @@ class ServiceController extends Controller{
         }
 
         $service->save();
-   
-        $general = GeneralSetting::first();
-        $user = $service->user;
-
-        if($oldStatus != 1 && $service->domain_status == 1){ 
-            $product = $service->product;
-            $act = welcomeEmail()[$product->welcome_email]['act'] ?? null; 
-         
-            if($act == 'HOSTING_ACCOUNT'){ 
-                notify($user, $act, [
-                    'service_product_name' => $product->name,
-                    'service_domain' => $service->domain,
-                    'service_first_payment_amount' => showAmount($service->first_payment_amount),
-                    'service_recurring_amount' => showAmount($service->amount),
-                    'service_billing_cycle' => billing(@$service->billing_cycle, true)['showText'],
-                    'service_next_due_date' => showDateTime($service->next_due_date, 'd/m/Y'),
-                    'currency' => $general->cur_text,
-                ]);
-            }
-            elseif($act == 'RESELLER_ACCOUNT'){
-                notify($user, $act, [
-                    'service_domain' => $service->domain,
-                    'service_username' => $service->username,
-                    'service_password' => $service->password, 
-                    'service_product_name' => $product->name,
-                    'currency' => $general->cur_text,
-                ]);
-            }
-            elseif($act == 'VPS_SERVER'){
-                notify($user, $act, [
-                    'service_product_name' => $product->name,
-                    'service_dedicated_ip' => '',
-                    'service_password' => $service->password, 
-                    'service_assigned_ips' => '',
-                    'service_domain' => $service->domain,
-                    'currency' => $general->cur_text,
-                ]);
-            }
-            elseif($act == 'OTHER_PRODUCT'){
-                notify($user, $act, [
-                    'service_product_name' => $product->name,
-                    'service_payment_method' => 'Site Balance',
-                    'service_recurring_amount' => showAmount($service->amount),
-                    'service_billing_cycle' => billing(@$service->billing_cycle, true)['showText'],
-                    'service_next_due_date' => showDateTime($service->next_due_date, 'd/m/Y'),
-                    'currency' => $general->cur_text,
-                ]);
-            }
-        }
 
         $notify[] = ['success', 'Hosting details updated successfully'];
         return back()->withNotify($notify);
     }
 
-    public function domainDetails($id){  
+    public function domainDetails($id){   
         $domain = Domain::findOrFail($id);
         $pageTitle = 'Domain Details';
         return view('admin.service.domain_details', compact('pageTitle', 'domain'));
     } 
   
-    public function domainUpdate(Request $request){
+    public function domainUpdate(Request $request){ 
 
-        $request->validate([
+        $request->validate([ 
             'id'=>'required' , 
-            'status'=>'required|in:1,2'
+            'status'=>'required|in:1,2',
+            'reg_time'=>'nullable|date_format:d-m-Y',
+            'next_due_date'=>'nullable|date_format:d-m-Y',
+            'expiry_date'=>'nullable|date_format:d-m-Y',
         ]); 
 
         $domain = Domain::findOrFail($request->id);
         $domain->subscription_id = $request->subscription_id;
+        $domain->reg_time = $request->reg_time;
+        $domain->reg_period = $request->reg_period;
+        $domain->next_due_date = $request->next_due_date;
+        $domain->domain = $request->domain;
+        $domain->expiry_date = $request->expiry_date;
+        $domain->first_payment_amount = $request->first_payment_amount;
+        $domain->recurring_amount = $request->recurring_amount;
         $domain->id_protection = $request->id_protection ? 1 : 0;
         $domain->status = $request->status;
         $domain->save();
@@ -245,6 +205,22 @@ class ServiceController extends Controller{
         }
 
     } 
+
+    protected function accountSummary($server, $username){
+
+        try{
+            $response = Http::withHeaders([
+                'Authorization' => 'WHM '.$server->username.':'.$server->api_token,
+            ])->get($server->hostname.'/cpsess'.$server->security_token.'/json-api/accountsummary?api.version=1&user='.$username);
+            
+            $response = json_decode(@$response)->data->acct[0];
+            return $response;
+
+        }catch(\Exception  $error){
+            Log::error($error->getMessage());
+        }
+
+    }
 
 
 }

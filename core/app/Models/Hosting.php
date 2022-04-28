@@ -10,7 +10,7 @@ class Hosting extends Model
     use HasFactory;
 
     protected $guarded = [];
-    protected $casts = ['config_options' => 'object', 'reg_time'=>'date', 'termination_date'=>'date', 'suspend_date'=>'date'];
+    protected $casts = ['config_options' => 'object', 'next_due_date'=>'date', 'suspend_date'=>'date', 'termination_date'=>'date', 'last_update'=>'date', 'reg_time'=>'date'];
 
     public function user(){
         return $this->belongsTo(User::class)->withDefault();
@@ -48,17 +48,25 @@ class Hosting extends Model
             $class = "badge badge-";
         }
 
-        if ($this->domain_status == 1){
+        if ($this->domain_status == 0){
+            $class .= 'danger';
+            $text = 'Pending';
+        } 
+        if ($this->domain_status == 1){ 
             $class .= 'primary';
             $text = 'Active';
         }
         elseif ($this->domain_status == 2){
-            $class .= 'danger';
-            $text = 'Pending';
+            $class .= 'warning';
+            $text = 'Suspended';
         }
         elseif ($this->domain_status == 3){
-            $class .= 'success';
-            $text = 'Completed'; 
+            $class .= 'dark';
+            $text = 'Terminated'; 
+        }
+        elseif ($this->domain_status == 4){
+            $class .= 'muted';
+            $text = 'Cancelled'; 
         }
         
         return "<span class='$class'>" . trans($text) . "</span>";
@@ -66,10 +74,12 @@ class Hosting extends Model
 
     public static function domainStatus(){
         return [
+            0=> trans('Pending'), 
             1=> trans('Active'),
-            2=> trans('Pending'),
-            3=> trans('Completed'),
-        ];
+            2=> trans('Suspended'),
+            3=> trans('Terminated'), 
+            4=> trans('Cancelled'),
+        ]; 
     }
 
 }

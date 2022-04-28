@@ -49,7 +49,6 @@ class ModuleController extends Controller{
         
     protected function create($hosting){
 
-        $general = GeneralSetting::first();
         $user = $hosting->user;
         $product = $hosting->product; 
         $server = $hosting->server;
@@ -73,30 +72,8 @@ class ModuleController extends Controller{
             $hosting->ns3 = $response->data->nameserver3;
             $hosting->ns4 = $response->data->nameserver4;
             $hosting->package_name = $product->package_name;
+            $hosting->ip = $response->data->ip;
             $hosting->save(); 
-
-            $act = welcomeEmail()[$product->welcome_email]['act'] ?? null; 
-           
-            if($act == 'HOSTING_ACCOUNT'){
-                notify($user, $act, [
-                    'service_product_name' => $product->name,
-                    'service_domain' => $hosting->domain,
-                    'service_first_payment_amount' => showAmount($hosting->first_payment_amount),
-                    'service_recurring_amount' => showAmount($hosting->amount),
-                    'service_billing_cycle' => billing(@$hosting->billing_cycle, true)['showText'],
-                    'service_next_due_date' => showDateTime($hosting->next_due_date, 'd/m/Y'),
-                    'currency' => $general->cur_text,
-
-                    'service_username' => $hosting->username,
-                    'service_password' => $hosting->password,
-                    'service_server_ip' => $response->data->ip,
-
-                    'ns1' => $response->data->nameserver,
-                    'ns2' => $response->data->nameserver2,
-                    'ns3' => $response->data->nameserver3 != null ? $response->data->nameserver3 : 'N/A',
-                    'ns4' => $response->data->nameserver4 != null ? $response->data->nameserver4 : 'N/A',
-                ]);
-            }
 
             $notify[] = ['success', 'Create module command run successfully'];
             return back()->withNotify($notify)->with('response', $response);
@@ -106,7 +83,7 @@ class ModuleController extends Controller{
             return back()->withNotify($notify);
         }
 
-    }
+    } 
 
     protected function suspend($hosting, $request){
       
@@ -299,17 +276,11 @@ class ModuleController extends Controller{
         ]);
 
         $hosting = Hosting::findOrFail($request->hosting_id);
-        $product = $hosting->product;
         $server = $hosting->server;
 
         if(!$server){
             $notify[] = ['error', 'There is no selected server to auto-login'];
             return back()->withNotify($notify); 
-        }
-
-        if($product->module_type == 0){
-            $notify[] = ['error', 'Unable to auto-login'];
-            return back()->withNotify($notify);
         }
 
         try{
@@ -318,12 +289,12 @@ class ModuleController extends Controller{
             ])->get($server->hostname.'/json-api/create_user_session?api.version=1&user='.$hosting->username.'&service=cpaneld');
     
             $response = json_decode($response);
-      
+     
             if(@$response->cpanelresult->error){
                 $notify[] = ['error', @$response->cpanelresult->data->reason];
                 return back()->withNotify($notify);
             }
-
+          
             $redirectUrl = $response->data->url;
             return back()->with('url', $redirectUrl);
 

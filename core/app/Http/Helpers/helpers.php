@@ -760,7 +760,12 @@ function showDateTime($date, $format = 'Y-m-d h:i A')
 {
     $lang = session()->get('lang');
     Carbon::setlocale($lang);
-    return Carbon::parse($date)->translatedFormat($format);
+    
+    if($date){
+        return Carbon::parse($date)->translatedFormat($format);
+    }
+
+    return false;
 }
 
 //moveable
@@ -836,7 +841,7 @@ function verifyG2fa($user,$code,$secret = null)
     }
 }
 
-
+ 
 function urlPath($routeName,$routeParam=null){
     if($routeParam == null){
         $url = route($routeName);
@@ -901,15 +906,10 @@ function pricing($billingType = null, $price = null, $type = null, $showText = f
        
         $array = [
             1 => ['setupFee'=>'monthly_setup_fee', 'price'=>'monthly'],
-
             2 => ['setupFee'=>'quarterly_setup_fee', 'price'=>'quarterly'],
-
             3 => ['setupFee'=>'semi_annually_setup_fee', 'price'=>'semi_annually'],
-
             4 => ['setupFee'=>'annually_setup_fee',  'price'=>'annually'],
-
             5 => ['setupFee'=>'biennially_setup_fee', 'price'=>'biennially'],
-
             6 => ['setupFee'=>'triennially_setup_fee', 'price'=>'triennially']
         ];
    
@@ -1045,6 +1045,8 @@ function shoppingCart($product = null, $request = null, $deleteId = null, $billi
         $domain = '';
         if($request->domain){
             $domain = $request->domain;
+        }elseif($request->hostname){
+            $domain = $request->hostname;
         }
 
         $new = [
@@ -1055,7 +1057,6 @@ function shoppingCart($product = null, $request = null, $deleteId = null, $billi
             'domain'=> $domain,
             'domain_id'=> $request->domain_id,
 
-            'username'=> $request->username ?? null,
             'password'=> $request->password ?? null,
             'ns1'=> $request->ns1 ?? null,
             'ns2'=> $request->ns2 ?? null,
@@ -1066,7 +1067,7 @@ function shoppingCart($product = null, $request = null, $deleteId = null, $billi
             'total'=> $array['price'] + $array['setupFee'],
             'afterDiscount'=> $array['price'] + $array['setupFee'],
 
-            'billing'=> $product->payment_type == 1 ? 1 : 2,
+            'billing_cycle'=> $product->payment_type == 1 ? 1 : 2,
 
             'billing_type'=> $request->billing_type,
             'config_options'=> array_filter((array) $request->config_options)
@@ -1092,7 +1093,6 @@ function shoppingCart($product = null, $request = null, $deleteId = null, $billi
                 $cart[$foundIndex]['domain'] = $domain;
                 $cart[$foundIndex]['domain_id'] = $request->domain_id;
 
-                $cart[$foundIndex]['username'] = $request->username ?? null;
                 $cart[$foundIndex]['password'] = $request->password ?? null;
                 $cart[$foundIndex]['ns1'] = $request->ns1 ?? null;
                 $cart[$foundIndex]['ns2'] = $request->ns2 ?? null;
@@ -1102,7 +1102,7 @@ function shoppingCart($product = null, $request = null, $deleteId = null, $billi
                 $cart[$foundIndex]['total'] = $array['price'] + $array['setupFee'];
                 $cart[$foundIndex]['afterDiscount'] = $array['price'] + $array['setupFee'];
 
-                $cart[$foundIndex]['billing'] = $product->payment_type == 1 ? 1 : 2;
+                $cart[$foundIndex]['billing_cycle'] = $product->payment_type == 1 ? 1 : 2;
 
                 $cart[$foundIndex]['billing_type'] = $request->billing_type;
                 $cart[$foundIndex]['config_options'] = array_filter((array) $request->config_options);
@@ -1136,36 +1136,6 @@ function shoppingCart($product = null, $request = null, $deleteId = null, $billi
  
 }
 
-function billing($getIndex, $showNextDate = false){
-    try{
-
-        $array = [
-            0 => ['billing_type'=>'one_time', 'showText'=>'One Time'], 
-            1 => ['billing_type'=>'monthly', 'carbon'=>Carbon::now()->addMonth()->toDateTimeString(), 'showText'=>'Monthly'], 
-            2 => ['billing_type'=>'quarterly', 'carbon'=>Carbon::now()->addMonth(3)->toDateTimeString(), 'showText'=>'Quarterly'], 
-            3 => ['billing_type'=>'semi_annually', 'carbon'=>Carbon::now()->addMonth(6)->toDateTimeString(), 'showText'=>'Semi Annually'], 
-            4 => ['billing_type'=>'annually', 'carbon'=>Carbon::now()->addYear()->toDateTimeString(), 'showText'=>'Annually'],
-            5 => ['billing_type'=>'biennially', 'carbon'=>Carbon::now()->addYear(2)->toDateTimeString(), 'showText'=>'Biennially'], 
-            6 => ['billing_type'=>'triennially', 'carbon'=>Carbon::now()->addYear(3)->toDateTimeString(), 'showText'=>'Triennially']
-        ];
-  
-        foreach($array as $index => $data){ 
-            if($data['billing_type'] == $getIndex || $index == $getIndex){
-                
-
-                if($showNextDate){
-                    return $data;
-                }
-          
-                return $index;
-            }
-        }
-
-    }catch(\Exception $e){
-        return $e->getMessage();
-    } 
-} 
-
 function domainRegister($domainData, $domainName){
 
     $array = [
@@ -1188,14 +1158,42 @@ function domainRegister($domainData, $domainName){
     return $array;
 }
 
-function billing_cycle(){
-    return [
-        0=> ['name'=>'One Time', 'data'=>'One Time'],
-        1=> ['name'=>'Monthly', 'data'=>'monthly'],
-        2=> ['name'=>'Quarterly', 'data'=>'quarterly'],
-        3=> ['name'=>'Semi Annually', 'data'=>'semi_annually'],
-        4=> ['name'=>'Annually', 'data'=>'annually'],
-        5=> ['name'=>'Biennially', 'data'=>'biennially'],
-        6=> ['name'=>'Triennially', 'data'=>'triennially']
-    ];
-}
+function billingCycle($period = null, $showNextDate = false){
+    try{
+
+        $array = [
+            0 => ['billing_type'=>'one_time', 'showText'=>'One Time', 'carbon'=>null], 
+            1 => ['billing_type'=>'monthly', 'carbon'=>Carbon::now()->addMonth()->toDateTimeString(), 'showText'=>'Monthly'], 
+            2 => ['billing_type'=>'quarterly', 'carbon'=>Carbon::now()->addMonth(3)->toDateTimeString(), 'showText'=>'Quarterly'], 
+            3 => ['billing_type'=>'semi_annually', 'carbon'=>Carbon::now()->addMonth(6)->toDateTimeString(), 'showText'=>'Semi Annually'], 
+            4 => ['billing_type'=>'annually', 'carbon'=>Carbon::now()->addYear()->toDateTimeString(), 'showText'=>'Annually'],
+            5 => ['billing_type'=>'biennially', 'carbon'=>Carbon::now()->addYear(2)->toDateTimeString(), 'showText'=>'Biennially'], 
+            6 => ['billing_type'=>'triennially', 'carbon'=>Carbon::now()->addYear(3)->toDateTimeString(), 'showText'=>'Triennially']
+        ];
+  
+        if(!$period && !$showNextDate){
+            return $array;
+        }
+
+        foreach($array as $index => $data){
+
+            $type = $data['billing_type'];
+
+            if(gettype($period) == 'integer'){
+                $type = $index;
+            }
+
+            if($type == $period){
+            
+                if($showNextDate){
+                    return $data;
+                }
+          
+                return $index;
+            }
+        }
+
+    }catch(\Exception $e){
+        return $e->getMessage();
+    } 
+} 

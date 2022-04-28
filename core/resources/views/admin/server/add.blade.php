@@ -87,26 +87,26 @@
                     <div class="col-lg-6">
                         <div class="form-group">
                             <label>@lang('Primary Nameserver')</label>
-                            <input type="text" class="form-control" name="ns1" value="{{ old('ns1') }}" placeholder="@lang('Ns1')">
+                            <input type="text" class="form-control" name="ns1" value="{{ old('ns1') }}" placeholder="@lang('Ns1')" required>
                         </div>
                     </div>
                     <div class="col-lg-6">
                         <div class="form-group">
                             <label>@lang('IP Address')</label>
-                            <input type="text" class="form-control" name="ns_ip1" value="{{ old('ns_ip1') }}" placeholder="@lang('IP Address')">
+                            <input type="text" class="form-control" name="ns_ip1" value="{{ old('ns_ip1') }}" placeholder="@lang('IP Address')" required>
                         </div>
                     </div>
 
                     <div class="col-lg-6">
                         <div class="form-group">
                             <label>@lang('Secondary Nameserver')</label>
-                            <input type="text" class="form-control" name="ns2" value="{{ old('ns2') }}" placeholder="@lang('Ns2')">
+                            <input type="text" class="form-control" name="ns2" value="{{ old('ns2') }}" placeholder="@lang('Ns2')" required>
                         </div>
                     </div>
                     <div class="col-lg-6">
                         <div class="form-group">
                             <label>@lang('IP Address')</label>
-                            <input type="text" class="form-control" name="ns_ip2" value="{{ old('ns_ip2') }}" placeholder="@lang('IP Address')">
+                            <input type="text" class="form-control" name="ns_ip2" value="{{ old('ns_ip2') }}" placeholder="@lang('IP Address')" required>
                         </div>
                     </div>
 
@@ -162,7 +162,7 @@
         </div>
     </div>
 </div>
-</form>
+</form> 
 @endsection
 
 @push('breadcrumb-plugins')

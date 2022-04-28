@@ -13,13 +13,13 @@
                 <div class="row"> 
 
                     <div class="col-md-12"> 
-                        <h1>{{ __($pageTitle) }}</h1> 
+                        <h1>{{ __($pageTitle) }} <small> - ({{ @$domain }})</small></h1> 
                         <p>@lang('Please review your domain name selections and any addons that are available for them')</p>
                     </div>
 
                     @php
                         $pricing = $domainSetup->pricing;
-                    @endphp
+                    @endphp 
 
                     <div class="col-md-4 form-group {{ $pricing->one_year_price >= 0 ? '' : 'd-none' }}">
                         <div class="card">

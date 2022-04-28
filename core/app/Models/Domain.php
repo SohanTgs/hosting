@@ -9,6 +9,8 @@ class Domain extends Model
 {
     use HasFactory;
 
+    protected $casts = ['next_invoice_date'=>'date', 'expiry_date'=>'date', 'next_due_date'=>'date', 'reg_time'=>'date']; 
+
     public function details(){
         return $this->hasOne(InvoiceItem::class, 'relation_id', 'id')->where('type', 4);
     }

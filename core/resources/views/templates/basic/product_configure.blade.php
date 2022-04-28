@@ -168,25 +168,25 @@
                                                 <div class="col-md-6">
                                                     <div class="form-group"> 
                                                         <label>@lang('Hostname')</label>
-                                                        <input type="text" name="username" class="form-control" placeholder="servername.example.com" required>
+                                                        <input type="text" name="hostname" class="form-control hostname" placeholder="servername.example.com" required>
                                                     </div>
                                                 </div> 
                                                 <div class="col-md-6">
                                                     <div class="form-group"> 
                                                         <label>@lang('Root Password')</label>
-                                                        <input type="password" name="password" class="form-control" placeholder="*******" required>
+                                                        <input type="password" name="password" class="form-control root_password" placeholder="*******" required>
                                                     </div>
                                                 </div> 
                                                 <div class="col-md-6">
                                                     <div class="form-group"> 
                                                         <label>@lang('NS1 Prefix')</label>
-                                                        <input type="text" name="ns1" class="form-control" placeholder="ns1" required>
+                                                        <input type="text" name="ns1" class="form-control ns1_prefix" placeholder="ns1" required>
                                                     </div>
                                                 </div> 
                                                 <div class="col-md-6">
                                                     <div class="form-group"> 
                                                         <label>@lang('NS2 Prefix')</label>
-                                                        <input type="text" name="ns2" class="form-control" placeholder="ns2" required>
+                                                        <input type="text" name="ns2" class="form-control ns2_prefix" placeholder="ns2" required>
                                                     </div>
                                                 </div> 
                                             </div>
@@ -500,7 +500,7 @@
     (function ($) {
         "use strict"; 
 
-        var product = @json($product);
+        var product = @json($product); 
         var productPrice = @json($product->price);
         var allOptions = $('.options');
 
@@ -542,7 +542,7 @@
 
             showSelect(value);
 
-        }).change(); 
+        }).change();  
 
         allOptions.on('change', function(){
 
@@ -699,6 +699,15 @@
 
                 });
 
+                if(oldCart.domain_id){ 
+                    $('.domain').val(oldCart.domain);
+                }
+
+                $('.hostname').val(oldCart.username);
+                $('.root_password').val(oldCart.password);
+                $('.ns1_prefix').val(oldCart.ns1);
+                $('.ns2_prefix').val(oldCart.ns2);
+
                 var length = Object.keys(oldCart.config_options).length;
 
                 for(var i = 0; i <= length; i++){
@@ -729,8 +738,7 @@
 
                     showSelect(column, false);
                 }
-                    
-
+        
             }
         @endif
 

@@ -16,7 +16,7 @@
                 @endphp
     
                <div class="row"> 
-
+ 
                     <div class="col-md-12"> 
                         <h1>{{ __($cat->name) }}</h1> 
                         <p>{{ __($cat->short_description) }}</p>
@@ -31,7 +31,7 @@
                                         @if($product->stock_control)
                                             <i class="fz-12">{{ $product->stock_quantity }} @lang('Available')</i>
                                         @endif
-                                    </div>
+                                    </div> 
                                 </div> 
                                 <div class="card-body">
                                     <div class="row"> 
@@ -45,7 +45,7 @@
                                         @endphp
               
                                         <div class="col-md-5 mt-3 mt-md-0"> 
-                                            <p class="text-left text-md-center">
+                                            <p class="text-left text-md-center"> 
                                                 {{ $general->cur_sym }}{{ pricing($product->payment_type, $price, $type = 'price') }} {{ __($general->cur_text) }}
 
                                                 <span class="d-block">

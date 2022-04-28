@@ -12,7 +12,7 @@
                 <div class="card-body">
                     <div class="row">
 
-                        @if($product->module_type == 0)
+                        @if($product->module_type == 0) 
                             <div class="col-md-5">
                                 <div class="new-card">
                                     <span class="fa-stack fa-lg">
@@ -27,35 +27,72 @@
                                 </div>
                             </div> 
                         @else 
-                            <div class="col-md-5">
-                                <div class="new-card text-center">
-                                    <h3 class="mb-3">@lang('Package/Domain')</h3>
-                                    <div>
-                                        <em>{{ __($product->serviceCategory->name) }}</em>
-                                        <h4>{{ __($product->name) }}</h4>
-                                        <a href="http://{{ $service->domain }}" target="_blank">www.{{ $service->domain }}</a>
-                                        <div class="d-block">
-                                            <a class="btn btn-success btn-sm mt-3" href="http://{{ $service->domain }}" target="_blank">@lang('Visit Website')</a>
-                                            <a class="btn btn-info btn-sm mt-3" href="{{ route('user.login.cpanel', $service->id) }}">@lang('Login to cPanel')</a>
-                                            <a href="{{ session()->get('url') ?? '#' }}" class="cPanelLogin" target="_blank"></a>
+
+                        @php
+                            $status = $service->domain_status;
+                        @endphp
+
+                            @if($status == 1)
+                                <div class="col-md-5">
+                                    <div class="new-card text-center">
+                                        <h3 class="mb-3">@lang('Package/Domain')</h3>
+                                        <div>
+                                            <em>{{ __($product->serviceCategory->name) }}</em>
+                                            <h4>{{ __($product->name) }}</h4>
+                                            <a href="http://{{ $service->domain }}" target="_blank">www.{{ $service->domain }}</a>
+                                            <div class="d-block">
+                                                <a class="btn btn-success btn-sm mt-3" href="http://{{ $service->domain }}" target="_blank">@lang('Visit Website')</a>
+                                                <a class="btn btn-info btn-sm mt-3" href="{{ route('user.login.cpanel', $service->id) }}">@lang('Login to cPanel')</a>
+                                                <a href="{{ session()->get('url') ?? '#' }}" class="cPanelLogin" target="_blank"></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="new-card mt-4">
+                                        <h3 class="text-center mb-3">@lang('Disk Usage')</h3>
+                                        <div class="row"> 
+                                            <div class="col-lg-12 form-group">
+                                                <div class="progress custom--progress progress-bg">
+                                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ (int) $diskUsed / (int) $diskLimit * 100 }}%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                                    <div class="progress-text text-white">
+                                                        {{ getAmount((int) $diskUsed / (int) $diskLimit * 100) }}%
+                                                    </div>
+                                                    </div>
+                                                <small>{{ $diskUsed }} / {{ $diskLimit }}</small>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="new-card mt-4">
-                                    <h3 class="text-center mb-3">@lang('Disk Usage')</h3>
-                                    <div class="row"> 
-                                        <div class="col-lg-12 form-group">
-                                            <div class="progress custom--progress progress-bg">
-                                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ (int) $diskUsed / (int) $diskLimit * 100 }}%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                                                <div class="progress-text text-white">
-                                                    {{ getAmount((int) $diskUsed / (int) $diskLimit * 100) }}%
-                                                </div>
-                                                </div>
-                                            <small>{{ $diskUsed }} / {{ $diskLimit }}</small>
-                                        </div>
+                            @elseif($status == 0)
+                                <div class="col-md-5">
+                                    <div class="new-card bg-warning">
+                                        <h3 class="mb-3">@lang('Pending')</h3>
+                                        <small class="d-block">@lang('This hosting package is currently Pending')</small>
+                                        <small>@lang('You cannot begin using this hosting account until it is activated')</small>
                                     </div>
                                 </div>
-                            </div> 
+                            @elseif($status == 2)
+                                <div class="col-md-5">
+                                    <div class="new-card bg-warning">
+                                        <h3 class="mb-3">@lang('Suspended')</h3>
+                                        <small class="d-block">@lang('This hosting package is currently Suspended')</small>
+                                        <small>@lang('You cannot continue to use or manage this package until it is reactivated')</small>
+                                    </div>
+                                </div>
+                            @elseif($status == 3)
+                                <div class="col-md-5">
+                                    <div class="new-card bg-warning">
+                                        <h3 class="mb-3">@lang('Terminated')</h3>
+                                        <small>@lang('This hosting package is currently Terminated')</small>
+                                    </div>
+                                </div>
+                            @elseif($status == 4)
+                                <div class="col-md-5">
+                                    <div class="new-card bg-warning">
+                                        <h3 class="mb-3">@lang('Cancelled')</h3>
+                                        <small>@lang('This hosting package is currently Cancelled')</small>
+                                    </div>
+                                </div>
+                            @endif
                         @endif
 
                         <div class="col-md-7 text-center">
@@ -73,8 +110,8 @@
                             <h4>@lang('Billing Cycle')</h4>
                             @if($service->billing == 1)
                                 @lang('One Time')
-                            @else 
-                                {{ billing(@$service->billing_cycle, true)['showText'] }}
+                            @else  
+                                {{ billingCycle(@$service->billing_cycle, true)['showText'] }}
                             @endif
 
                             <h4>@lang('Next Due Date')</h4>

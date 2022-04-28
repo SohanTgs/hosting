@@ -424,8 +424,8 @@ class UserController extends Controller
 
             $product = $hosting->product; 
 
-            if($product->product_type == 1){
-                $this->createCpanelAccount($hosting);
+            if($product->module_type == 1 && $product->module_option == 1){ 
+                $this->createCpanelAccount($hosting, $product);
             }          
         } 
 
@@ -525,7 +525,7 @@ class UserController extends Controller
     }   
  
     public function addCart(Request $request){ 
-    
+  
         $request->validate([
             'product_id' => 'required',
             'billing_type' => 'required|in:'.pricing(),
@@ -542,7 +542,7 @@ class UserController extends Controller
 
         if($product->product_type == 3){
             $request->validate([
-                'username' => 'required',
+                'hostname' => 'required',
                 'password' => 'required',
                 'ns1' => 'required',
                 'ns2' => 'required',
@@ -781,14 +781,16 @@ class UserController extends Controller
         $diskLimit = 1;
 
         try{
-            $response = Http::withHeaders([
-                'Authorization' => 'WHM '.$server->username.':'.$server->api_token,
-            ])->get($server->hostname.'/cpsess'.$server->security_token.'/json-api/accountsummary?api.version=1&user='.$service->username);
-            
-            $response = json_decode(@$response)->data->acct[0];
-            
-            $diskUsed = @$response->diskused;
-            $diskLimit = @$response->disklimit;
+            if($service->domain_status == 1){
+                $response = Http::withHeaders([
+                    'Authorization' => 'WHM '.$server->username.':'.$server->api_token,
+                ])->get($server->hostname.'/cpsess'.$server->security_token.'/json-api/accountsummary?api.version=1&user='.$service->username);
+                
+                $response = json_decode(@$response)->data->acct[0];
+                
+                $diskUsed = @$response->diskused;
+                $diskLimit = @$response->disklimit;
+            }
 
         }catch(\Exception  $error){
             Log::error($error->getMessage());
@@ -796,7 +798,7 @@ class UserController extends Controller
 
         return view($this->activeTemplate . 'user.service.details', compact('pageTitle', 'service', 'diskUsed', 'diskLimit'));
     }
-
+ 
     public function createInvoice(Request $request){
     
         if(!shoppingCart()){
@@ -849,24 +851,23 @@ class UserController extends Controller
                 $productTotal = ($productPrice + $productSetup);
     
                 $totalPrice += $productTotal;       
-                
+
                 $append = [ 
-                    'product_id'=>$product->id, 
-                    'domain'=>@$cart['domain'], 
-                    'username'=>@$cart['username'], 
-                    'password'=>@$cart['password'], 
-                    'ns1'=>@$cart['ns1'], 
-                    'ns2'=>@$cart['ns2'], 
-                    'server_id'=>$product->server_id, 
-                    'first_payment_amount'=>$productTotal,
-                    'amount'=>$productPrice,
-                    'setup_fee'=>@$cart['setupFee'],
-                    'discount'=>@$cart['discount'],
-                    'billing_cycle'=>billing($cart['billing_type']),
-                    'next_due_date'=>$product->payment_type == 1 ? null : @billing(@$cart['billing_type'], true)['carbon'], 
-                    'next_invoice_date'=>$product->payment_type == 1 ? null : @billing(@$cart['billing_type'], true)['carbon'],
-                    'stock_control'=>$product->stock_control,
-                    'billing'=> $product->payment_type == 1 ? 1 : 2,
+                    'product_id'=> $product->id, 
+                    'domain'=> @$cart['domain'], 
+                    'password'=> @$cart['password'], 
+                    'ns1'=> @$cart['ns1'], 
+                    'ns2'=> @$cart['ns2'], 
+                    'server_id'=> $product->server_id, 
+                    'first_payment_amount'=> $productTotal,
+                    'amount'=> $productPrice,
+                    'setup_fee'=> @$cart['setupFee'],
+                    'discount'=> @$cart['discount'],
+                    'billing_cycle'=> @billingCycle($cart['billing_type']),
+                    'next_due_date'=> @billingCycle(@$cart['billing_type'], true)['carbon'], 
+                    'next_invoice_date'=> @billingCycle(@$cart['billing_type'], true)['carbon'],
+                    'stock_control'=> $product->stock_control,
+                    'billing_cycle'=> @billingCycle(@$cart['billing_type']),
                     'config_options'=> null
                 ];
                 
@@ -937,7 +938,8 @@ class UserController extends Controller
                     'reg_period'=>@$cart['reg_period'],
                     'id_protection'=>@$cart['id_protection'] ? 1 : 0,
                     'next_due_date'=>Carbon::now()->addYear(@$cart['reg_period']),
-                    'next_invoice_date'=>Carbon::now()->addYear(@$cart['reg_period'])
+                    'next_invoice_date'=>Carbon::now()->addYear(@$cart['reg_period']),
+                    'reg_time'=>now(),
                 ];
             }  
 
@@ -985,7 +987,7 @@ class UserController extends Controller
      
         foreach($data as $singleData){  
          
-            if($singleData['product_id'] != 0){
+            if($singleData['product_id'] != 0){ 
                 $hosting = new Hosting();
                 $hosting->product_id = $singleData['product_id'];
                 $hosting->domain = $singleData['domain'];
@@ -998,11 +1000,9 @@ class UserController extends Controller
                 $hosting->next_due_date = $singleData['next_due_date'];
                 $hosting->next_invoice_date = $singleData['next_invoice_date'];
                 $hosting->stock_control = $singleData['stock_control'];
-                $hosting->billing = $singleData['billing'];
                 $hosting->config_options = $singleData['config_options'];
                 $hosting->user_id = $singleData['user_id'];
                 $hosting->order_id = $singleData['order_id'];
-                $hosting->username = $singleData['username'];
                 $hosting->password = $singleData['password'];
                 $hosting->ns1 = $singleData['ns1'];
                 $hosting->ns2 = $singleData['ns2'];
@@ -1024,6 +1024,7 @@ class UserController extends Controller
                 $domain->reg_period = $singleData['reg_period'];
                 $domain->next_due_date = $singleData['next_due_date'];
                 $domain->next_invoice_date = $singleData['next_invoice_date'];
+                $domain->reg_time = $singleData['reg_time'];
                 $domain->save();
             }
 
@@ -1097,8 +1098,8 @@ class UserController extends Controller
                 $item->save();
             }
           
-            $domainText = $hosting->domain ? ' - ' .$hosting->domain : null;
-            $date = $hosting->billing == 2 ? ' ('.showDateTime($hosting->created_at, 'd/m/Y').' - '.showDateTime($hosting->next_due_date, 'd/m/Y') .')' : ' (One Time)';
+            $domainText = $hosting->domain ? ' - ' .$hosting->domain : null; 
+            $date = $hosting->billing_cycle != 0 ? ' ('.showDateTime($hosting->created_at, 'd/m/Y').' - '.showDateTime($hosting->next_due_date, 'd/m/Y') .')' : ' (One Time)';
             $text = $product->name . $domainText. $date ."\n".$product->serviceCategory->name;
        
             foreach($hosting->hostingConfigs as $config){
@@ -1309,11 +1310,10 @@ class UserController extends Controller
       
     }
 
-    protected function createCpanelAccount($hosting){
-        
+    protected function createCpanelAccount($hosting, $product){
+
         $general = GeneralSetting::first('cur_text');
         $user = $hosting->user;
-        $product = $hosting->product; 
         $server = $hosting->server;
 
         try{
@@ -1323,7 +1323,7 @@ class UserController extends Controller
             ])->get($server->hostname.'/cpsess'.$server->security_token.'/json-api/createacct?api.version=1&username='.$hosting->username.'&domain='.$hosting->domain.'&contactemail='.$user->email.'&password='.$hosting->password.'&pkgname='.$product->package_name);
     
             $response = json_decode($response);
- 
+
             if($response->metadata->result == 0){
 
                 $message = null;
@@ -1335,35 +1335,49 @@ class UserController extends Controller
                 }
 
                 Log::error($message);
-            }
+            } 
 
-            $hosting->ns1 = $response->data->nameserver;
-            $hosting->ns2 = $response->data->nameserver2;
-            $hosting->ns3 = $response->data->nameserver3;
-            $hosting->ns4 = $response->data->nameserver4;
             $hosting->package_name = $product->package_name;
+
+            $hosting->ns1 = $server->ns1;
+            $hosting->ns2 = $server->ns2;
+            $hosting->ns3 = $server->ns3;
+            $hosting->ns4 = $server->ns4;
+
+            $hosting->ns1_ip = $server->ns1_ip;
+            $hosting->ns2_ip = $server->ns2_ip;
+            $hosting->ns3_ip = $server->ns3_ip;
+            $hosting->ns4_ip = $server->ns4_ip;
+            $hosting->domain_status = 1;
+            $hosting->ip = $response->data->ip;
+
             $hosting->save(); 
 
-            $act = welcomeEmail()[$product->welcome_email]['act'] ?? null; 
-           
+            $act = welcomeEmail()[$product->welcome_email]['act'] ?? null;  
+      
             if($act == 'HOSTING_ACCOUNT'){
                 notify($user, $act, [
                     'service_product_name' => $product->name,
                     'service_domain' => $hosting->domain,
                     'service_first_payment_amount' => showAmount($hosting->first_payment_amount),
                     'service_recurring_amount' => showAmount($hosting->amount),
-                    'service_billing_cycle' => billing(@$hosting->billing_cycle, true)['showText'],
+                    'service_billing_cycle' => billingCycle(@$hosting->billing_cycle, true)['showText'],
                     'service_next_due_date' => showDateTime($hosting->next_due_date, 'd/m/Y'),
                     'currency' => $general->cur_text,
 
                     'service_username' => $hosting->username,
                     'service_password' => $hosting->password,
-                    'service_server_ip' => $response->data->ip,
+                    'service_server_ip' => $hosting->ip,
 
-                    'ns1' => $response->data->nameserver,
-                    'ns2' => $response->data->nameserver2,
-                    'ns3' => $response->data->nameserver3 != null ? $response->data->nameserver3 : 'N/A',
-                    'ns4' => $response->data->nameserver4 != null ? $response->data->nameserver4 : 'N/A',
+                    'ns1' => $hosting->ns1,
+                    'ns2' => $hosting->ns2,
+                    'ns3' => $hosting->ns3,
+                    'ns4' => $hosting->ns4,
+
+                    'ns1_ip' => $hosting->ns1_ip,
+                    'ns2_ip' => $hosting->ns2_ip,
+                    'ns3_ip' => $hosting->ns3_ip,
+                    'ns4_ip' => $hosting->ns4_ip, 
                 ]);
             }
 

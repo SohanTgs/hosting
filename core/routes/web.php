@@ -457,13 +457,13 @@ Route::name('user.')->prefix('user')->group(function () {
             Route::get('/withdraw/history', 'UserController@withdrawLog')->name('withdraw.history');
   
             Route::get('shopping/cart', 'UserController@cart')->name('shopping.cart'); 
-            Route::get('add/shopping/cart', 'UserController@addCart')->name('shopping.cart.add');
+            Route::get('add/shopping/cart', 'UserController@addCart')->name('shopping.cart.add'); 
             Route::get('delete/shopping/cart/{id?}/{billing_type?}', 'UserController@deleteCart')->name('shopping.cart.delete');
             Route::get('delete/shopping/cart/domain/{id}/{domain}', 'UserController@deleteDomainCart')->name('shopping.cart.delete.domain');
             Route::get('config/domain/{id}/{domain}/{regPeriod}', 'UserController@configDomain')->name('config.domain');
             Route::post('config/domain', 'UserController@configDomainUpdate')->name('config.domain.update');
             Route::post('coupon', 'UserController@coupon')->name('coupon');
- 
+  
             Route::post('create/invoice', 'UserController@createInvoice')->name('create.invoice');
             Route::get('view/invoice/{id}', 'UserController@viewInvoice')->name('view.invoice');
 

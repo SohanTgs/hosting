@@ -21,7 +21,7 @@
                                         <option value="{{ $group->id }}" >{{ __($group->name) }}</option>
                                     @endforeach
                                 </select>
-                            </div> 
+                            </div>   
                         </div>
                         <div class="col-lg-6">
                             <div class="form-group">
@@ -101,26 +101,26 @@
                         <div class="col-lg-6">
                             <div class="form-group">
                                 <label>@lang('Primary Nameserver')</label>
-                                <input type="text" class="form-control" name="ns1" value="{{ $server->ns1 }}" placeholder="@lang('Ns1')">
+                                <input type="text" class="form-control" name="ns1" value="{{ $server->ns1 }}" placeholder="@lang('Ns1')" required>
                             </div>
                         </div>
                         <div class="col-lg-6">
                             <div class="form-group">
                                 <label>@lang('IP Address')</label>
-                                <input type="text" class="form-control" name="ns_ip1" value="{{ $server->ns_ip1 }}" placeholder="@lang('IP Address')">
+                                <input type="text" class="form-control" name="ns1_ip" value="{{ $server->ns1_ip }}" placeholder="@lang('IP Address')" required>
                             </div>
                         </div>
     
                         <div class="col-lg-6">
                             <div class="form-group">
                                 <label>@lang('Secondary Nameserver')</label>
-                                <input type="text" class="form-control" name="ns2" value="{{ $server->ns2 }}" placeholder="@lang('Ns2')">
+                                <input type="text" class="form-control" name="ns2" value="{{ $server->ns2 }}" placeholder="@lang('Ns2')" required>
                             </div> 
                         </div>
                         <div class="col-lg-6">
                             <div class="form-group">
                                 <label>@lang('IP Address')</label>
-                                <input type="text" class="form-control" name="ns_ip2" value="{{ $server->ns_ip2 }}" placeholder="@lang('IP Address')">
+                                <input type="text" class="form-control" name="ns2_ip" value="{{ $server->ns2_ip }}" placeholder="@lang('IP Address')" required>
                             </div>
                         </div>
     
@@ -133,7 +133,7 @@
                         <div class="col-lg-6">
                             <div class="form-group">
                                 <label>@lang('IP Address')</label>
-                                <input type="text" class="form-control" name="ns_ip3" value="{{ $server->ns_ip3 }}" placeholder="@lang('IP Address')">
+                                <input type="text" class="form-control" name="ns3_ip" value="{{ $server->ns3_ip }}" placeholder="@lang('IP Address')">
                             </div>
                         </div>
     
@@ -146,7 +146,7 @@
                         <div class="col-lg-6">
                             <div class="form-group">
                                 <label>@lang('IP Address')</label>
-                                <input type="text" class="form-control" name="ns_ip4" value="{{ $server->ns_ip4 }}" placeholder="@lang('IP Address')">
+                                <input type="text" class="form-control" name="ns4_ip" value="{{ $server->ns4_ip }}" placeholder="@lang('IP Address')">
                             </div>
                         </div>
     
@@ -159,7 +159,7 @@
                         <div class="col-lg-6">
                             <div class="form-group">
                                 <label>@lang('IP Address')</label>
-                                <input type="text" class="form-control" name="ns_ip5" value="{{ $server->ns_ip5 }}" placeholder="@lang('IP Address')">
+                                <input type="text" class="form-control" name="ns5_ip" value="{{ $server->ns5_ip }}" placeholder="@lang('IP Address')">
                             </div>
                         </div>
     

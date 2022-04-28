@@ -16,15 +16,19 @@ class HostingObserver
     public function created(Hosting $hosting){       
 
         $hosting = Hosting::where('id', $hosting->id)->first(); 
+        $product = $hosting->product; 
+
         $hosting->username = $this->makeCpanelUsername($hosting);
-        $hosting->password = $this->makeCpanelPassword();
+        if(!$hosting->password){
+            $hosting->password = $this->makeCpanelPassword(); 
+        }
         $hosting->save();
 
     }
 
     protected function makeCpanelUsername($hosting){
 
-        $username = substr($hosting->domain, 0, -4);
+        $username = substr($hosting->domain ?? 'WHMCS', 0, -4);
         $username = preg_replace('/[^A-Za-z\-]/', '', $username);
 
         $exists = Hosting::where('username', $username)->first('id');

@@ -11,7 +11,7 @@
                                 <thead class="thead-dark">
                                 <tr>
                                     <th>@lang('Service/Product')</th>
-                                    <th>@lang('Pricing')</th>
+                                    <th>@lang('Pricing')</th> 
                                     <th>@lang('Next Due Date')</th>
                                     <th>@lang('Status')</th>
                                     <th>@lang('View')</th>
@@ -27,9 +27,9 @@
                                         <td data-label="@lang('Pricing')"> 
                                             <span>{{ $general->cur_sym }}{{ getAmount($service->amount) }} {{ __($general->text) }}</span>
                                             @if($service->billing == 1)
-                                                @lang('One Time') 
-                                            @else 
-                                                {{ billing(@$service->billing_cycle, true)['showText'] }}
+                                                @lang('One Time')  
+                                            @else  
+                                                {{ billingCycle(@$service->billing_cycle, true)['showText'] }}
                                             @endif
                                         </td>
                                         <td data-label="@lang('Next Due Date')">
