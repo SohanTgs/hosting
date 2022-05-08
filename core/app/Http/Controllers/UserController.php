@@ -20,6 +20,7 @@ use App\Models\HostingConfig;
 use App\Models\Withdrawal;
 use App\Models\GatewayCurrency;
 use App\Models\InvoiceItem;
+use App\Models\CancelRequest;
 use App\Rules\FileTypeValidate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -395,7 +396,7 @@ class UserController extends Controller
         } else {
             $notify[] = ['error', 'Wrong verification code'];
         }
-        return back()->withNotify($notify); 
+        return back()->withNotify($notify);  
     }  
  
     private function paymentByWallet($invoice, $order, $user){
@@ -453,7 +454,7 @@ class UserController extends Controller
 
         $notify[] = ['success', 'Your payment was successful'];
         return back()->withNotify($notify);
-    }
+    } 
 
     private function paymentByCheckout($gate, $amount, $orderId, $user){
     
@@ -717,7 +718,7 @@ class UserController extends Controller
         
         $notify[] = ['success', 'Coupon code accepted, Your order total has been updated'];
         return back()->withNotify($notify);
-    }
+    } 
 
     public function payment(Request $request){
         
@@ -863,17 +864,17 @@ class UserController extends Controller
                     'amount'=> $productPrice,
                     'setup_fee'=> @$cart['setupFee'],
                     'discount'=> @$cart['discount'],
-                    'billing_cycle'=> @billingCycle($cart['billing_type']),
                     'next_due_date'=> @billingCycle(@$cart['billing_type'], true)['carbon'], 
                     'next_invoice_date'=> @billingCycle(@$cart['billing_type'], true)['carbon'],
                     'stock_control'=> $product->stock_control,
-                    'billing_cycle'=> @billingCycle(@$cart['billing_type']),
-                    'config_options'=> null
+                    'billing_cycle'=> @billingCycle(@$cart['billing_cycle'], true)['index'],
+                    'reg_time'=>now(),
+                    'config_options'=> null,         
                 ];
-                
+             
                 if($cart['config_options']){
      
-                    foreach($cart['config_options'] as $option => $select){   
+                    foreach($cart['config_options'] as $option => $select){    
                         
                         if($option){
                             $optionResponse = $this->getOptionAndSelect($product, 'option', $option);
@@ -974,7 +975,7 @@ class UserController extends Controller
         $order->coupon_id = $coupon ? $coupon->id : 0;
         $order->amount = $totalPrice;
         $order->discount = $allDiscount; 
-        $order->ip_address = $_SERVER["REMOTE_ADDR"];
+        $order->ip_address = $_SERVER['REMOTE_ADDR'];
         $order->status = 0; 
         $order->save();
        
@@ -986,7 +987,7 @@ class UserController extends Controller
         }, $data);
      
         foreach($data as $singleData){  
-         
+
             if($singleData['product_id'] != 0){ 
                 $hosting = new Hosting();
                 $hosting->product_id = $singleData['product_id'];
@@ -995,8 +996,8 @@ class UserController extends Controller
                 $hosting->first_payment_amount = $singleData['first_payment_amount'];
                 $hosting->amount = $singleData['amount'];
                 $hosting->discount = $singleData['discount'];
-                $hosting->setup_fee = $singleData['setup_fee'];
-                $hosting->billing_cycle = $singleData['billing_cycle'];
+                $hosting->setup_fee = $singleData['setup_fee']; 
+                $hosting->billing_cycle = $singleData['billing_cycle']; 
                 $hosting->next_due_date = $singleData['next_due_date'];
                 $hosting->next_invoice_date = $singleData['next_invoice_date'];
                 $hosting->stock_control = $singleData['stock_control'];
@@ -1004,6 +1005,7 @@ class UserController extends Controller
                 $hosting->user_id = $singleData['user_id'];
                 $hosting->order_id = $singleData['order_id'];
                 $hosting->password = $singleData['password'];
+                $hosting->reg_time = $singleData['reg_time'];
                 $hosting->ns1 = $singleData['ns1'];
                 $hosting->ns2 = $singleData['ns2'];
                 $hosting->status = 0;
@@ -1315,7 +1317,7 @@ class UserController extends Controller
         $general = GeneralSetting::first('cur_text');
         $user = $hosting->user;
         $server = $hosting->server;
-
+   
         try{
 
             $response = Http::withHeaders([
@@ -1385,6 +1387,28 @@ class UserController extends Controller
             Log::error($error->getMessage());
         }
 
+    }
+
+    public function serviceCancelRequest(Request $request){
+
+        $request->validate([ 
+            'id' => 'required',
+            'reason' => 'required',
+            'cancellation_type' => 'required|in:1,2',
+        ]);
+
+        $user = auth()->user();
+        $service = Hosting::whereBelongsTo($user)->whereDoesntHave('cancelRequest')->findOrFail($request->id);
+
+        $cancelRequest = new CancelRequest();
+        $cancelRequest->hosting_id = $service->id;
+        $cancelRequest->reason = $request->reason;
+        $cancelRequest->type = $request->cancellation_type;
+        $cancelRequest->save();
+
+        $notify[] = ['success', 'Your cancellation request submitted successfully'];
+        return back()->withNotify($notify);
+        
     }
 
 }

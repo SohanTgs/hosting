@@ -9,8 +9,15 @@ class Hosting extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
-    protected $casts = ['config_options' => 'object', 'next_due_date'=>'date', 'suspend_date'=>'date', 'termination_date'=>'date', 'last_update'=>'date', 'reg_time'=>'date'];
+    protected $casts = [
+        'config_options' => 'object', 
+        'next_due_date'=>'date', 
+        'next_invoice_date'=>'date', 
+        'suspend_date'=>'date', 
+        'termination_date'=>'date',
+        'last_update'=>'date', 
+        'reg_time'=>'date'
+    ];
 
     public function user(){
         return $this->belongsTo(User::class)->withDefault();
@@ -34,6 +41,10 @@ class Hosting extends Model
  
     public function order(){
         return $this->belongsTo(Order::class, 'order_id');
+    }
+
+    public function cancelRequest(){
+        return $this->hasOne(CancelRequest::class, 'hosting_id');
     }
 
     public function details(){
@@ -65,7 +76,7 @@ class Hosting extends Model
             $text = 'Terminated'; 
         }
         elseif ($this->domain_status == 4){
-            $class .= 'muted';
+            $class .= 'danger';
             $text = 'Cancelled'; 
         }
         

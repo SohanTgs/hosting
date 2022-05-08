@@ -14,10 +14,10 @@
                                 <th>@lang('Payment Method')</th>
                                 <th>@lang('Total')</th>
                                 <th>@lang('Status')</th>
-                                <th>@lang('Action')</th>
+                                <th>@lang('Action')</th> 
                             </tr>
                             </thead>
-                            <tbody>
+                            <tbody> 
                             @forelse(@$orders as $order)
                                 <tr>
                                     <td data-label="@lang('Invoice')">

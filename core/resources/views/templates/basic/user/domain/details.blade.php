@@ -15,10 +15,10 @@
                                     </h5>
     
                                     <h3>@lang('Registration Date'): </h3>
-                                    <h5>{{ showDateTime($domain->created_at, 'd/m/Y') }}</h5>
+                                    <h5>{{ $domain->reg_time ? showDateTime($domain->reg_time, 'd/m/Y') : 'N/A' }}</h5>
 
                                     <h3>@lang('Next Due Date'): </h3>
-                                    <h5>{{ showDateTime($domain->next_due_date, 'd/m/Y') }}</h5>
+                                    <h5>{{ $domain->next_due_date ? showDateTime($domain->next_due_date, 'd/m/Y') : 'N/A' }}</h5>
 
                                     <div>@lang('Status'): </div>
                                     <h5>@php echo $domain->showStatus; @endphp</h5>
@@ -32,17 +32,6 @@
                                         {{ $general->cur_sym }}{{ showAmount($domain->recurring_amount) }} {{ __($general->cur_text) }} {{ $domain->reg_period }} @lang('Year/s') 
                                         @if($domain->id_protection)
                                             @lang('with ID Protection')
-                                        @endif
-                                    </h5>
-
-                                    <h3>@lang('Payment Method'): </h3>
-                                    <h5>
-                                        @if($domain->deposit_id)
-                                            {{  __(@$domain->deposit->gateway->name)  }}
-                                        @elseif($domain->status != 0)
-                                            @lang('Wallet Balance')
-                                        @else 
-                                            @lang('N/A')
                                         @endif
                                     </h5>
                                 </div>

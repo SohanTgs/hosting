@@ -140,6 +140,37 @@
                     </div>
                 </li>
 
+                <li class="sidebar-menu-item sidebar-dropdown">
+                    <a href="javascript:void(0)" class="{{menuActive('admin.cancel.request*',3)}}">
+                        <i class="menu-icon las la-ban"></i>
+                        <span class="menu-title">@lang('Cancellation Request')</span>
+                        @if($pendingCancelRequests)
+                            <span class="menu-badge pill bg--primary ml-auto">
+                                <i class="fa fa-exclamation"></i>
+                            </span>
+                        @endif
+                    </a>
+                    <div class="sidebar-submenu {{menuActive('admin.cancel.request*',2)}} ">
+                        <ul>
+                            <li class="sidebar-menu-item {{menuActive('admin.cancel.request.pending')}}">
+                                <a href="{{route('admin.cancel.request.pending')}}" class="nav-link">
+                                    <i class="menu-icon las la-dot-circle"></i>
+                                    <span class="menu-title">@lang('Pending')</span>
+                                    @if($pendingCancelRequests)
+                                        <span class="menu-badge pill bg--primary ml-auto">{{$pendingCancelRequests}}</span>
+                                    @endif
+                                </a>
+                            </li>
+                            <li class="sidebar-menu-item {{menuActive('admin.cancel.request.completed')}}">
+                                <a href="{{route('admin.cancel.request.completed')}}" class="nav-link">
+                                    <i class="menu-icon las la-dot-circle"></i>
+                                    <span class="menu-title">@lang('Completed')</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
                 <li class="sidebar-menu-item {{menuActive(['admin.hosting.plan.all', 'admin.hosting.plan.new'])}}">
                     <a href="{{route('admin.hosting.plan.all')}}" class="nav-link ">
                         <i class="menu-icon las la-cloud-download-alt"></i>

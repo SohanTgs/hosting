@@ -18,7 +18,7 @@
                                 <th>@lang('Rate')</th>
                                 <th>@lang('Receivable')</th>
                                 <th>@lang('Status')</th>
-                                <th>@lang('Time')</th>
+                                <th>@lang('Time')</th> 
                             </tr>
                             </thead>
                             <tbody>

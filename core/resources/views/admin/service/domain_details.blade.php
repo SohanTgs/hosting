@@ -15,7 +15,7 @@
                                 </span> 
                                 <input type="text" class="timePicker form-control flex-grow-1" data-language='en' data-position='bottom left' 
                                 value="{{ showDateTime($domain->reg_time, 'd-m-Y') }}" name="reg_time" autocomplete="off">
-                            </div>
+                            </div>  
                         </li>
                         <li class="list-group-item"> 
                             <div class="billing-form">

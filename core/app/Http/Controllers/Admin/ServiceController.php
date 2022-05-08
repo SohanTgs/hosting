@@ -7,11 +7,10 @@ use Illuminate\Http\Request;
 use App\Models\Hosting; 
 use App\Models\HostingConfig; 
 use App\Models\Domain; 
-use App\Models\GeneralSetting;  
 use App\Models\ServiceCategory; 
-use App\Models\Product; 
+use App\Models\Product;  
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log; 
+use Illuminate\Support\Facades\Log;  
 
 class ServiceController extends Controller{
 
@@ -76,10 +75,11 @@ class ServiceController extends Controller{
                         return back()->withNotify($notify);
                     }
                 }
-
+                
+                $exists = HostingConfig::where('hosting_id', $service->id)->where('configurable_group_option_id', $option)->first();
+              
                 if($select){
-                    $exists = HostingConfig::where('hosting_id', $service->id)->where('configurable_group_option_id', $option)->first();
-
+                    
                     if($exists){
                         $exists->update(['configurable_group_sub_option_id'=>$select]);
                     }else{
@@ -89,7 +89,10 @@ class ServiceController extends Controller{
                         $new->configurable_group_sub_option_id = $select;
                         $new->save();
                     }
+                }elseif(!$select && $exists){
+                    $exists->delete();
                 }
+       
             }
         }
 
@@ -97,6 +100,22 @@ class ServiceController extends Controller{
             $service->assigned_ips = $request->assigned_ips;
             $service->ns1 = $request->ns1;
             $service->ns2 = $request->ns2;
+        }
+
+        if($request->domain_status == 4 && @$service->cancelRequest->status == 2){
+            $cancel = @$service->cancelRequest; 
+            $cancel->status = 1;
+            $cancel->save();
+        }
+
+        if($request->domain_status != 4 && @$service->cancelRequest->status == 1){
+            $cancel = @$service->cancelRequest; 
+            $cancel->status = 2;
+            $cancel->save();
+        }
+
+        if(@$request->delete_cancel_request){
+            @$service->cancelRequest->delete();  
         }
 
         $service->save();

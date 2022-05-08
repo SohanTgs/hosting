@@ -144,6 +144,20 @@
                             </select>
                         </div>
                     </li>
+
+                    @if($hosting->cancelRequest) 
+                        <li class="list-group-item"> 
+                            <div class="billing-form"> 
+                                <span class="billing-form__label d-block flex-shrink-0 mt-1">
+                                    <input type="checkbox" id="delete_cancel_request" name="delete_cancel_request">
+                                    <label for="delete_cancel_request">@lang('Delete Cancellation Request')</label>
+                                </span>
+                                <span class="text--primary">@php echo nl22br($hosting->cancelRequest->reason); @endphp</span>
+                            </div>
+                        </li>
+                    @endif
+
+
                 </ul> 
             </div>
         </div> 
@@ -168,7 +182,7 @@
                                         @lang('Disk Limit')
                                     </td>
                                     <td data-label="@lang('Info')">
-                                        <span class="font-weight-bold" data-toggle="tooltip" data-original-title="{{ @$user->address->country }}">
+                                        <span class="font-weight-bold">
                                             {{ @$accountSummary->disklimit ?? 'N/A' }}
                                         </span>
                                     </td>
@@ -178,7 +192,7 @@
                                         @lang('Disk Used')
                                     </td>
                                     <td data-label="@lang('Info')">
-                                        <span class="font-weight-bold" data-toggle="tooltip" data-original-title="{{ @$user->address->country }}">
+                                        <span class="font-weight-bold">
                                             {{ @$accountSummary->diskused ?? 'N/A' }}
                                         </span>
                                     </td>
@@ -188,7 +202,7 @@
                                         @lang('Max Subdomains')
                                     </td>
                                     <td data-label="@lang('Info')">
-                                        <span class="font-weight-bold" data-toggle="tooltip" data-original-title="{{ @$user->address->country }}">
+                                        <span class="font-weight-bold">
                                             {{ @$accountSummary->maxsub ?? 'N/A' }}
                                         </span>
                                     </td>
@@ -198,7 +212,7 @@
                                         @lang('Max Addons')
                                     </td>
                                     <td data-label="@lang('Info')">
-                                        <span class="font-weight-bold" data-toggle="tooltip" data-original-title="{{ @$user->address->country }}">
+                                        <span class="font-weight-bold">
                                             {{ @$accountSummary->maxaddons ?? 'N/A' }}
                                         </span>
                                     </td>
@@ -208,8 +222,38 @@
                                         @lang('Max SQL Databases')
                                     </td>
                                     <td data-label="@lang('Info')">
-                                        <span class="font-weight-bold" data-toggle="tooltip" data-original-title="{{ @$user->address->country }}">
+                                        <span class="font-weight-bold">
                                             {{ @$accountSummary->maxsql ?? 'N/A' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td data-label="@lang('Metric')">
+                                        @lang('Max Email Per Hour')
+                                    </td>
+                                    <td data-label="@lang('Info')">
+                                        <span class="font-weight-bold">
+                                            {{ @$accountSummary->max_email_per_hour ?? 'N/A' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td data-label="@lang('Metric')">
+                                        @lang('Backup')
+                                    </td>
+                                    <td data-label="@lang('Info')">
+                                        <span class="font-weight-bold">
+                                            {{ @$accountSummary->backup ?? 'N/A' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td data-label="@lang('Metric')">
+                                        @lang('Legacy Backup')
+                                    </td>
+                                    <td data-label="@lang('Info')">
+                                        <span class="font-weight-bold">
+                                            {{ @$accountSummary->legacy_backup ?? 'N/A' }}
                                         </span>
                                     </td>
                                 </tr>
@@ -218,8 +262,18 @@
                                         @lang('Theme')
                                     </td>
                                     <td data-label="@lang('Info')">
-                                        <span class="font-weight-bold" data-toggle="tooltip" data-original-title="{{ @$user->address->country }}">
+                                        <span class="font-weight-bold">
                                             {{ @$accountSummary->theme ?? 'N/A' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td data-label="@lang('Metric')">
+                                        @lang('Package')
+                                    </td>
+                                    <td data-label="@lang('Info')">
+                                        <span class="font-weight-bold">
+                                            {{ @$accountSummary->plan ?? 'N/A' }}
                                         </span>
                                     </td>
                                 </tr>
@@ -324,9 +378,10 @@
                             <span class="billing-form__label d-block flex-shrink-0">
                                 @lang('Admin Notes')  
                             </span>
-                            <textarea name="admin_notes" class="form-control" rows="3">@php echo nl2br($hosting->admin_notes); @endphp</textarea>
+                            <textarea name="admin_notes" class="form-control" rows="3">@php echo nl22br($hosting->admin_notes); @endphp</textarea>
                         </div>
                     </li>
+
                 </ul>
             </div>
         </div>
@@ -489,6 +544,10 @@
                 dateFormat: 'dd-mm-yyyy'
             });
 
+            $('.cancel_request_checked').on('click', function(){
+                console.log(200);
+            });
+
             $('.moduleModal').on('click', function () {
                 var modal = $('#moduleModal');
 
@@ -568,10 +627,10 @@
                     value = 'monthly';
                 }
 
-                showSelect(value, product);
+                showSelect(value, product, $(this).val());
             }).change(); 
 
-            function showSelect(value, product){
+            function showSelect(value, product, cycle = null){
                 try{
                    
                     var getColumn = value;
@@ -590,10 +649,10 @@
                             if( dropdown.data('price') ){ 
                                 var priceForThisItem = dropdown.data('price');
                                 var mainText = dropdown.data('text');
-                        
-                                var display = hosting.billing_cycle == 0 ? 'One Time' : pricing(0, null, getColumn);
+                 
+                                var display = cycle == 0 ? 'One Time' : pricing(0, null, getColumn, cycle);
 
-                                if(hosting.billing_cycle == 0){
+                                if(cycle == 0){
                                     getColumn = 'monthly'
                                 }
                       
@@ -615,14 +674,14 @@
                 }
             }
 
-            function pricing(price, type, column){ 
+            function pricing(price, type, column, cycle = null){ 
                 try{ 
-
+                    
                     if(!price){
                         column = column.replaceAll('_', ' ');
-
-                        if(product.payment_type == 1){
-                            column = 'One Time:';
+                        
+                        if(cycle == 0){
+                            column = 'One Time';
                         }
 
                         return column.replaceAll(/(?:^|\s)\S/g, function(word){

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\AdminNotification;
+use App\Models\CancelRequest;
 use App\Models\Deposit;
 use App\Models\Frontend;
 use App\Models\GeneralSetting;
@@ -60,6 +61,7 @@ class AppServiceProvider extends ServiceProvider
                 'pending_withdraw_count'    => Withdrawal::pending()->count(),
 
                 'pendingOrders'    => Order::pending()->count(),
+                'pendingCancelRequests'    => CancelRequest::pending()->count(),
             ]);
         });
 

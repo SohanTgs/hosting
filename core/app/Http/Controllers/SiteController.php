@@ -13,7 +13,6 @@ use App\Models\SupportTicket;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\DomainSetup; 
-use Image;
 
 class SiteController extends Controller
 {

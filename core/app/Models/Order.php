@@ -29,7 +29,6 @@ class Order extends Model
         return $this->belongsTo(User::class);
     }
  
-
     public function scopeActive(){
         return $this->where('status', 1);
     }
@@ -40,6 +39,10 @@ class Order extends Model
 
     public function scopeInitiated(){
         return $this->where('status', 0);
+    } 
+
+    public function scopeCancel(){
+        return $this->where('status', 3);
     }
 
     public function getStatusTextAttribute(){
@@ -58,13 +61,27 @@ class Order extends Model
             $class .= 'success';
             $text = 'Active';
         }
-        elseif ($this->status == 2){
+        elseif($this->status == 2){
             $class .= 'danger';
             $text = 'Pending';
+        }
+        elseif($this->status == 3){
+            $class .= 'dark';
+            $text = 'Cancelled';
         }
         
         return "<span class='$class'>" . trans($text) . "</span>";
     }
+
+    public static function status(){
+        return [
+            0=> trans('Initiated'), 
+            1=> trans('Active'),
+            2=> trans('Pending'), 
+            3=> trans('Cancelled'),
+        ]; 
+    }
+
 
 
 }

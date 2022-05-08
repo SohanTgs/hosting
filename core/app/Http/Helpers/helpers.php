@@ -1067,7 +1067,7 @@ function shoppingCart($product = null, $request = null, $deleteId = null, $billi
             'total'=> $array['price'] + $array['setupFee'],
             'afterDiscount'=> $array['price'] + $array['setupFee'],
 
-            'billing_cycle'=> $product->payment_type == 1 ? 1 : 2,
+            'billing_cycle'=> $product->payment_type == 1 ? 0 : billingCycle($request->billing_type),
 
             'billing_type'=> $request->billing_type,
             'config_options'=> array_filter((array) $request->config_options)
@@ -1102,7 +1102,7 @@ function shoppingCart($product = null, $request = null, $deleteId = null, $billi
                 $cart[$foundIndex]['total'] = $array['price'] + $array['setupFee'];
                 $cart[$foundIndex]['afterDiscount'] = $array['price'] + $array['setupFee'];
 
-                $cart[$foundIndex]['billing_cycle'] = $product->payment_type == 1 ? 1 : 2;
+                $cart[$foundIndex]['billing_cycle'] = $product->payment_type == 1 ? 0 : billingCycle($request->billing_type);
 
                 $cart[$foundIndex]['billing_type'] = $request->billing_type;
                 $cart[$foundIndex]['config_options'] = array_filter((array) $request->config_options);
@@ -1162,13 +1162,13 @@ function billingCycle($period = null, $showNextDate = false){
     try{
 
         $array = [
-            0 => ['billing_type'=>'one_time', 'showText'=>'One Time', 'carbon'=>null], 
-            1 => ['billing_type'=>'monthly', 'carbon'=>Carbon::now()->addMonth()->toDateTimeString(), 'showText'=>'Monthly'], 
-            2 => ['billing_type'=>'quarterly', 'carbon'=>Carbon::now()->addMonth(3)->toDateTimeString(), 'showText'=>'Quarterly'], 
-            3 => ['billing_type'=>'semi_annually', 'carbon'=>Carbon::now()->addMonth(6)->toDateTimeString(), 'showText'=>'Semi Annually'], 
-            4 => ['billing_type'=>'annually', 'carbon'=>Carbon::now()->addYear()->toDateTimeString(), 'showText'=>'Annually'],
-            5 => ['billing_type'=>'biennially', 'carbon'=>Carbon::now()->addYear(2)->toDateTimeString(), 'showText'=>'Biennially'], 
-            6 => ['billing_type'=>'triennially', 'carbon'=>Carbon::now()->addYear(3)->toDateTimeString(), 'showText'=>'Triennially']
+            0 => ['billing_type'=>'one_time', 'showText'=>'One Time', 'carbon'=>null, 'index'=>0], 
+            1 => ['billing_type'=>'monthly', 'carbon'=>Carbon::now()->addMonth()->toDateTimeString(), 'showText'=>'Monthly', 'index'=>1], 
+            2 => ['billing_type'=>'quarterly', 'carbon'=>Carbon::now()->addMonth(3)->toDateTimeString(), 'showText'=>'Quarterly', 'index'=>2], 
+            3 => ['billing_type'=>'semi_annually', 'carbon'=>Carbon::now()->addMonth(6)->toDateTimeString(), 'showText'=>'Semi Annually', 'index'=>3], 
+            4 => ['billing_type'=>'annually', 'carbon'=>Carbon::now()->addYear()->toDateTimeString(), 'showText'=>'Annually', 'index'=>4],
+            5 => ['billing_type'=>'biennially', 'carbon'=>Carbon::now()->addYear(2)->toDateTimeString(), 'showText'=>'Biennially', 'index'=>5], 
+            6 => ['billing_type'=>'triennially', 'carbon'=>Carbon::now()->addYear(3)->toDateTimeString(), 'showText'=>'Triennially', 'index'=>6]
         ];
   
         if(!$period && !$showNextDate){
@@ -1197,3 +1197,7 @@ function billingCycle($period = null, $showNextDate = false){
         return $e->getMessage();
     } 
 } 
+
+function nl22br($text){
+    return preg_replace("/<br\W*?\/>/", "\n", $text);
+}

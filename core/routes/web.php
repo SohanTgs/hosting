@@ -81,6 +81,12 @@ Route::namespace('Admin')->prefix('admin')->name('admin.')->group(function () {
 
         Route::post('add/new/hosting/demo','HostingPlanController@demo')->name('demo');
   
+        //Service Cancel Request   
+        Route::get('cancel/request/pending', 'CancelRequestController@pending')->name('cancel.request.pending');
+        Route::get('cancel/request/completed', 'CancelRequestController@completed')->name('cancel.request.completed');
+        Route::post('cancel/request', 'CancelRequestController@cancel')->name('cancel.request');
+        Route::post('cancel/request/delete', 'CancelRequestController@delete')->name('cancel.request.delete');
+
         //Order   
         Route::get('all/order', 'OrderController@all')->name('order.all');
         Route::get('pending/order', 'OrderController@pending')->name('order.pending');
@@ -463,7 +469,7 @@ Route::name('user.')->prefix('user')->group(function () {
             Route::get('config/domain/{id}/{domain}/{regPeriod}', 'UserController@configDomain')->name('config.domain');
             Route::post('config/domain', 'UserController@configDomainUpdate')->name('config.domain.update');
             Route::post('coupon', 'UserController@coupon')->name('coupon');
-  
+   
             Route::post('create/invoice', 'UserController@createInvoice')->name('create.invoice');
             Route::get('view/invoice/{id}', 'UserController@viewInvoice')->name('view.invoice');
 
@@ -471,6 +477,7 @@ Route::name('user.')->prefix('user')->group(function () {
 
             Route::get('my/services', 'UserController@myServices')->name('my.services');
             Route::get('service/details/{id}', 'UserController@serviceDetails')->name('service.details');
+            Route::post('service/cancel/request', 'UserController@serviceCancelRequest')->name('service.cancel.request');
             
             Route::get('login/cPanel/{id}', 'UserController@loginCpanel')->name('login.cpanel');
 

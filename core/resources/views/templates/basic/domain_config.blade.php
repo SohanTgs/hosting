@@ -140,18 +140,32 @@
         $(`input[name='id_protection'][value=@json($regPeriod)]`).prop('disabled', false);
 
         if( @json(request()->protection) ){
-            $(`input[name='id_protection'][value=@json(request()->protection)]`).prop('checked', true);
+            $(`input[name='id_protection'][value=@json(request()->protection)]`).prop('checked', true).attr('isChecked', 'checked');
         }
 
         $('input[name=reg_period]').on('click', function(){
 
-            $("input[name=id_protection]").each(function(){ 
-                $(this).prop('checked', false).prop('disabled', true);;
+            $('input[name=id_protection]').each(function(){ 
+                $(this).prop('checked', false).prop('disabled', true);
             });
 
             if($(this).prop('checked') == true){
-                $(this).parents('.card-body').find('input[type=radio]').last().prop('disabled', false)
+                $(this).parents('.card-body').find('input[type=radio]').last().prop('disabled', false);
             }
+        });
+
+        $('input[name=id_protection]').on('click', function(){
+      
+            var data = $(this).attr('isChecked');
+
+            if(data != 'checked'){
+                $(this).attr('isChecked', 'checked');
+                return $(this).prop('checked', true);
+            }
+
+            $(this).attr('isChecked', 'unChecked');
+            return $(this).prop('checked', false);
+
         });
 
     })(jQuery);

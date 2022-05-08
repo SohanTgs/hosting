@@ -8,7 +8,7 @@
     <div class="row justify-content-center mt-5">
 
         <div class="col-md-10">
-            <div class="card w-100">
+            <div class="card w-100"> 
                 <div class="card-body">
                     <div class="row">
 
@@ -17,7 +17,16 @@
                                 <div class="new-card">
                                     <span class="fa-stack fa-lg">
                                         <i class="fas fa-circle fa-stack-2x"></i>
-                                        <i class="fas fa-hdd fa-stack-1x fa-inverse"></i>
+                                        @php 
+                                            if($product->product_type == 3){
+                                                $icon = 'server'; 
+                                            }elseif($product->product_type == 4){
+                                                $icon = 'archive';
+                                            }else{
+                                                $icon = 'hdd'; 
+                                            }
+                                        @endphp
+                                        <i class="fas fa-{{ $icon }} fa-stack-1x fa-inverse"></i>
                                     </span>
                                     <h3 class="text-center">{{ __(@$service->product->name) }}</h3>
                                     <h4 class="text-center">{{ __(@$service->product->serviceCategory->name) }}</h4>
@@ -25,6 +34,18 @@
                                         @php echo $service->showDomainStatus; @endphp
                                     </span>
                                 </div>
+
+                                @if($service->domain_status == 1)
+                                    <button class="btn btn-danger btn-sm w-100 mt-2 {{ $service->cancelRequest ? 'disabled' : 'cancenRequest' }}">  
+                                        @lang('Request Cancellation') 
+                                    </button> 
+                                @endif
+
+                                @if($service->cancelRequest && $service->cancelRequest->status == 2)
+                                    <small class="text-center w-100 d-block mt-2 text-danger">
+                                        @lang('There is an outstanding cancellation request for this product/service')
+                                    </small>
+                                @endif
                             </div> 
                         @else 
 
@@ -97,7 +118,7 @@
 
                         <div class="col-md-7 text-center">
                             <h4>@lang('Registration Date')</h4>
-                            {{ showDateTime(@$service->created_at, 'd/m/Y') }}
+                            {{ @$service->reg_time ? showDateTime(@$service->reg_time, 'd/m/Y') : 'N/A' }}
 
                             <h4>@lang('First Payment Amount')</h4>
                             {{ $general->cur_sym }}{{ getAmount($service->first_payment_amount) }} {{ __($general->cur_text) }}
@@ -118,14 +139,7 @@
                             @if($service->billing == 1)
                                 @lang('N/A')
                             @else 
-                                {{ showDateTime(@$service->next_due_date, 'd/m/Y') }}
-                            @endif
-
-                            <h4>@lang('Payment Method')</h4>
-                            @if($service->deposit_id)
-                                {{ __(@$service->deposit->gateway->name) }}
-                            @else 
-                                @lang('Wallet Balance') 
+                                {{ @$service->next_due_date ? showDateTime(@$service->next_due_date, 'd/m/Y') : 'N/A' }}
                             @endif
                         </div>
                     </div>
@@ -175,6 +189,44 @@
         </div>
     </div>
 </div>
+
+<div id="cancenRequest" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@lang('Briefly Describe your reason for Cancellation')</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ route('user.service.cancel.request') }}" method="post">
+                @csrf
+                <input type="hidden" name="id" value="{{ $service->id }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label for="cancellation_type">@lang('Cancellation Type')</label>
+                            <select name="cancellation_type" class="form-control" required>
+                                <option value="">@lang('Select One')</option>
+                                @foreach(App\Models\CancelRequest::type() as $key => $value)
+                                    <option value="{{ $key }}">{{ $value }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label for="reason">@lang('Reason')</label>
+                            <textarea name="reason" id="reason" class="form-control" rows="4" required>{{ old('reason') }}</textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">@lang('Close')</button>
+                    <button type="submit" class="btn btn-success">@lang('Submit')</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('style')
@@ -219,11 +271,18 @@
     <script>
         (function ($) {
             "use strict";
+
             var cpanelLoginUrl = @json(session()->get('url'));
 
             if(cpanelLoginUrl){
                 document.querySelector('.cPanelLogin').click();
             }
+
+            $('.cancenRequest').on('click', function(){
+                var modal = $('#cancenRequest');
+                modal.modal('show');
+            });
+
         })(jQuery);
     </script>
 @endpush 
