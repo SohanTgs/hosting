@@ -1201,3 +1201,11 @@ function billingCycle($period = null, $showNextDate = false){
 function nl22br($text){
     return preg_replace("/<br\W*?\/>/", "\n", $text);
 }
+
+function xmlToArray($xml){
+    $xml = simplexml_load_string($xml);
+    $json = json_encode($xml);
+    $array = json_decode($json, true);
+
+    return $array;
+}

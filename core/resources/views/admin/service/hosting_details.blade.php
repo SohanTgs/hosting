@@ -473,7 +473,7 @@
                 <input type="hidden" name="module_type" required>
                 <div class="modal-body"> 
                     <div class="form-group">
-                        @lang('Are you sure you want to run the') <span class="moduleName font-weight-bold"></span> @lang('function')?
+                        @lang('Are you sure to want run the') <span class="moduleName font-weight-bold"></span> @lang('function')?
 
                         <div class="form-group mt-4 suspendArea">
                             <label class="form-control-label font-weight-bold">@lang('Reason')</label>
@@ -508,7 +508,7 @@
 <form class="d-init" action="{{ route('admin.module.cpanel.login') }}" method="post">
     @csrf
     <input type="hidden" name="hosting_id" value="{{ $hosting->id }}" required>
-    <button type="submit" class="btn btn-sm btn--success box--shadow1 text-white text--small">
+    <button type="submit" class="btn btn-sm btn--success box--shadow1 text-white text--small" {{ @$accountSummary ? null : 'disabled' }}>
         <i class="fa fa-fw fa-sign-in-alt"></i>@lang('Login to cPanel')
     </button>
 </form>

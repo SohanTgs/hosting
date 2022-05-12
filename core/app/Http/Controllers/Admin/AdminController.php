@@ -24,6 +24,126 @@ class AdminController extends Controller
 
     public function dashboard()
     {
+        
+
+        // $response = Http::get('https://api.sandbox.namecheap.com/xml.response', [
+        //     'ApiUser'=>'sohantgs',
+        //     'ApiKey'=>'717bd8d345c5436b85ee9c5ad2cb9f78',
+        //     'UserName'=>'sohantgs',
+        //     'Command'=>'namecheap.domains.create',
+        //     'ClientIp'=>$_SERVER['REMOTE_ADDR'],
+        //     'DomainName'=>'sohan888.com',
+        //     'Years'=>1,
+        //     'AuxBillingFirstName'=>'John',
+        //     'AuxBillingLastName'=>'Smith',
+        //     'AuxBillingAddress1'=>'8939%20S.cross%20Blv',
+        //     'AuxBillingStateProvince'=>'CA',
+        //     'AuxBillingPostalCode'=>90045,
+        //     'AuxBillingCountry'=>'US',
+        //     'AuxBillingPhone'=>'+1.6613102107',
+        //     'AuxBillingEmailAddress'=>'john@gmail.com',
+        //     'AuxBillingCity'=>'CA',
+        //     'TechFirstName'=>'John',
+        //     'TechLastName'=>'Smith',
+        //     'TechAddress1'=>'8939%20S.cross%20Blvd',
+        //     'TechStateProvince'=>'CA',
+        //     'TechPostalCode'=>90045,
+        //     'TechCountry'=>'US',
+        //     'TechPhone'=>'+1.6613102107',
+        //     'TechEmailAddress'=>'john@gmail.com',
+        //     'TechCity'=>'CA',
+        //     'AdminFirstName'=>'John',
+        //     'AdminLastName'=>'Smith',
+        //     'AdminAddress1'=>'8939%cross%20Blvd',
+        //     'AdminStateProvince'=>'CA',
+        //     'AdminPostalCode'=>'9004',
+        //     'AdminCountry'=>'US',
+        //     'AdminPhone'=>'+1.6613102107',
+        //     'AdminEmailAddress'=>'joe@gmail.com',
+        //     'AdminCity'=>'CA',
+        //     'RegistrantFirstName'=>'John',
+        //     'RegistrantLastName'=>'Smith',
+        //     'RegistrantAddress1'=>'8939%20S.cross%20Blvd',
+        //     'RegistrantStateProvince'=>'CS',
+        //     'RegistrantPostalCode'=>90045,
+        //     'RegistrantCountry'=>'US',
+        //     'RegistrantPhone'=>'+1.6613102107',
+        //     'RegistrantEmailAddress'=>'jo@gmail.com',
+        //     'RegistrantCity'=>'CA',
+
+        //     'Whoisguard'=>'yes',
+        //     'AddFreeWhoisguard'=>'yes',
+        //     // 'WGEnabled'=>'yes',
+        // ]);
+
+
+        // GET INFORMATION
+        // $response = Http::get('https://api.sandbox.namecheap.com/xml.response', [
+        //     'ApiUser'=>'sohantgs',
+        //     'ApiKey'=>'717bd8d345c5436b85ee9c5ad2cb9f78',
+        //     'UserName'=>'sohantgs',
+        //     'Command'=>'namecheap.domains.getinfo',
+        //     'ClientIp'=>$_SERVER['REMOTE_ADDR'],
+        //     'DomainName'=>'sohan888.com',
+        // ]);
+
+        
+        // ID PROTECTION ENABLE
+        // $response = Http::get('https://api.sandbox.namecheap.com/xml.response', [
+        //     'ApiUser'=>'sohantgs',
+        //     'ApiKey'=>'717bd8d345c5436b85ee9c5ad2cb9f78',
+        //     'UserName'=>'sohantgs',
+        //     'Command'=>'Namecheap.Whoisguard.enable',
+        //     'ClientIp'=>$_SERVER['REMOTE_ADDR'],
+        //     'WhoisGuardid'=>'597783',
+        //     'ForwardedToEmail'=>'php.sohan@gmail.com',
+        // ]);
+
+
+        // ID PROTECTION DISABLE
+        // $response = Http::get('https://api.sandbox.namecheap.com/xml.response', [
+        //     'ApiUser'=>'sohantgs',
+        //     'ApiKey'=>'717bd8d345c5436b85ee9c5ad2cb9f78',
+        //     'UserName'=>'sohantgs',
+        //     'Command'=>'Namecheap.Whoisguard.disable',
+        //     'ClientIp'=>$_SERVER['REMOTE_ADDR'],
+        //     'WhoisGuardid'=>'597783',
+        // ]);
+
+
+        // CHNAGE NAMESERVERS 
+        // $response = Http::get('https://api.sandbox.namecheap.com/xml.response', [
+        //     'ApiUser'=>'sohantgs',
+        //     'ApiKey'=>'717bd8d345c5436b85ee9c5ad2cb9f78',
+        //     'UserName'=>'sohantgs',
+        //     'Command'=>'namecheap.domains.dns.setCustom',
+        //     'ClientIp'=>$_SERVER['REMOTE_ADDR'],
+        //     'SLD'=>' sohan888',
+        //     'TLD'=>'com',
+        //     'NameServers'=>'ns1.abir.com,ns2.abir.com',
+        // ]);
+
+
+        // RENEW 
+        // $response = Http::get('https://api.sandbox.namecheap.com/xml.response', [
+        //     'ApiUser'=>'sohantgs',
+        //     'ApiKey'=>'717bd8d345c5436b85ee9c5ad2cb9f78',
+        //     'UserName'=>'sohantgs',
+        //     'Command'=>'namecheap.domains.renew',
+        //     'ClientIp'=>$_SERVER['REMOTE_ADDR'],
+        //     'DomainName'=>'sohan888.com',
+        //     'Years'=>1,
+        // ]);
+
+        // $response = xmlToArray(@$response); 
+        // $array = array_keys(@$response['CommandResponse'] ?? []);
+
+        // dd($response, @$response['CommandResponse'][$array[1]][$array[0]], @$response['Errors']['Error']);
+
+
+
+
+
 
         $pageTitle = 'Dashboard';
 

@@ -104,9 +104,12 @@ Route::namespace('Admin')->prefix('admin')->name('admin.')->group(function () {
 
         Route::get('change/order/hosting/product/{hostingId}/{productId}', 'ServiceController@changeHostingProduct')->name('change.order.hosting.product'); 
 
-        //Module Command     
-        Route::post('module/command', 'ModuleController@moduleCommand')->name('module.command');
-        Route::post('login/cPanel', 'ModuleController@loginCpanel')->name('module.cpanel.login');
+        //Module Command for CPANEL
+        Route::post('module/command', 'CpanelModuleController@moduleCommand')->name('module.command');
+        Route::post('login/cPanel', 'CpanelModuleController@loginCpanel')->name('module.cpanel.login');
+
+        //Module Command for DOMAIN
+        Route::post('domain/module/command', 'DomainModuleController@moduleCommand')->name('domain.module.command');
 
         //Invoice     
         Route::get('all/invoice', 'InvoiceController@all')->name('invoice.all');
@@ -114,8 +117,8 @@ Route::namespace('Admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('unpaid/invoice', 'InvoiceController@unpaid')->name('invoice.unpaid');
         Route::get('invoice/details/{id}', 'InvoiceController@details')->name('invoice.details');
         Route::get('download/{id}/{view?}', 'InvoiceController@download')->name('invoice.download');
-
-        //Coupon   
+ 
+        //Coupon    
         Route::get('all/coupon', 'CouponController@all')->name('coupon.all');
         Route::post('add/coupon', 'CouponController@add')->name('coupon.add');
         Route::post('update/coupon', 'CouponController@update')->name('coupon.update');
@@ -125,6 +128,11 @@ Route::namespace('Admin')->prefix('admin')->name('admin.')->group(function () {
         Route::post('add/domain', 'DomainController@add')->name('domain.add');
         Route::post('update/domain', 'DomainController@update')->name('domain.update');
         Route::post('update/domain/pricing', 'DomainController@updatePricing')->name('domain.update.pricing');
+
+        //Domain Register
+        Route::get('domain/registers', 'DomainRegisterController@all')->name('register.domain.all');
+        Route::post('domain/register/change/status', 'DomainRegisterController@changeStatus')->name('register.domain.change.status');
+        Route::post('domain/register/update', 'DomainRegisterController@update')->name('register.domain.update');
 
         //Hosting Plan
         Route::get('all/hosting/plan','HostingPlanController@all')->name('hosting.plan.all');

@@ -11,7 +11,7 @@
                 <div class="col-md-12"><h1>{{ __($pageTitle) }}</h1></div>
        
                 @foreach($carts as $cart)  
-                    <div class="col-md-12 cart_child">    @dump($cart)
+                    <div class="col-md-12 cart_child">   
                         <div class="card fz-12"> 
                             <div class="card-body">  
                                 @if(@$cart['product_id'])

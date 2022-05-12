@@ -54,6 +54,13 @@
                     </a>
                 </li>
 
+                <li class="sidebar-menu-item {{menuActive('admin.register.domain*')}}">
+                    <a href="{{route('admin.register.domain.all')}}" class="nav-link "> 
+                        <i class="menu-icon las la-registered"></i>
+                        <span class="menu-title">@lang('Domain Register')</span>
+                    </a>
+                </li>
+
                 <li class="sidebar-menu-item {{menuActive('admin.product*')}}">
                     <a href="{{route('admin.product.all')}}" class="nav-link ">
                         <i class="menu-icon lab la-product-hunt"></i>

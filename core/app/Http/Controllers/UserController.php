@@ -780,6 +780,7 @@ class UserController extends Controller
         $server = $service->server;
         $diskUsed = 0; 
         $diskLimit = 1;
+        $login = false;
 
         try{
             if($service->domain_status == 1){
@@ -791,13 +792,14 @@ class UserController extends Controller
                 
                 $diskUsed = @$response->diskused;
                 $diskLimit = @$response->disklimit;
+                $login = true;
             }
 
         }catch(\Exception  $error){
             Log::error($error->getMessage());
         }
 
-        return view($this->activeTemplate . 'user.service.details', compact('pageTitle', 'service', 'diskUsed', 'diskLimit'));
+        return view($this->activeTemplate . 'user.service.details', compact('pageTitle', 'service', 'diskUsed', 'diskLimit', 'login'));
     }
  
     public function createInvoice(Request $request){

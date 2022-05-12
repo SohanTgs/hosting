@@ -63,7 +63,9 @@
                                             <a href="http://{{ $service->domain }}" target="_blank">www.{{ $service->domain }}</a>
                                             <div class="d-block">
                                                 <a class="btn btn-success btn-sm mt-3" href="http://{{ $service->domain }}" target="_blank">@lang('Visit Website')</a>
-                                                <a class="btn btn-info btn-sm mt-3" href="{{ route('user.login.cpanel', $service->id) }}">@lang('Login to cPanel')</a>
+                                                <a class="btn btn-info btn-sm mt-3" href="{{ @$login ? route('user.login.cpanel', $service->id) : 'javascript:void(0)' }}">
+                                                    @lang('Login to cPanel')
+                                                </a>
                                                 <a href="{{ session()->get('url') ?? '#' }}" class="cPanelLogin" target="_blank"></a>
                                             </div>
                                         </div>

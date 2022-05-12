@@ -9,6 +9,7 @@ use App\Models\HostingConfig;
 use App\Models\Domain; 
 use App\Models\ServiceCategory; 
 use App\Models\Product;  
+use App\Models\DomainRegister;  
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;  
 
@@ -127,7 +128,8 @@ class ServiceController extends Controller{
     public function domainDetails($id){   
         $domain = Domain::findOrFail($id);
         $pageTitle = 'Domain Details';
-        return view('admin.service.domain_details', compact('pageTitle', 'domain'));
+        $domainRegisters = DomainRegister::active()->latest()->get(['id', 'name']); 
+        return view('admin.service.domain_details', compact('pageTitle', 'domain', 'domainRegisters'));
     } 
   
     public function domainUpdate(Request $request){ 
@@ -138,10 +140,12 @@ class ServiceController extends Controller{
             'reg_time'=>'nullable|date_format:d-m-Y',
             'next_due_date'=>'nullable|date_format:d-m-Y',
             'expiry_date'=>'nullable|date_format:d-m-Y',
+            'register_id'=>'exists:domain_registers,id|nullable',
         ]); 
 
         $domain = Domain::findOrFail($request->id);
         $domain->subscription_id = $request->subscription_id;
+        $domain->domain_register_id = $request->register_id;
         $domain->reg_time = $request->reg_time;
         $domain->reg_period = $request->reg_period;
         $domain->next_due_date = $request->next_due_date;

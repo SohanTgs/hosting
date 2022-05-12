@@ -9,7 +9,7 @@ use App\Models\GeneralSetting;
 use Illuminate\Support\Facades\Http;
 
 
-class ModuleController extends Controller{
+class CpanelModuleController extends Controller{
     
     public function moduleCommand(Request $request){
 
@@ -307,5 +307,5 @@ class ModuleController extends Controller{
     }
 
 
-}
+} 
 
