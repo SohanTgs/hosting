@@ -108,6 +108,7 @@ class ManageUsersController extends Controller
         }elseif($scope == 'withBalance'){
             $pageTitle = 'With Balance ';
             $users = $users->where('balance','!=',0);
+            
         }
 
         $users = $users->paginate(getPaginate());

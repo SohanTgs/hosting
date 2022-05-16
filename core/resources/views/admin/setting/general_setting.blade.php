@@ -39,6 +39,18 @@
                         </div>
 
                         <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-control-label font-weight-bold">@lang('Default Nameserver 1')</label>
+                                    <input class="form-control form-control-lg" type="text" name="ns1" value="{{$general->ns1}}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-control-label font-weight-bold">@lang('Default Nameserver 2')</label>
+                                    <input class="form-control form-control-lg" type="text" name="ns2" value="{{$general->ns2}}">
+                                </div>
+                            </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <div class="d-flex flex-wrap justify-content-between">

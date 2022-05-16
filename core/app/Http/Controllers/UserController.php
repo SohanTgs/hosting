@@ -30,6 +30,8 @@ use Carbon\Carbon;
 use PDF;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\DomainRegisters\Register;
+
 
 class UserController extends Controller
 {
@@ -1273,12 +1275,37 @@ class UserController extends Controller
     public function domainDetails($id){
         $pageTitle = 'Domain Details';
         $user = auth()->user();
-        $domain = Domain::whereBelongsTo($user)->where('status', '!=', 0)->where('id', $id)->firstOrFail();
+        $domain = Domain::whereBelongsTo($user)->where('id', $id)->firstOrFail();
         return view($this->activeTemplate.'user.domain.details', compact('pageTitle', 'domain'));
     }
 
     public function domainNameserverUpdate(Request $request){
-        return $request;
+
+        $request->validate([
+            'ns1'=>'required',
+            'ns2'=>'required',
+            'domain_id'=>'required|integer',
+        ]);
+
+        $user = auth()->user();
+        $domain = Domain::whereBelongsTo($user)->findOrFail($request->domain_id);
+
+        $domain->ns1 = 'sohan';
+
+        $register = new Register($domain->register->alias);
+        $register->domain = $domain;
+        $register->request = $request;
+        $register->command = 'changeNameservers';
+        $execute = $register->run();
+
+        if(!$execute['success']){
+            $notify[] = ['error', $execute['message']];
+            return back()->withNotify($notify);
+        }
+     
+        $notify[] = ['success', 'Changed nameservers successfully'];
+        return back()->withNotify($notify);
+
     }
 
     public function loginCpanel($id){
@@ -1411,6 +1438,57 @@ class UserController extends Controller
         $notify[] = ['success', 'Your cancellation request submitted successfully'];
         return back()->withNotify($notify);
         
+    }
+
+    public function domainContact($id){
+        $user = auth()->user();
+        $domain = Domain::whereBelongsTo($user)->findOrFail($id);
+        $pageTitle = 'Contact Information';
+
+        if(!$domain->register){
+            $notify[] = ['error', 'Sorry, There is no domain register'];
+            return redirect()->route('user.domain.details', $domain->id)->withNotify($notify);
+        }
+
+        $register = new Register($domain->register->alias);
+        $register->domain = $domain;
+        $register->command = 'getContact';
+        $execute = $register->run();
+
+        if(!$execute['success']){
+            $notify[] = ['error', $execute['message']];
+            return back()->withNotify($notify);
+        }
+
+        $contactInfo = $execute['response'];
+        $countries = json_decode(file_get_contents(resource_path('views/partials/country.json')));
+
+        return view($this->activeTemplate.'user.domain.contact.'.$domain->register->alias, compact('pageTitle', 'domain', 'countries', 'contactInfo'));
+    }
+
+    public function domainContactUpdate(Request $request){
+
+        $user = auth()->user();
+        $domain = Domain::whereBelongsTo($user)->findOrFail($request->domain_id); 
+
+        if(!$domain->register){
+            $notify[] = ['error', 'Sorry, There is no domain register'];
+            return redirect()->route('user.domain.details', $domain->id)->withNotify($notify);
+        }
+
+        $register = new Register($domain->register->alias);
+        $register->domain = $domain;
+        $register->request = $request;
+        $register->command = 'setContact';
+        $execute = $register->run();
+
+        if(!$execute['success']){
+            $notify[] = ['error', $execute['message']];
+            return back()->withNotify($notify);
+        }
+     
+        $notify[] = ['success', 'The changes to the domain were saved successfully'];
+        return back()->withNotify($notify);
     }
 
 }

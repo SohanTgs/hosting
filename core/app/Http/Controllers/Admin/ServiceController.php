@@ -12,6 +12,7 @@ use App\Models\Product;
 use App\Models\DomainRegister;  
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;  
+use App\DomainRegisters\Register;
 
 class ServiceController extends Controller{
 
@@ -27,7 +28,7 @@ class ServiceController extends Controller{
  
         $request->validate([
             'id'=>'required' , 
-            'domain_status'=>'required|between:0,5',
+            'domain_status'=>'required|between:0,4',
             'server_id'=>'nullable|exists:servers,id',
             'next_due_date'=>'nullable|date_format:d-m-Y',
             'termination_date'=>'nullable|date_format:d-m-Y',
@@ -129,14 +130,40 @@ class ServiceController extends Controller{
         $domain = Domain::findOrFail($id);
         $pageTitle = 'Domain Details';
         $domainRegisters = DomainRegister::active()->latest()->get(['id', 'name']); 
-        return view('admin.service.domain_details', compact('pageTitle', 'domain', 'domainRegisters'));
+        $register = Domain::where('status', 1)->first('id');
+        return view('admin.service.domain_details', compact('pageTitle', 'domain', 'domainRegisters', 'register'));
     } 
+
+    public function domainContact($id){
+        $domain = Domain::findOrFail($id);
+        
+        if(!$domain->register){
+            $notify[] = ['error', 'Sorry, There is no domain register'];
+            return back()->withNotify($notify);
+        }
+        
+        $pageTitle = 'Domain Contact Information';
+        $register = new Register($domain->register->alias);
+        $register->domain = $domain;
+        $register->command = 'getContact';
+        $execute = $register->run();
+
+        if(!$execute['success']){
+            $notify[] = ['error', $execute['message']];
+            return back()->withNotify($notify);
+        }
+
+        $contactInfo = $execute['response'];
+        $countries = json_decode(file_get_contents(resource_path('views/partials/country.json')));
+
+        return view('admin.service.domain_contact.'.$domain->register->alias, compact('pageTitle', 'domain', 'contactInfo', 'countries'));
+    }
   
     public function domainUpdate(Request $request){ 
 
         $request->validate([ 
             'id'=>'required' , 
-            'status'=>'required|in:1,2',
+            'status'=>'required|integer|between:0,4',
             'reg_time'=>'nullable|date_format:d-m-Y',
             'next_due_date'=>'nullable|date_format:d-m-Y',
             'expiry_date'=>'nullable|date_format:d-m-Y',
@@ -153,6 +180,13 @@ class ServiceController extends Controller{
         $domain->expiry_date = $request->expiry_date;
         $domain->first_payment_amount = $request->first_payment_amount;
         $domain->recurring_amount = $request->recurring_amount;
+        
+        $domain->ns1 = $request->ns1;
+        $domain->ns2 = $request->ns2;
+        $domain->ns3 = $request->ns3;
+        $domain->ns4 = $request->ns4;
+        $domain->admin_notes = $request->admin_notes;
+
         $domain->id_protection = $request->id_protection ? 1 : 0;
         $domain->status = $request->status;
         $domain->save();

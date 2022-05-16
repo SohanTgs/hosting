@@ -43,6 +43,8 @@ class GeneralSettingController extends Controller
         $general->base_color = $request->base_color;
         $general->secondary_color = $request->secondary_color;
 
+        $general->ns1 = $request->ns1;
+        $general->ns2 = $request->ns2;
         $general->api_key = $request->api_key;
         
         $general->save();

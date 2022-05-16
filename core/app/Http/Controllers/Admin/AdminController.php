@@ -254,7 +254,8 @@ class AdminController extends Controller
     {
         $pageTitle = 'Profile';
         $admin = Auth::guard('admin')->user();
-        return view('admin.profile', compact('pageTitle', 'admin'));
+        $countries = json_decode(file_get_contents(resource_path('views/partials/country.json')));
+        return view('admin.profile', compact('pageTitle', 'admin', 'countries'));
     }
 
     public function profileUpdate(Request $request)
@@ -262,8 +263,17 @@ class AdminController extends Controller
         $this->validate($request, [
             'name' => 'required',
             'email' => 'required|email',
-            'image' => ['nullable','image',new FileTypeValidate(['jpg','jpeg','png'])]
+            'image' => ['nullable','image',new FileTypeValidate(['jpg','jpeg','png'])],
+            'mobile' => 'required|min:5',
         ]);
+       
+        $mobile = $request->mobile;
+
+        if(substr($mobile, 0, 1) != '+' || @$mobile[4] != '.'){
+            $notify[] = ['error', 'Invalid mobile format'];
+            return back()->withNotify($notify);
+        }
+
         $user = Auth::guard('admin')->user();
 
         if ($request->hasFile('image')) {
@@ -276,10 +286,21 @@ class AdminController extends Controller
             }
         } 
 
+        $address = [
+            'address' => @$request->address,
+            'state' => @$request->state,
+            'zip' => @$request->zip,
+            'country' => @$request->country,
+            'city' => @$request->city,
+        ];
+
         $user->name = $request->name;
         $user->email = $request->email;
+        $user->mobile = $mobile;
+        $user->address = $address;
         $user->save();
-        $notify[] = ['success', 'Your profile has been updated.'];
+
+        $notify[] = ['success', 'Your profile has been updated'];
         return redirect()->route('admin.profile')->withNotify($notify);
     }
 

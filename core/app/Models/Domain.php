@@ -23,6 +23,10 @@ class Domain extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function register(){ 
+        return $this->belongsTo(DomainRegister::class, 'domain_register_id');
+    }
+
     public function getShowStatusAttribute(){
 
         if(request()->routeIs('admin*')){
@@ -32,26 +36,38 @@ class Domain extends Model
         }
 
         if ($this->status == 0){
-            $class .= 'dark';
-            $text = 'Initiated';
+            $class .= 'danger';
+            $text = 'Pending';
         }
         elseif ($this->status == 1){
             $class .= 'success';
             $text = 'Active';
         }
         elseif ($this->status == 2){
+            $class .= 'warning';
+            $text = 'Pending Registration';
+        }
+        elseif ($this->status == 3){
             $class .= 'danger';
-            $text = 'Pending';
+            $text = 'Expired';
+        }
+        elseif ($this->status == 4){
+            $class .= 'dark';
+            $text = 'Cancelled';
         }
         
         return "<span class='$class'>" . trans($text) . "</span>";
     }
 
-    public static function status(){
+    public static function status(){ 
         return [
+            0=> trans('Pending'), 
             1=> trans('Active'),
-            2=> trans('Pending')
+            2=> trans('Pending Registration'),
+            3=> trans('Expired'), 
+            4=> trans('Cancelled'),
         ];
     }
 
 }
+

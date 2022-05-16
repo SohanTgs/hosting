@@ -31,6 +31,35 @@
                             <span  class="font-weight-bold">{{$admin->email}}</span>
                         </li>
 
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            @lang('Mobile')
+                            <span  class="font-weight-bold">{{$admin->mobile}}</span>
+                        </li>
+
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            @lang('Address')
+                            <span class="font-weight-bold">{{@$admin->address->address}}</span>
+                        </li>
+
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            @lang('State')
+                            <span class="font-weight-bold">{{@$admin->address->state}}</span>
+                        </li>
+
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            @lang('Zip')
+                            <span class="font-weight-bold">{{@$admin->address->zip}}</span>
+                        </li>
+
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            @lang('Country')
+                            <span class="font-weight-bold">{{@$admin->address->country}}</span>
+                        </li>
+
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            @lang('City')
+                            <span class="font-weight-bold">{{@$admin->address->city}}</span>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -40,16 +69,11 @@
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title mb-50 border-bottom pb-2">@lang('Profile Information')</h5>
-
                     <form action="{{ route('admin.profile.update') }}" method="POST" enctype="multipart/form-data">
                         @csrf
 
-
-
                         <div class="row">
-
                             <div class="col-md-6">
-
                                 <div class="form-group">
                                     <div class="image-upload">
                                         <div class="thumb">
@@ -66,7 +90,6 @@
                                         </div>
                                     </div>
                                 </div>
-
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group ">
@@ -78,8 +101,44 @@
                                     <label class="form-control-label  font-weight-bold">@lang('Email')</label>
                                     <input class="form-control" type="email" name="email" value="{{ auth()->guard('admin')->user()->email }}" >
                                 </div>
-                            </div>
 
+                                <div class="form-group">
+                                    <label class="form-control-label  font-weight-bold">
+                                        @lang('Mobile') <span class="text--primary">(@lang('Phone number in the format +NNN.NNNNNNNNNN'))</span>
+                                    </label>
+                                    <input class="form-control" type="text" name="mobile" value="{{ auth()->guard('admin')->user()->mobile }}" required placeholder="@lang('+NNN.NNNNNNNNNN')">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-control-label  font-weight-bold">@lang('Address')</label>
+                                    <input class="form-control" type="text" name="address" value="{{ auth()->guard('admin')->user()->address->address }}" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-control-label  font-weight-bold">@lang('State')</label>
+                                    <input class="form-control" type="text" name="state" value="{{ auth()->guard('admin')->user()->address->state }}" required>
+                                </div>
+ 
+                                <div class="form-group">
+                                    <label class="form-control-label  font-weight-bold">@lang('Zip')</label>
+                                    <input class="form-control" type="text" name="zip" value="{{ auth()->guard('admin')->user()->address->zip }}" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-control-label  font-weight-bold">@lang('City')</label>
+                                    <input class="form-control" type="text" name="city" value="{{ auth()->guard('admin')->user()->address->city }}" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-control-label  font-weight-bold">@lang('Country')</label>
+                                    <select name="country" class="form-control">
+                                        @foreach($countries as $key => $country)
+                                            <option value="{{ $key }}" @if($key == auth()->guard('admin')->user()->address->country ) selected @endif>{{ __($country->country) }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                            </div>
                         </div>
 
                         <div class="form-group">

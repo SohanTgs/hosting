@@ -48,7 +48,7 @@
                             <div class="billing-form">
                                 <span class="billing-form__label d-block flex-shrink-0">
                                     @lang('Register')
-                                </span>
+                                </span> 
                                 <select name="register_id" class="form-control"> 
                                     <option value="">@lang('Select One')</option>
                                     @foreach($domainRegisters as $register) 
@@ -57,7 +57,6 @@
                                 </select>
                             </div>
                         </li>
-
                         <li class="list-group-item">
                             <div class="billing-form">
                                 <span class="billing-form__label d-block flex-shrink-0">
@@ -70,14 +69,6 @@
                                 </select>
                             </div>
                         </li>
-                    </ul> 
-                </div>
-            </div> 
-        </div>  
-        <div class="col-xl-6 col-md-6 mb-30">
-            <div class="card b-radius--10 overflow-hidden box--shadow1">
-                <div class="card-body">
-                    <ul class="list-group">
                         <li class="list-group-item">
                             <div class="billing-form">
                                 <span class="billing-form__label d-block flex-shrink-0">
@@ -117,12 +108,60 @@
                                 </div>
                             </div>
                         </li>
+                    </ul> 
+                </div>
+            </div> 
+        </div>  
+        <div class="col-xl-6 col-md-6 mb-30">
+            <div class="card b-radius--10 overflow-hidden box--shadow1">
+                <div class="card-body">
+                    <ul class="list-group">
                         <li class="list-group-item">
                             <div class="billing-form">
                                 <span class="billing-form__label d-block flex-shrink-0">
                                     @lang('Subscription ID')  
                                 </span>
                                 <input type="text" name="subscription_id" value="{{ @$domain->subscription_id }}" class="form-control">
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="billing-form">
+                                <span class="billing-form__label d-block flex-shrink-0">
+                                    @lang('Nameserver 1')  
+                                </span>
+                                <input type="text" name="ns1" value="{{ @$domain->ns1 }}" class="form-control" placeholder="@lang('ns1.example.com')">
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="billing-form">
+                                <span class="billing-form__label d-block flex-shrink-0">
+                                    @lang('Nameserver 2')  
+                                </span>
+                                <input type="text" name="ns2" value="{{ @$domain->ns2 }}" class="form-control" placeholder="@lang('ns2.example.com')">
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="billing-form">
+                                <span class="billing-form__label d-block flex-shrink-0">
+                                    @lang('Nameserver 3')  
+                                </span>
+                                <input type="text" name="ns3" value="{{ @$domain->ns3 }}" class="form-control" placeholder="@lang('ns3.example.com')">
+                            </div>
+                        </li> 
+                        <li class="list-group-item">
+                            <div class="billing-form">
+                                <span class="billing-form__label d-block flex-shrink-0">
+                                    @lang('Nameserver 4')  
+                                </span>
+                                <input type="text" name="ns4" value="{{ @$domain->ns4 }}" class="form-control" placeholder="@lang('ns4.example.com')">
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="billing-form">
+                                <span class="billing-form__label d-block flex-shrink-0">
+                                    @lang('Admin Notes')  
+                                </span>
+                                <textarea name="admin_notes" class="form-control" rows="3">@php echo nl22br($domain->admin_notes); @endphp</textarea>
                             </div>
                         </li>
                         <li class="list-group-item">
@@ -139,7 +178,7 @@
         </div>
     </div>
 
-    {{-- @if($hosting->product->module_type == 1) --}}
+    @if($register) 
         <div class="row mb-none-30 mb-3">
             <div class="col-lg-12 col-md-12 mb-30">
                 <div class="card">
@@ -150,21 +189,44 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="row">
-                                    <div class="col-lg-4 col-md-4 form-group">
-                                        <button class="btn btn--primary moduleModal w-100" data-module="1" data-type="1" type="button">
+                                    <div class="col-lg-2 col-md-4 form-group">
+                                        <button class="btn btn--primary w-100 registerModal" type="button">
                                             <i class="las la-registered"></i>@lang('Register')
                                         </button>
                                     </div>
-                                    <div class="col-lg-4 col-md-4 form-group">
-                                        <button class="btn btn--primary moduleModal w-100" data-module="2" data-type="2" type="button">
+                                    <div class="col-lg-2 col-md-4 form-group">
+                                        <button class="btn btn--primary w-100 moduleModal" data-module="2" type="button">
+                                            <i class="las la-server"></i>@lang('Change Nameservers')
+                                        </button>
+                                    </div>
+                                    <div class="col-lg-2 col-md-4 form-group">
+                                        <button class="btn btn--primary moduleModal w-100" type="button" data-module="3">
                                             <i class="las la-shopping-cart"></i>@lang('Renew')
                                         </button>
                                     </div> 
-                                    <div class="col-lg-4 col-md-4 form-group">
-                                        <button class="btn btn--primary moduleModal w-100" data-module="3" data-type="3" type="button">
+                                    <div class="col-lg-2 col-md-4 form-group">
+                                        @php
+                                            $contactDetails = $domain->register ? route('admin.order.domain.contact', $domain->id) : '#';
+                                        @endphp
+                                        <a href="{{ $contactDetails }}" class="btn btn--primary w-100">
                                             <i class="las la-undo-alt"></i>@lang('Modify Contact Details')
-                                        </button>
+                                        </a>
                                     </div>
+
+                                    @if(!$domain->id_protection)
+                                        <div class="col-lg-2 col-md-4 form-group">
+                                            <button class="btn btn--primary moduleModal w-100" type="button" data-module="5">
+                                                <i class="las la-shopping-cart"></i>@lang('Enable ID Protection')
+                                            </button>
+                                        </div> 
+                                    @else
+                                        <div class="col-lg-2 col-md-4 form-group">
+                                            <button class="btn btn--primary moduleModal w-100" type="button" data-module="6">
+                                                <i class="las la-shopping-cart"></i>@lang('Disable ID Protection')
+                                            </button>
+                                        </div> 
+                                    @endif
+
                                 </div>
                             </div>
                         </div>
@@ -172,7 +234,7 @@
                 </div>
             </div>
         </div> 
-    {{-- @endif --}}
+    @endif
 
     <div class="row mb-none-30">
         <div class="col-lg-12 col-md-12 mb-30">
@@ -184,6 +246,67 @@
         </div>
     </div>
 </form>
+
+{{-- Register Modal --}}
+<div class="modal fade" id="registerModal" tabindex="-1" role="dialog" aria-labelledby="createModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="createModalLabel">@lang('Register Domain')</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div> 
+            <form class="form-horizontal" method="post" action="{{ route('admin.domain.module.command') }}">
+                @csrf  
+                <input type="hidden" name="domain_id" value="{{ $domain->id }}" required>
+                <input type="hidden" name="module_type" required value="1">
+                <div class="modal-body"> 
+                    <div class="form-group">
+                        <label>@lang('Domain Register')</label>
+                        <input type="text" class="form-control" disabled value="{{ @$domain->register->name ?? 'N/A' }}">
+                    </div>
+                    <div class="form-group">
+                        <label>@lang('Domain')</label>
+                        <input type="text" class="form-control" disabled value="{{ $domain->domain }}">
+                    </div>
+                    <div class="form-group">
+                        <label>@lang('Registration Period')</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" disabled value="{{ $domain->reg_period }}">
+                            <span class="input-group-append">
+                                <span class="input-group-text">@lang('Years')</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="ns1">@lang('Nameserver 1')</label>
+                        <input type="text" class="form-control" name="ns1" id="ns1" placeholder="ns1.example.com" required value="{{ $general->ns1 }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="ns2">@lang('Nameserver 2')</label>
+                        <input type="text" class="form-control" name="ns2" id="ns2" placeholder="ns2.example.com" required value="{{ $general->ns2 }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="ns3">@lang('Nameserver 3')</label>
+                        <input type="text" class="form-control" name="ns3" id="ns3" placeholder="ns3.example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="ns4">@lang('Nameserver 4')</label>
+                        <input type="text" class="form-control" name="ns4" id="ns4" placeholder="ns4.example.com">
+                    </div>
+                    <div>
+                        <input type="checkbox" name="send_email" id="send_email"> 
+                        <label for="send_email">@lang('Send Confirmation Email')</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn--primary w-100">@lang('Submit')</button>
+                </div> 
+            </form> 
+        </div>
+    </div>
+</div> 
 
 {{-- Module Modal --}}
 <div class="modal fade" id="moduleModal" tabindex="-1" role="dialog" aria-labelledby="createModalLabel" aria-hidden="true">
@@ -203,19 +326,6 @@
                     <div class="form-group">
                         @lang('Are you sure to want run the ') <span class="moduleName font-weight-bold"></span> @lang(' function request to the ')
                         <span class="registerName font-weight-bold"></span>?
-
-                        <div class="form-group mt-4 suspendArea">
-                            <label class="form-control-label font-weight-bold">@lang('Reason')</label>
-                            <input type="text" class="form-control" name="suspend_reason" autocomplete="off">
-                        </div> 
-                        <div class="form-group suspendArea">
-                            <input type="checkbox" name="suspend_email" id="suspend"> <label for="suspend">@lang('Send Suspension Email')</label>
-                        </div>
-
-                        <div class="form-group mt-4 unSuspendArea">
-                            <input type="checkbox" name="unSuspend_email" id="unSuspend"> <label for="unSuspend">@lang('Send Unsuspension Email')</label>
-                        </div> 
-
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -226,6 +336,7 @@
         </div>
     </div>
 </div> 
+
 @endsection
 
 @push('breadcrumb-plugins') 
@@ -247,32 +358,26 @@
             $('.timePicker').datepicker({
                 dateFormat: 'dd-mm-yyyy'
             });
-    
+
             $('.moduleModal').on('click', function () {
                 var modal = $('#moduleModal');
 
                 var moduleName = $(this).text();
-                var moduleType =  $(this).data('type');
-
-                if(moduleType == 2){
-                   $('.suspendArea').removeClass('d-none'); 
-                }else{
-                    $('.suspendArea').addClass('d-none'); 
-                }
-
-                if(moduleType == 3){
-                   $('.unSuspendArea').removeClass('d-none'); 
-                }else{
-                    $('.unSuspendArea').addClass('d-none'); 
-                }
-
-                modal.find('.registerName').text('SERVICE');
-
+                modal.find('.registerName').text(getRegisterName());
                 modal.find('.moduleName').text(moduleName);
-                modal.find('input[name=module_type]').val(moduleType);
+                modal.find('input[name=module_type]').val($(this).data('module'));
 
                 modal.modal('show');
             });
+
+            $('.registerModal').on('click', function () {
+                var modal = $('#registerModal');
+                modal.modal('show');
+            });
+
+            function getRegisterName(){
+                return $('select[name=register_id]').find(":selected").text();
+            }
 
         })(jQuery);
     </script>

@@ -14,6 +14,10 @@ class Admin extends Authenticatable
      */
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'address' => 'object',
+    ];
+
     /**
      * The attributes that should be hidden for arrays.
      *

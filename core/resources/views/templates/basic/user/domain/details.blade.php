@@ -1,71 +1,119 @@
 @extends($activeTemplate.'layouts.master')
 @section('content')
-    <div class="container">
-        <div class="row justify-content-center mt-5">
-            <div class="col-md-10">
-                <div class="card w-100">
-                    <form action="{{ route('user.domain.nameserver.update') }}" method="post">
-                        @csrf
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h3>@lang('Domain'): </h3> 
-                                    <h5>
-                                        <a href="http://{{ $domain->domain }}" target="_blank">{{ $domain->domain }}</a>
-                                    </h5>
-    
-                                    <h3>@lang('Registration Date'): </h3>
-                                    <h5>{{ $domain->reg_time ? showDateTime($domain->reg_time, 'd/m/Y') : 'N/A' }}</h5>
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-10">
+            <div class="card w-100">
+                <form action="{{ route('user.domain.nameserver.update') }}" method="post">
+                    @csrf
+                    <div class="card-body">
 
-                                    <h3>@lang('Next Due Date'): </h3>
-                                    <h5>{{ $domain->next_due_date ? showDateTime($domain->next_due_date, 'd/m/Y') : 'N/A' }}</h5>
-
-                                    <div>@lang('Status'): </div>
-                                    <h5>@php echo $domain->showStatus; @endphp</h5>
-                                </div>
-                                <div class="col-md-6">
-                                    <h3>@lang('First Payment Amount'): </h3>
-                                    <h5>{{ $general->cur_sym }}{{ showAmount($domain->first_payment_amount) }} {{ __($general->cur_text) }}</h5>
-
-                                    <h3>@lang('Recurring Amount'): </h3>
-                                    <h5>
-                                        {{ $general->cur_sym }}{{ showAmount($domain->recurring_amount) }} {{ __($general->cur_text) }} {{ $domain->reg_period }} @lang('Year/s') 
-                                        @if($domain->id_protection)
-                                            @lang('with ID Protection')
-                                        @endif
-                                    </h5>
-                                </div>
-
-                                <div class="col-md-6 form-group mt-4">
-                                    <label for="nameserver_1">@lang('Nameserver 1')</label>
-                                    <input type="text" name="nameserver_1" id="nameserver_1" class="form-control">
-                                </div>
-                                <div class="col-md-6 form-group mt-4">
-                                    <label for="nameserver_2">@lang('Nameserver 2')</label>
-                                    <input type="text" name="nameserver_2" id="nameserver_2" class="form-control">
-                                </div>
-                                <div class="col-md-4 form-group">
-                                    <label for="nameserver_3">@lang('Nameserver 3')</label>
-                                    <input type="text" name="nameserver_3" id="nameserver_3" class="form-control">
-                                </div>
-                                <div class="col-md-4 form-group">
-                                    <label for="nameserver_4">@lang('Nameserver 4')</label>
-                                    <input type="text" name="nameserver_4" id="nameserver_4" class="form-control">
-                                </div>
-                                <div class="col-md-4 form-group">
-                                    <label for="nameserver_5">@lang('Nameserver 5')</label>
-                                    <input type="text" name="nameserver_5" id="nameserver_5" class="form-control">
-                                </div>
-                                <div class="col-md-12 w-100  form-group">
-                                    <button class="btn btn-info w-100">@lang('Submit')</button>
-                                </div>
+                        @if($domain->status != 1)
+                            <div class="alert alert-warning text-center" role="alert">
+                                @lang('This domain is not currently active. Domains cannot be managed unless active')
                             </div>
+                        @endif
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h3>@lang('Domain'): </h3> 
+                                <h5>
+                                    <a href="http://{{ $domain->domain }}" target="_blank">{{ $domain->domain }}</a>
+                                </h5> 
+
+                                <h3>@lang('Registration Date'): </h3>
+                                <h5>{{ $domain->reg_time ? showDateTime($domain->reg_time, 'd/m/Y') : 'N/A' }}</h5>
+
+                                <h3>@lang('Next Due Date'): </h3>
+                                <h5>{{ $domain->next_due_date ? showDateTime($domain->next_due_date, 'd/m/Y') : 'N/A' }}</h5>
+
+                                <h3>@lang('Status'): </h3>
+                                <h5>@php echo $domain->showStatus; @endphp</h5>
+                            </div>
+                            <div class="col-md-6">
+                                <h3>@lang('First Payment Amount'): </h3>
+                                <h5>{{ $general->cur_sym }}{{ showAmount($domain->first_payment_amount) }} {{ __($general->cur_text) }}</h5>
+
+                                <h3>@lang('Recurring Amount'): </h3>
+                                <h5>
+                                    {{ $general->cur_sym }}{{ showAmount($domain->recurring_amount) }} {{ __($general->cur_text) }} {{ $domain->reg_period }} @lang('Year/s') 
+                                    @if($domain->id_protection)
+                                        @lang('with ID Protection')
+                                    @endif
+                                </h5>
+                            </div>
+
+                            @if($domain->status == 1)
+                                <div class="col-md-12 mt-4">
+                                    <h3>@lang('What would you like to do today')?</h3>
+                                    <ul>
+                                        <li>
+                                            <a href="javascript:void(0)" class="nameserverModal">@lang('Change the nameservers your domain points to')</a>
+                                        </li>
+                                        <li>
+                                            <a href="{{ $domain->register ? route('user.domain.contact', $domain->id) : 'javascript:void(0)' }}">
+                                                @lang('Update the WHOIS contact information for your domain')
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="">@lang('Renew Your Domain')</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            @endif
+
                         </div>
-                    </form>
-                </div> 
-            </div>
+                    </div>
+                </form>
+            </div> 
         </div>
     </div>
+</div>
+
+<div id="nameserverModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@lang('Change Nameservers')</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ route('user.domain.nameserver.update') }}" method="post">
+                @csrf
+                <input type="hidden" name="domain_id" required value="{{ $domain->id }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="alert alert-info">
+                                @lang('You can change where your domain points to here. Please be aware changes can take up to 24 hours to propagate')
+                            </div>
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <label for="ns1">@lang('Nameserver 1')</label>
+                            <input type="text" class="form-control" name="ns1" id="ns1" required placeholder="@lang('ns1.example.com')" value="{{ $domain->ns1 }}">
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <label for="ns2">@lang('Nameserver 2')</label>
+                            <input type="text" class="form-control" name="ns2" id="ns2" required placeholder="@lang('ns2.example.com')" value="{{ $domain->ns2 }}">
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <label for="ns3">@lang('Nameserver 3')</label>
+                            <input type="text" class="form-control" name="ns3" id="ns3" placeholder="@lang('ns3.example.com')" value="{{ $domain->ns3 }}">
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <label for="ns4">@lang('Nameserver 4')</label>
+                            <input type="text" class="form-control" name="ns4" id="ns4" placeholder="@lang('ns4.example.com')" value="{{ $domain->ns4 }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success w-100">@lang('Submit')</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('style')
@@ -89,4 +137,16 @@
         justify-content: center;
     }
 </style>
+@endpush
+
+@push('script')
+    <script>
+        (function($){
+            "use strict";
+            $('.nameserverModal').on('click', function() {
+                var modal = $('#nameserverModal');
+                modal.modal('show');
+            });
+        })(jQuery);
+    </script>
 @endpush

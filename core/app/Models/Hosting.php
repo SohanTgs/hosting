@@ -64,7 +64,7 @@ class Hosting extends Model
             $text = 'Pending';
         } 
         if ($this->domain_status == 1){ 
-            $class .= 'primary';
+            $class .= 'success';
             $text = 'Active';
         }
         elseif ($this->domain_status == 2){

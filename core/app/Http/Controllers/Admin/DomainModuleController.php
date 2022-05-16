@@ -5,6 +5,7 @@ namespace App\Http\Controllers\admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Domain;
+use App\DomainRegisters\Register;
 
 class DomainModuleController extends Controller{
     
@@ -12,60 +13,128 @@ class DomainModuleController extends Controller{
 
         $request->validate([
             'domain_id'=> 'required',
-            'module_type'=> 'required|between:1,3'
+            'module_type'=> 'required|numeric|between:1,6',
         ]);
 
         $domain = Domain::where('status', '!=', 0)->findOrFail($request->domain_id);
 
-        if(!$domain){
-            $notify[] = ['error', 'Select server before running the module command'];
+        if(!$domain->domain_register_id){
+            $notify[] = ['error', 'Select register before running the module command'];
             return back()->withNotify($notify);
         }
 
         if($request->module_type == 1){ 
-            return $this->create($domain);
+            return $this->register($domain, $request);
+        }
+        elseif($request->module_type == 2){
+            return $this->changeNameservers($domain);
+        }
+        elseif($request->module_type == 3){
+            return $this->renew($domain);
+        }
+        elseif($request->module_type == 4){
+            return $this->setContact($domain, $request);
+        }
+        elseif($request->module_type == 5){
+            return $this->enableIdProtection($domain);
+        }
+        elseif($request->module_type == 6){
+            return $this->disableIdProtection($domain);
         }
 
     } 
 
+    protected function register($domain, $request){
+        $register = new Register($domain->register->alias);
+        $register->domain = $domain;
+        $register->request = $request;
+        $register->command = 'register';
+        $execute = $register->run();
 
-    protected function create($domain){
-        return  $domain;
-        $user = $hosting->user;
-        $product = $hosting->product; 
-        $server = $hosting->server;
-
-        try{
-
-            $response = Http::withHeaders([
-                'Authorization' => 'WHM '.$server->username.':'.$server->api_token,
-            ])->get($server->hostname.'/cpsess'.$server->security_token.'/json-api/createacct?api.version=1&username='.$hosting->username.'&domain='.$hosting->domain.'&contactemail='.$user->email.'&password='.$hosting->password.'&pkgname='.$product->package_name);
-    
-            $response = json_decode($response);
-            $responseStatus = $this->whmApiResponse($response);
- 
-            if(!@$responseStatus['success']){
-                $notify[] = ['error', @$responseStatus['message']];
-                return back()->withNotify($notify);
-            }
-
-            $hosting->ns1 = $response->data->nameserver;
-            $hosting->ns2 = $response->data->nameserver2;
-            $hosting->ns3 = $response->data->nameserver3;
-            $hosting->ns4 = $response->data->nameserver4;
-            $hosting->package_name = $product->package_name;
-            $hosting->ip = $response->data->ip;
-            $hosting->save(); 
-
-            $notify[] = ['success', 'Create module command run successfully'];
-            return back()->withNotify($notify)->with('response', $response);
-
-        }catch(\Exception  $error){
-            $notify[] = ['error', $error->getMessage()];
+        if(!$execute['success']){
+            $notify[] = ['error', $execute['message']];
             return back()->withNotify($notify);
         }
-
+     
+        $notify[] = ['success', 'Register module command run successfully'];
+        return back()->withNotify($notify);
     } 
+
+    protected function renew($domain){ 
+        $register = new Register($domain->register->alias);
+        $register->domain = $domain;
+        $register->command = 'renew';
+        $execute = $register->run();
+
+        if(!$execute['success']){
+            $notify[] = ['error', $execute['message']];
+            return back()->withNotify($notify);
+        }
+     
+        $notify[] = ['success', 'Renew module command run successfully for 1 year'];
+        return back()->withNotify($notify);
+    }
+
+    public function setContact($domain, $request){
+        $register = new Register($domain->register->alias);
+        $register->domain = $domain;
+        $register->request = $request;
+        $register->command = 'setContact';
+        $execute = $register->run();
+
+        if(!$execute['success']){
+            $notify[] = ['error', $execute['message']];
+            return back()->withNotify($notify);
+        }
+     
+        $notify[] = ['success', 'The changes to the domain were saved successfully'];
+        return back()->withNotify($notify);
+    }
+
+    protected function changeNameservers($domain){
+        $register = new Register($domain->register->alias);
+        $register->domain = $domain;
+        $register->command = 'changeNameservers';
+        $execute = $register->run();
+
+        if(!$execute['success']){
+            $notify[] = ['error', $execute['message']];
+            return back()->withNotify($notify);
+        }
+     
+        $notify[] = ['success', 'Change nameservers module command run successfully'];
+        return back()->withNotify($notify);
+    }
+
+    protected function enableIdProtection($domain){
+        $register = new Register($domain->register->alias);
+        $register->domain = $domain;
+        $register->command = 'enableIdProtection';
+        $execute = $register->run();
+
+        if(!$execute['success']){
+            $notify[] = ['error', $execute['message']];
+            return back()->withNotify($notify);
+        }
+     
+        $notify[] = ['success', 'Domain privacy has been enabled'];
+        return back()->withNotify($notify);
+    }
+
+    protected function disableIdProtection($domain){
+        $register = new Register($domain->register->alias);
+        $register->domain = $domain;
+        $register->command = 'disableIdProtection';
+        $execute = $register->run();
+
+        if(!$execute['success']){
+            $notify[] = ['error', $execute['message']];
+            return back()->withNotify($notify);
+        }
+     
+        $notify[] = ['success', 'Domain privacy has been disabled'];
+        return back()->withNotify($notify);
+    }
 
 
 }

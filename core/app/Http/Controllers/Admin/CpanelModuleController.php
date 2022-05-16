@@ -15,7 +15,7 @@ class CpanelModuleController extends Controller{
 
         $request->validate([
             'hosting_id'=> 'required',
-            'module_type'=> 'required|between:1,6',
+            'module_type'=> 'required|numeric|between:1,6',
             'suspend_reason'=> 'required_if:module_type,==,2'
         ]);
 
