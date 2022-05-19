@@ -47,21 +47,15 @@ class DomainRegisterController extends Controller{
         array_walk($arrayFields, function(&$field) use ($request){
        
             if($request->input('test_mode')){
-                if(!$field->live_mode){
+                if(@$field->test_mode || @$field->required){
                     $field = 'required'; 
-                }
-                elseif($field->required){
-                    $field = 'required';  
                 }
                 else{
                     $field = 'nullable';
                 }
             }else{
-                if($field->live_mode){
+                if(!@$field->test_mode || $field->required){
                     $field = 'required'; 
-                }
-                elseif($field->required){
-                    $field = 'required';  
                 }
                 else{
                     $field = 'nullable';
@@ -69,13 +63,13 @@ class DomainRegisterController extends Controller{
             }
             
         });
-      
+
         $request->validate($arrayFields);
    
         array_walk($data, function(&$field, $value) use ($request){
             $field->value = $request->input($value) ?? ""; 
         });
- 
+
         $register->test_mode = $request->test_mode ? 1 : 0;
         $register->default = $request->default ? 1 : 0;
         $register->status = $request->status ? 1 : 0;
@@ -91,4 +85,5 @@ class DomainRegisterController extends Controller{
     }
 
 }
+
 

@@ -496,6 +496,7 @@ Route::name('user.')->prefix('user')->group(function () {
             Route::post('domain/nameserver/update', 'UserController@domainNameserverUpdate')->name('domain.nameserver.update');
             Route::get('domain/contact/{id}', 'UserController@domainContact')->name('domain.contact');
             Route::post('domain/contact/update', 'UserController@domainContactUpdate')->name('domain.contact.update');
+            Route::post('domain/renew', 'UserController@domainRenew')->name('domain.renew');
 
             Route::get('my/invoices', 'UserController@myInvoices')->name('my.invoices');
             Route::get('invoices/download/{id}/{view?}', 'UserController@invoiceDownload')->name('invoice.download');

@@ -56,7 +56,7 @@
                                             </a>
                                         </li>
                                         <li>
-                                            <a href="">@lang('Renew Your Domain')</a>
+                                            <a href="javascript:void(0)" class="renewModal">@lang('Renew Your Domain')</a>
                                         </li>
                                     </ul>
                                 </div>
@@ -114,6 +114,44 @@
         </div>
     </div>
 </div>
+
+<div id="renewModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@lang('Domain Renewal')</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ route('user.domain.renew') }}" method="post">
+                @csrf
+                <input type="hidden" name="domain_id" required value="{{ $domain->id }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12 mb-4">
+                            <h5>{{ $domain->domain }}</h5>
+                            @lang('Expiry Date'): {{ showDateTime($domain->expiry_date, 'd M Y') }} ({{ diffForHumans($domain->expiry_date) }})
+                        </div> 
+                        <div class="col-md-12 form-group">
+                            <label for="ns1">@lang('Available Renewal Periods')</label>
+                            <select name="renew_year" class="form-control">
+                                @foreach($renewPricing->renewPrice() as $year => $data)
+                                    <option value="{{ $year }}">
+                                        {{ $year }} @lang('Year/s') @ {{ $general->cur_sym }}{{ showAmount($data['renew']) }} {{ __($general->cur_text) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success w-100">@lang('Submit')</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('style')
@@ -145,6 +183,10 @@
             "use strict";
             $('.nameserverModal').on('click', function() {
                 var modal = $('#nameserverModal');
+                modal.modal('show');
+            });
+            $('.renewModal').on('click', function() {
+                var modal = $('#renewModal');
                 modal.modal('show');
             });
         })(jQuery);

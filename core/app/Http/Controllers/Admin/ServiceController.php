@@ -25,10 +25,11 @@ class ServiceController extends Controller{
     }   
     
     public function hostingUpdate(Request $request){
- 
+
         $request->validate([
             'id'=>'required' , 
             'domain_status'=>'required|between:0,4',
+            'domain'=>'required|regex:/^(?!:\/\/)(?=.{1,255}$)((.{1,63}\.){1,127}(?![0-9]*$)[a-z0-9-]+\.?)$/i',
             'server_id'=>'nullable|exists:servers,id',
             'next_due_date'=>'nullable|date_format:d-m-Y',
             'termination_date'=>'nullable|date_format:d-m-Y',
@@ -157,13 +158,14 @@ class ServiceController extends Controller{
         $countries = json_decode(file_get_contents(resource_path('views/partials/country.json')));
 
         return view('admin.service.domain_contact.'.$domain->register->alias, compact('pageTitle', 'domain', 'contactInfo', 'countries'));
-    }
+    } 
   
     public function domainUpdate(Request $request){ 
 
         $request->validate([ 
             'id'=>'required' , 
             'status'=>'required|integer|between:0,4',
+            'domain'=>'required|regex:/^(?!:\/\/)(?=.{1,255}$)((.{1,63}\.){1,127}(?![0-9]*$)[a-z0-9-]+\.?)$/i',
             'reg_time'=>'nullable|date_format:d-m-Y',
             'next_due_date'=>'nullable|date_format:d-m-Y',
             'expiry_date'=>'nullable|date_format:d-m-Y',

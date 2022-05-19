@@ -81,27 +81,33 @@ class DomainController extends Controller{
 
             'one_year_price'=>'required|numeric',
             'one_year_id_protection'=>'required|numeric',
+            'one_year_renew'=>'required|numeric',
 
             'two_year_price'=>'required|numeric',
             'two_year_id_protection'=>'required|numeric',
+            'two_year_renew'=>'required|numeric',
 
             'three_year_price'=>'required|numeric',
             'three_year_id_protection'=>'required|numeric',
+            'three_year_renew'=>'required|numeric',
 
             'four_year_price'=>'required|numeric',
             'four_year_id_protection'=>'required|numeric',
+            'four_year_renew'=>'required|numeric',
 
             'five_year_price'=>'required|numeric',
             'five_year_id_protection'=>'required|numeric',
+            'five_year_renew'=>'required|numeric',
 
             'six_year_price'=>'required|numeric',
             'six_year_id_protection'=>'required|numeric',
+            'six_year_renew'=>'required|numeric',
         ]);
 
         if($request->one_year_price < 0 && $request->two_year_price < 0 && 
            $request->three_year_price < 0 && $request->four_year_price < 0 && 
-           $request->five_year_price < 0 && $request->six_year_price < 0
-        ){
+           $request->five_year_price < 0 && $request->six_year_price < 0)
+        {
             $notify[] = ['error', 'Minimum one price required'];
             return back()->withNotify($notify);
         }
@@ -110,21 +116,27 @@ class DomainController extends Controller{
 
         $pricing->one_year_price = $request->one_year_price;
         $pricing->one_year_id_protection = $request->one_year_id_protection;
+        $pricing->one_year_renew = $request->one_year_renew;
 
         $pricing->two_year_price = $request->two_year_price;
         $pricing->two_year_id_protection = $request->two_year_id_protection;
+        $pricing->two_year_renew = $request->two_year_renew;
 
         $pricing->three_year_price = $request->three_year_price;
         $pricing->three_year_id_protection = $request->three_year_id_protection;
+        $pricing->three_year_renew = $request->three_year_renew;
 
         $pricing->four_year_price = $request->four_year_price;
         $pricing->four_year_id_protection = $request->four_year_id_protection;
+        $pricing->four_year_renew = $request->four_year_renew;
 
         $pricing->five_year_price = $request->five_year_price;
         $pricing->five_year_id_protection = $request->five_year_id_protection;
+        $pricing->five_year_renew = $request->five_year_renew;
 
         $pricing->six_year_price = $request->six_year_price;
         $pricing->six_year_id_protection = $request->six_year_id_protection;
+        $pricing->six_year_renew = $request->six_year_renew;
 
         $pricing->save();
 

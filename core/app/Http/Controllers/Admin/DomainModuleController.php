@@ -70,8 +70,8 @@ class DomainModuleController extends Controller{
             $notify[] = ['error', $execute['message']];
             return back()->withNotify($notify);
         }
-     
-        $notify[] = ['success', 'Renew module command run successfully for 1 year'];
+
+        $notify[] = ['success', 'Renew module command run successfully for '.$domain->reg_period.' year'];
         return back()->withNotify($notify);
     }
 

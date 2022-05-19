@@ -60,10 +60,11 @@ class Namecheap{
         $admin = Admin::first();
 
         $countryData = (array)json_decode(file_get_contents(resource_path('views/partials/country.json')));
-        $countCode = strlen(@$countryData[@$user->country_code]->dial_code);
+        $dialCode = @$countryData[@$user->country_code]->dial_code;
+        $countCode = strlen($dialCode);
  
         $withoutCode = substr($user->mobile, $countCode);
-        $phone = '+'.@$countryData[@$user->country_code]->dial_code.'.'.$withoutCode;
+        $phone = '+'.@$dialCode.'.'.$withoutCode;
  
         try{   
  
@@ -156,9 +157,10 @@ class Namecheap{
 	}
 
     public function renew(){
-   
+
         $domain = $this->domain;
-       
+        $request = $this->request;
+
         try{
             $response = Http::get($this->url, [
                 'ApiUser'=>$this->username,
@@ -167,7 +169,7 @@ class Namecheap{
                 'Command'=>'namecheap.domains.renew',
                 'ClientIp'=>$this->requestIP,
                 'DomainName'=>$domain->domain,
-                'Years'=>1,
+                'Years'=>$domain->reg_period,
             ]);
 
             $response = xmlToArray(@$response); 
@@ -175,8 +177,11 @@ class Namecheap{
                 return ['success'=>false, 'message'=>@$response['Errors']['Error']];
             }
 
-            $domain->reg_period += 1; 
-            $domain->expiry_date = Carbon::parse($domain->expiry_date)->addYear();
+            if($request){
+                $domain->reg_period = $request->renew_year;
+            }
+
+            $domain->expiry_date = Carbon::parse($domain->expiry_date)->addYear($request ? $request->renew_year : $domain->reg_period);
             $domain->save(); 
     
             return ['success'=>true];
@@ -199,8 +204,7 @@ class Namecheap{
                 'ClientIp'=>$this->requestIP,
                 'DomainName'=>$domain->domain,
             ]);
-    
-            $response = xmlToArray(@$response); 
+     
             if(@$response['Errors']){
                 return ['success'=>false, 'message'=>@$response['Errors']['Error']];
             }
@@ -337,7 +341,6 @@ class Namecheap{
             $domain->ns2 = @$ns2; 
             $domain->ns3 = @$ns3; 
             $domain->ns4 = @$ns4; 
-            $domain->reg_period += 1; 
             $domain->save(); 
     
             return ['success'=>true];

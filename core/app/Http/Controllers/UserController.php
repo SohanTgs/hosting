@@ -1273,10 +1273,13 @@ class UserController extends Controller
     }
 
     public function domainDetails($id){
-        $pageTitle = 'Domain Details';
         $user = auth()->user();
         $domain = Domain::whereBelongsTo($user)->where('id', $id)->firstOrFail();
-        return view($this->activeTemplate.'user.domain.details', compact('pageTitle', 'domain'));
+        $pageTitle = 'Domain Details';
+ 
+        $renewPricing = DomainSetup::where('extension', '.'.explode('.', $domain->domain)[1])->with('pricing')->first()->pricing;
+
+        return view($this->activeTemplate.'user.domain.details', compact('pageTitle', 'domain', 'renewPricing'));
     }
 
     public function domainNameserverUpdate(Request $request){
@@ -1489,6 +1492,43 @@ class UserController extends Controller
      
         $notify[] = ['success', 'The changes to the domain were saved successfully'];
         return back()->withNotify($notify);
+    }
+
+    public function domainRenew(Request $request){
+
+        $request->validate([
+            'domain_id'=>'required|integer',
+            'renew_year'=>'required|integer|between:1,6',
+        ]);
+
+        $user = auth()->user();
+        $domain = Domain::whereBelongsTo($user)->findOrFail($request->domain_id);
+        $getRenewPrice = DomainSetup::where('extension', '.'.explode('.', $domain->domain)[1])->with('pricing')->first()->pricing->renewPrice()[$request->renew_year];
+
+        if($getRenewPrice['price'] < 0){
+            $notify[] = ['error', 'Sorry, Invalid request'];
+            return back()->withNotify($notify);
+        }
+
+        if(!$domain->domain_register_id){
+            $notify[] = ['error', 'Sorry, There is no register for this domain'];
+            return back()->withNotify($notify);
+        }
+
+        $register = new Register($domain->register->alias);
+        $register->domain = $domain;
+        $register->request = $request;
+        $register->command = 'renew';
+        $execute = $register->run();
+
+        if(!$execute['success']){
+            $notify[] = ['error', $execute['message']];
+            return back()->withNotify($notify);
+        }
+     
+        $notify[] = ['success', 'The domain has been successfully renewed for '.$request->renew_year.' Year/s'];
+        return back()->withNotify($notify);
+
     }
 
 }

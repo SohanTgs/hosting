@@ -55,6 +55,26 @@ class DomainPricing extends Model
         return $array[$regPeriod]['id_protection'];   
     }
 
+    public function renewPrice(){
+        $data = $this;
+
+        $array = [
+            1=>['price'=>$data->one_year_price, 'renew'=>$data->one_year_renew],
+            2=>['price'=>$data->two_year_price, 'renew'=>$data->two_year_renew],
+            3=>['price'=>$data->three_year_price, 'renew'=>$data->three_year_renew],
+            4=>['price'=>$data->four_year_price, 'renew'=>$data->four_year_renew],
+            5=>['price'=>$data->five_year_price, 'renew'=>$data->five_year_renew],
+            6=>['price'=>$data->six_year_price, 'renew'=>$data->six_year_price],
+        ];
+
+        array_walk($array, function(&$item){
+            $item = $item['price'] >= 0 ? $item : null;
+        });
+
+        return array_filter($array);
+
+    }
+
 
 
 

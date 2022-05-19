@@ -16,7 +16,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                            @forelse($domains as $domain)
+                            @forelse($domains as $domain) 
                                 <tr>
                                     <td data-label="@lang('Extension')">
                                         <span class="font-weight-bold">{{ $domain->extension }}</span>
@@ -182,6 +182,17 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>@lang('Renewal')</label>
+                                            <div class="input-group">
+                                                <span class="input-group-prepend">
+                                                    <span class="input-group-text">{{ __($general->cur_sym) }}</span>
+                                                </span>
+                                                <input type="number" class="form-control" placeholder="0" name="one_year_renew" step="any" required/>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -216,6 +227,17 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>@lang('Renewal')</label>
+                                            <div class="input-group">
+                                                <span class="input-group-prepend">
+                                                    <span class="input-group-text">{{ __($general->cur_sym) }}</span>
+                                                </span>
+                                                <input type="number" class="form-control" placeholder="0" name="two_year_renew" step="any" required/>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -247,6 +269,17 @@
                                                     <span class="input-group-text">{{ __($general->cur_sym) }}</span>
                                                 </span>
                                                 <input type="number" class="form-control" placeholder="0" name="three_year_id_protection" step="any" required/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>@lang('Renewal')</label>
+                                            <div class="input-group">
+                                                <span class="input-group-prepend">
+                                                    <span class="input-group-text">{{ __($general->cur_sym) }}</span>
+                                                </span>
+                                                <input type="number" class="form-control" placeholder="0" name="three_year_renew" step="any" required/>
                                             </div>
                                         </div>
                                     </div>
@@ -287,6 +320,17 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>@lang('Renewal')</label>
+                                            <div class="input-group">
+                                                <span class="input-group-prepend">
+                                                    <span class="input-group-text">{{ __($general->cur_sym) }}</span>
+                                                </span>
+                                                <input type="number" class="form-control" placeholder="0" name="four_year_renew" step="any" required/>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -321,6 +365,17 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>@lang('Renewal')</label>
+                                            <div class="input-group">
+                                                <span class="input-group-prepend">
+                                                    <span class="input-group-text">{{ __($general->cur_sym) }}</span>
+                                                </span>
+                                                <input type="number" class="form-control" placeholder="0" name="five_year_renew" step="any" required/>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -352,6 +407,17 @@
                                                     <span class="input-group-text">{{ __($general->cur_sym) }}</span>
                                                 </span>
                                                 <input type="number" class="form-control" placeholder="0" name="six_year_id_protection" step="any" required/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>@lang('Renewal')</label>
+                                            <div class="input-group">
+                                                <span class="input-group-prepend">
+                                                    <span class="input-group-text">{{ __($general->cur_sym) }}</span>
+                                                </span>
+                                                <input type="number" class="form-control" placeholder="0" name="six_year_renew" step="any" required/>
                                             </div>
                                         </div>
                                     </div>
@@ -440,6 +506,7 @@
 
                 modal.find('input[name=one_year_price]').val(parseFloat(pricing.one_year_price).toFixed(2));
                 modal.find('input[name=one_year_id_protection]').val(parseFloat(pricing.one_year_id_protection).toFixed(2));
+                modal.find('input[name=one_year_renew]').val(parseFloat(pricing.one_year_renew).toFixed(2));
                 if(pricing.one_year_price >= 0){
                     $('#one_active').prop('checked', true);
                     $('.one_active').removeClass('d-none');
@@ -450,6 +517,7 @@
                 
                 modal.find('input[name=two_year_price]').val(parseFloat(pricing.two_year_price).toFixed(2));
                 modal.find('input[name=two_year_id_protection]').val(parseFloat(pricing.two_year_id_protection).toFixed(2));
+                modal.find('input[name=two_year_renew]').val(parseFloat(pricing.two_year_renew).toFixed(2));
                 if(pricing.two_year_price >= 0){
                     $('#two_active').prop('checked', true);
                     $('.two_active').removeClass('d-none');
@@ -460,6 +528,7 @@
 
                 modal.find('input[name=three_year_price]').val(parseFloat(pricing.three_year_price).toFixed(2));
                 modal.find('input[name=three_year_id_protection]').val(parseFloat(pricing.three_year_id_protection).toFixed(2));
+                modal.find('input[name=three_year_renew]').val(parseFloat(pricing.three_year_renew).toFixed(2));
                 if(pricing.three_year_price >= 0){
                     $('#three_active').prop('checked', true);
                     $('.three_active').removeClass('d-none');
@@ -470,6 +539,7 @@
 
                 modal.find('input[name=four_year_price]').val(parseFloat(pricing.four_year_price).toFixed(2));
                 modal.find('input[name=four_year_id_protection]').val(parseFloat(pricing.four_year_id_protection).toFixed(2));
+                modal.find('input[name=four_year_renew]').val(parseFloat(pricing.four_year_renew).toFixed(2));
                 if(pricing.four_year_price >= 0){
                     $('#four_active').prop('checked', true);
                     $('.four_active').removeClass('d-none');
@@ -480,6 +550,7 @@
 
                 modal.find('input[name=five_year_price]').val(parseFloat(pricing.five_year_price).toFixed(2));
                 modal.find('input[name=five_year_id_protection]').val(parseFloat(pricing.five_year_id_protection).toFixed(2));
+                modal.find('input[name=five_year_renew]').val(parseFloat(pricing.five_year_renew).toFixed(2));
                 if(pricing.five_year_price >= 0){
                     $('#five_active').prop('checked', true);
                     $('.five_active').removeClass('d-none');
@@ -490,6 +561,7 @@
 
                 modal.find('input[name=six_year_price]').val(parseFloat(pricing.six_year_price).toFixed(2));
                 modal.find('input[name=six_year_id_protection]').val(parseFloat(pricing.six_year_id_protection).toFixed(2));
+                modal.find('input[name=six_year_renew]').val(parseFloat(pricing.six_year_renew).toFixed(2));
                 if(pricing.six_year_price >= 0){
                     $('#six_active').prop('checked', true);
                     $('.six_active').removeClass('d-none');

@@ -27,7 +27,8 @@ class Register{
 	protected function getApiMethods($alias){
 
 		$methods = [
-			'Namecheap'=>Namecheap::class
+			'Namecheap'=>Namecheap::class,
+			'Resell'=>Resell::class,
 		];
 
 		return $methods[$alias];
