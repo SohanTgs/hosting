@@ -9,7 +9,7 @@ class Invoice extends Model
 {
     use HasFactory;
 
-    protected $casts = ['date'=>'datetime', 'due_date'=>'datetime', 'paid_date'=>'datetime'];
+    protected $casts = ['due_date'=>'datetime', 'paid_date'=>'datetime', 'created'=>'datetime'];
     
     public function user(){
         return $this->belongsTo(User::class)->withDefault();
@@ -31,13 +31,24 @@ class Invoice extends Model
         return $this->hasMany(InvoiceItem::class);
     }  
     
-
+    public function scopeCancelled(){ 
+        return $this->where('status', 4);
+    }
+    
     public function scopePaid(){
         return $this->where('status', 1);
     }
-
+    
     public function scopeUnpaid(){
-        return $this->where('status', 0);
+        return $this->where('status', 2);
+    }
+    
+    public function scopePaymentPending(){
+        return $this->where('status', 3);
+    }
+    
+    public function scopeRefunded(){
+        return $this->where('status', 4);
     }
 
     public function getStatusTextAttribute(){
@@ -47,20 +58,48 @@ class Invoice extends Model
         }else{
             $class = "badge badge-";
         }
+        
+        $text = 'N/A';
 
         if($this->status == 1){
             $class .= 'success';
-            $text = 'Paid';
-        }elseif($this->status == 0 && !$this->payment){
-            $class .= 'dark';
-            $text = 'Initiated'; 
+            $text = Self::status()[1];
         }
-        elseif($this->status == 0 && $this->payment &&  $this->payment->status == 0){
+        elseif($this->status == 2){
             $class .= 'danger';
-            $text = 'Unpaid';
+            $text = Self::status()[2];
+        }
+        elseif($this->status == 3){
+            $class .= 'danger';
+            $text = Self::status()[3]; 
+        }
+        elseif($this->status == 4){
+            $class .= 'dark';
+            $text = Self::status()[4]; 
+        }
+        elseif($this->status == 5){
+            $class .= 'dark';
+            $text = Self::status()[5]; 
         }
      
         return "<span class='$class'>" . trans($text) . "</span>";
+    }
+
+    public static function status($implode = false){ 
+
+        $status = [
+            1=> trans('Paid'),
+            2=> trans('Unpaid'),
+            3=> trans('Payment Pending'), 
+            4=> trans('Cancelled'),
+            5=> trans('Refunded')
+        ];
+
+        if($implode){
+            return implode(',', array_keys($status));
+        }
+
+        return $status;
     }
 
 }

@@ -31,7 +31,7 @@ use PDF;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\DomainRegisters\Register;
-
+use App\Models\DomainRegister;
 
 class UserController extends Controller
 {
@@ -402,7 +402,7 @@ class UserController extends Controller
     }  
  
     private function paymentByWallet($invoice, $order, $user){
-  
+        
         $general = GeneralSetting::first();
         $amount = $invoice->amount;
         
@@ -420,22 +420,43 @@ class UserController extends Controller
 
         $order->status = 2;
         $order->save();
-        
+   
         foreach($order->hostings as $hosting){
             $hosting->status = 1;
             $hosting->save();
 
             $product = $hosting->product; 
 
-            if($product->module_type == 1 && $product->module_option == 1){ 
+            if(@$product->module_type == 1 && @$product->module_option == 1){ 
                 $this->createCpanelAccount($hosting, $product);
             }          
         } 
 
         foreach($order->domains as $domain){
+
+            $findHosting = @Hosting::where('domain', $domain->domain)->where('domain_setup_id', $domain->domain_setup_id)->first()->id;
+
+            $domain->hosting_id = @$findHosting;
             $domain->status = 2;
+            $domain->domain_register_id = DomainRegister::default()->id;
             $domain->expiry_date = Carbon::now()->addYear($domain->reg_period);
             $domain->save();
+
+            if(@$product->module_type == 1 && @$product->module_option == 1){ 
+                $register = new Register($domain->register->alias);
+                $register->domain = $domain;
+                $register->command = 'register';
+                $register->run();
+
+                notify($domain->user, 'DOMAIN_REGISTER', [
+                    'domain_reg_date' => showDateTime($domain->reg_time),
+                    'domain_name' => $domain->domain,
+                    'domain_reg_period' => $domain->reg_period,
+                    'first_payment_amount' => getAmount($domain->first_payment_amount),
+                    'next_due_date' => showDateTime($domain->next_due_date),
+                    'currency' => $general->cur_text,
+                ]);
+            } 
         }
 
         $transaction = new Transaction();
@@ -859,6 +880,7 @@ class UserController extends Controller
 
                 $append = [ 
                     'product_id'=> $product->id, 
+                    'domain_id'=> @$cart['domain_id'], 
                     'domain'=> @$cart['domain'], 
                     'password'=> @$cart['password'], 
                     'ns1'=> @$cart['ns1'], 
@@ -875,7 +897,7 @@ class UserController extends Controller
                     'reg_time'=>now(),
                     'config_options'=> null,         
                 ];
-             
+        
                 if($cart['config_options']){
      
                     foreach($cart['config_options'] as $option => $select){    
@@ -936,6 +958,7 @@ class UserController extends Controller
                 $append = [  
                     'product_id'=>0, 
                     'domain'=>@$cart['domain'], 
+                    'domain_id'=>@$cart['domain_id'], 
                     'first_payment_amount'=>$productTotal,
                     'amount'=>$productTotal,
                     'setup_fee'=>@$cart['setupFee'],
@@ -970,7 +993,9 @@ class UserController extends Controller
         $invoice = new Invoice();
         $invoice->user_id = $user->id;
         $invoice->amount = $totalPrice;
-        $invoice->status = 0;
+        $invoice->due_date = now();
+        $invoice->status = 2;
+        $invoice->created = now();
         $invoice->save(); 
 
         $order = new Order();
@@ -995,6 +1020,7 @@ class UserController extends Controller
             if($singleData['product_id'] != 0){ 
                 $hosting = new Hosting();
                 $hosting->product_id = $singleData['product_id'];
+                $hosting->domain_setup_id = $singleData['domain_id'];
                 $hosting->domain = $singleData['domain'];
                 $hosting->server_id = $singleData['server_id'];
                 $hosting->first_payment_amount = $singleData['first_payment_amount'];
@@ -1020,6 +1046,7 @@ class UserController extends Controller
             else{
                 $domain = new Domain();
                 $domain->user_id = $singleData['user_id'];
+                $domain->domain_setup_id = $singleData['domain_id'];
                 $domain->order_id = $singleData['order_id'];
                 $domain->coupon_id = $coupon ? $coupon->id : 0;
                 $domain->domain = $singleData['domain'];

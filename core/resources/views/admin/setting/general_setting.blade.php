@@ -39,6 +39,18 @@
                         </div>
 
                         <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <div class="d-flex flex-wrap justify-content-between">
+                                        <label class="form-control-label font-weight-bold">@lang('API Key for Domain Availability') </label>
+                                        <a href="https://domain-availability.whoisxmlapi.com/api" target="_blank">@lang('whoisxmlapi')</a>
+                                    </div>
+                                    <input class="form-control form-control-lg" type="text" name="api_key" value="{{$general->api_key}}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label class="form-control-label font-weight-bold">@lang('Default Nameserver 1')</label>
@@ -51,13 +63,16 @@
                                     <input class="form-control form-control-lg" type="text" name="ns2" value="{{$general->ns2}}">
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-3">
                                 <div class="form-group">
-                                    <div class="d-flex flex-wrap justify-content-between">
-                                        <label class="form-control-label font-weight-bold">@lang('API Key for Domain Availability') </label>
-                                        <a href="https://domain-availability.whoisxmlapi.com/api" target="_blank">@lang('whoisxmlapi')</a>
-                                    </div>
-                                    <input class="form-control form-control-lg" type="text" name="api_key" value="{{$general->api_key}}">
+                                    <label class="form-control-label font-weight-bold">@lang('Default Nameserver 3')</label>
+                                    <input class="form-control form-control-lg" type="text" name="ns3" value="{{$general->ns3}}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-control-label font-weight-bold">@lang('Default Nameserver 4')</label>
+                                    <input class="form-control form-control-lg" type="text" name="ns4" value="{{$general->ns4}}">
                                 </div>
                             </div>
                         </div>

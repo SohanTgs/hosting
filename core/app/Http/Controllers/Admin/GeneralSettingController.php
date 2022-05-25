@@ -26,6 +26,8 @@ class GeneralSettingController extends Controller
             'base_color' => 'nullable', 'regex:/^[a-f0-9]{6}$/i',
             'secondary_color' => 'nullable', 'regex:/^[a-f0-9]{6}$/i',
             'timezone' => 'required',
+            'ns1' => 'required',
+            'ns2' => 'required',
         ]);
 
         $general = GeneralSetting::first();
@@ -45,6 +47,8 @@ class GeneralSettingController extends Controller
 
         $general->ns1 = $request->ns1;
         $general->ns2 = $request->ns2;
+        $general->ns3 = $request->ns3;
+        $general->ns4 = $request->ns4;
         $general->api_key = $request->api_key;
         
         $general->save();

@@ -12,14 +12,10 @@
                         </div>
                         <div class="col-12 col-sm-6 invoice-col text-center">
                             <div class="invoice-status">
-                                @if($invoice->status == 0)
-                                    <span class="text-danger">@lang('Unpaid')</span>
-                                @elseif($invoice->status == 1)
-                                    <span class="text-success">@lang('Paid')</span>
-                                @endif
+                                @php echo @$invoice->statusText; @endphp
                             </div>
 
-                            @if($invoice->status != 1)
+                            @if($invoice->status == 2)
                                 <div class="small-text">
                                     @lang('Due Date'): {{ showDateTime($invoice->created_at, 'd/m/Y') }}
                                     <div class="payment-btn-container d-print-none" align="center">

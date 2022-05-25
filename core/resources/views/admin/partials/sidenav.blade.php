@@ -108,10 +108,10 @@
                                     @endif
                                 </a> 
                             </li>
-                            <li class="sidebar-menu-item {{menuActive('admin.order.initiated')}}">
-                                <a href="{{route('admin.order.initiated')}}" class="nav-link">
+                            <li class="sidebar-menu-item {{menuActive('admin.order.cancelled')}}">
+                                <a href="{{route('admin.order.cancelled')}}" class="nav-link">
                                     <i class="menu-icon las la-dot-circle"></i>
-                                    <span class="menu-title">@lang('Initiated')</span>
+                                    <span class="menu-title">@lang('Cancelled')</span>
                                 </a>
                             </li>
                         </ul>
@@ -141,6 +141,24 @@
                                 <a href="{{route('admin.invoice.unpaid')}}" class="nav-link">
                                     <i class="menu-icon las la-dot-circle"></i>
                                     <span class="menu-title">@lang('Unpaid')</span>
+                                </a>
+                            </li>
+                            <li class="sidebar-menu-item {{menuActive('admin.invoice.payment.pending')}}">
+                                <a href="{{route('admin.invoice.payment.pending')}}" class="nav-link">
+                                    <i class="menu-icon las la-dot-circle"></i>
+                                    <span class="menu-title">@lang('Payment Pending')</span>
+                                </a>
+                            </li>
+                            <li class="sidebar-menu-item {{menuActive('admin.invoice.cancelled')}}">
+                                <a href="{{route('admin.invoice.cancelled')}}" class="nav-link">
+                                    <i class="menu-icon las la-dot-circle"></i>
+                                    <span class="menu-title">@lang('Cancelled')</span>
+                                </a>
+                            </li>
+                            <li class="sidebar-menu-item {{menuActive('admin.invoice.refunded')}}">
+                                <a href="{{route('admin.invoice.refunded')}}" class="nav-link">
+                                    <i class="menu-icon las la-dot-circle"></i>
+                                    <span class="menu-title">@lang('Refunded')</span>
                                 </a>
                             </li>
                         </ul>
@@ -494,6 +512,13 @@
                     <a href="{{route('admin.setting.index')}}" class="nav-link">
                         <i class="menu-icon las la-life-ring"></i>
                         <span class="menu-title">@lang('General Setting')</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-menu-item {{menuActive('admin.billing.setting.index')}}">
+                    <a href="{{route('admin.billing.setting.index')}}" class="nav-link">
+                        <i class="menu-icon las la-file-invoice"></i>
+                        <span class="menu-title">@lang('Billing Setting')</span>
                     </a>
                 </li>
 

@@ -27,14 +27,12 @@ class Namecheap{
         $this->username = $register->test_mode ? $this->namecheapAcc->sandbox_username->value : $this->namecheapAcc->username->value;
 	}
 
-    public function register(){
-
-        $domain = $this->domain;
-        $request = $this->request;
-
+    protected function makeNameservers($request, $domain, $noChange = false){
+  
         $nameservers = null;
+        $server = @$domain->hosting->server;
 
-        if($request->ns1 && $request->ns2){
+        if($request){
             $nameservers = $request->ns1.','.$request->ns2;
             
             if($request->ns3){
@@ -45,11 +43,58 @@ class Namecheap{
                 $nameservers .= ','.$request->ns4;
             }
 
-        }else{
-            $general = GeneralSetting::first();
-            $nameservers = $general->ns1.','.$general->ns2;
+            return $nameservers;
         }
 
+        if($noChange){
+            $nameservers = $domain->ns1.','.$domain->ns2;
+
+            if($domain->ns3){
+                $nameservers .= ','.$domain->ns3;
+            }
+    
+            if($domain->ns4){
+                $nameservers .= ','.$domain->ns4;
+            }
+
+            return $nameservers;
+        }
+
+        if(@$server){
+            $nameservers = $server->ns1.','.$server->ns2;
+   
+            if($server->ns3){
+                $nameservers .= ','.$server->ns3;
+            }
+    
+            if($server->ns4){
+                $nameservers .= ','.$server->ns4;
+            }
+
+            return $nameservers;
+        }
+     
+        $general = GeneralSetting::first();
+        $nameservers = $general->ns1.','.$general->ns2;
+
+        if($general->ns3){
+            $nameservers .= ','.$general->ns3;
+        }
+
+        if($general->ns4){
+            $nameservers .= ','.$general->ns4;
+        }
+
+        return $nameservers;
+    }
+
+    public function register(){
+
+        $domain = $this->domain;
+        $request = $this->request;
+   
+        $nameservers = $this->makeNameservers($request, $domain);
+       
         $array = explode(',', $nameservers);
         $ns1 = @$array[0];
         $ns2 = @$array[1];
@@ -205,6 +250,7 @@ class Namecheap{
                 'DomainName'=>$domain->domain,
             ]);
      
+            $response = xmlToArray(@$response);
             if(@$response['Errors']){
                 return ['success'=>false, 'message'=>@$response['Errors']['Error']];
             }
@@ -289,30 +335,7 @@ class Namecheap{
 
         $domain = $this->domain;
         $request = $this->request;
-        $nameservers = null;
-
-        if($request){
-            $nameservers = $request->ns1.','.$request->ns2;
-
-            if($request->ns3){
-                $nameservers .= ','.$request->ns3;
-            }
-    
-            if($request->ns4){
-                $nameservers .= ','.$request->ns4;
-            }
-
-        }else{
-            $nameservers = $domain->ns1.','.$domain->ns2;
-
-            if($domain->ns3){
-                $nameservers .= ','.$domain->ns3;
-            }
-    
-            if($domain->ns4){
-                $nameservers .= ','.$domain->ns4;
-            }
-        }
+        $nameservers = $this->makeNameservers($request, $domain, true);
 
         $array = explode(',', $nameservers);
         $ns1 = @$array[0];

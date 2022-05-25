@@ -59,25 +59,27 @@ class Hosting extends Model
             $class = "badge badge-";
         }
 
-        if ($this->domain_status == 0){
+        $text = 'N/A';
+
+        if ($this->domain_status == 1){
             $class .= 'danger';
-            $text = 'Pending';
+            $text = Self::domainStatus()[1];
         } 
-        if ($this->domain_status == 1){ 
+        if ($this->domain_status == 2){ 
             $class .= 'success';
-            $text = 'Active';
-        }
-        elseif ($this->domain_status == 2){
-            $class .= 'warning';
-            $text = 'Suspended';
+            $text = Self::domainStatus()[2];
         }
         elseif ($this->domain_status == 3){
-            $class .= 'dark';
-            $text = 'Terminated'; 
+            $class .= 'warning';
+            $text = Self::domainStatus()[3];
         }
         elseif ($this->domain_status == 4){
-            $class .= 'danger';
-            $text = 'Cancelled'; 
+            $class .= 'dark';
+            $text = Self::domainStatus()[4];
+        }
+        elseif ($this->domain_status == 5){
+            $class .= 'warning';
+            $text = Self::domainStatus()[5];
         }
         
         return "<span class='$class'>" . trans($text) . "</span>";
@@ -85,11 +87,11 @@ class Hosting extends Model
 
     public static function domainStatus(){
         return [
-            0=> trans('Pending'), 
-            1=> trans('Active'),
-            2=> trans('Suspended'),
-            3=> trans('Terminated'), 
-            4=> trans('Cancelled'),
+            1=> trans('Pending'), 
+            2=> trans('Active'),
+            3=> trans('Suspended'),
+            4=> trans('Terminated'), 
+            5=> trans('Cancelled'),
         ]; 
     }
 

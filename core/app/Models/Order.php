@@ -37,8 +37,8 @@ class Order extends Model
         return $this->where('status', 2);
     }
 
-    public function scopeInitiated(){
-        return $this->where('status', 0);
+    public function scopeCancelled(){
+        return $this->where('status', 3);
     } 
 
     public function scopeCancel(){
@@ -53,21 +53,23 @@ class Order extends Model
             $class = "badge badge-";
         }
 
+        $text = 'N/A';
+ 
         if ($this->status == 0){
-            $class .= 'dark';
-            $text = 'Initiated';
+            $class .= 'primary';
+            $text = Self::status()[0];
         }
         elseif ($this->status == 1){
-            $class .= 'success';
-            $text = 'Active';
-        }
-        elseif($this->status == 2){
             $class .= 'danger';
-            $text = 'Pending';
+            $text = self::status()[1];
+        }
+        elseif ($this->status == 2){
+            $class .= 'success';
+            $text = self::status()[2];
         }
         elseif($this->status == 3){
-            $class .= 'dark';
-            $text = 'Cancelled';
+            $class .= 'warning';
+            $text = self::status()[3];
         }
         
         return "<span class='$class'>" . trans($text) . "</span>";
@@ -76,8 +78,8 @@ class Order extends Model
     public static function status(){
         return [
             0=> trans('Initiated'), 
-            1=> trans('Active'),
-            2=> trans('Pending'), 
+            1=> trans('Pending'), 
+            2=> trans('Active'),
             3=> trans('Cancelled'),
         ]; 
     }

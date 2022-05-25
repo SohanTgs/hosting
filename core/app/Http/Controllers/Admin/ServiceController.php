@@ -266,6 +266,10 @@ class ServiceController extends Controller{
     } 
 
     protected function accountSummary($server, $username){
+    
+        if(!$server){
+            return ;
+        }
 
         try{
             $response = Http::withHeaders([

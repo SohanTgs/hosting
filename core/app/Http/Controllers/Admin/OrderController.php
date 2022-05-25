@@ -37,9 +37,9 @@ class OrderController extends Controller{
         return view('admin.order.all', compact('pageTitle', 'orders', 'emptyMessage'));
     }
 
-    public function initiated(){  
-        $pageTitle = 'Initiated Orders';
-        $orders = Order::initiated()->latest()->with($this->with())->paginate(getPaginate());
+    public function cancelled(){  
+        $pageTitle = 'Cancelled Orders';
+        $orders = Order::cancelled()->latest()->with($this->with())->paginate(getPaginate());
         $emptyMessage = 'No data found';
         return view('admin.order.all', compact('pageTitle', 'orders', 'emptyMessage'));
     }

@@ -37,7 +37,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        
+
+
         $activeTemplate = activeTemplate();
         $general = GeneralSetting::first();
         $viewShare['general'] = $general;

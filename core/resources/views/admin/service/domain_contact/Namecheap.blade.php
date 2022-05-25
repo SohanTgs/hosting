@@ -96,7 +96,7 @@
                                 <span class="billing-form__label d-block flex-shrink-0">
                                     @lang('Email Address')  
                                 </span> 
-                                <input class="form-control" type="text" name="RegisterEmailAddress" value="{{@$register['EmailAddress']}}">
+                                <input class="form-control" type="email" name="RegisterEmailAddress" value="{{@$register['EmailAddress']}}">
                             </div>
                         </li>
                     </ul> 
@@ -186,7 +186,7 @@
                                 <span class="billing-form__label d-block flex-shrink-0">
                                     @lang('Email Address')  
                                 </span> 
-                                <input class="form-control" type="text" name="TechEmailAddress" value="{{@$tech['EmailAddress']}}">
+                                <input class="form-control" type="email" name="TechEmailAddress" value="{{@$tech['EmailAddress']}}">
                             </div>
                         </li>
                     </ul> 
@@ -279,7 +279,7 @@
                                 <span class="billing-form__label d-block flex-shrink-0">
                                     @lang('Email Address')  
                                 </span> 
-                                <input class="form-control" type="text" name="AdminEmailAddress" value="{{@$admin['EmailAddress']}}">
+                                <input class="form-control" type="email" name="AdminEmailAddress" value="{{@$admin['EmailAddress']}}">
                             </div>
                         </li>
                     </ul> 
@@ -369,7 +369,7 @@
                                 <span class="billing-form__label d-block flex-shrink-0">
                                     @lang('Email Address')  
                                 </span> 
-                                <input class="form-control" type="text" name="AuxBillingEmailAddress" value="{{@$auxBilling['EmailAddress']}}">
+                                <input class="form-control" type="email" name="AuxBillingEmailAddress" value="{{@$auxBilling['EmailAddress']}}">
                             </div>
                         </li>
                     </ul> 

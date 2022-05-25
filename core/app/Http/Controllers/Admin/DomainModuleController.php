@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Domain;
 use App\DomainRegisters\Register;
+use App\Models\GeneralSetting;
 
 class DomainModuleController extends Controller{
     
@@ -14,6 +15,8 @@ class DomainModuleController extends Controller{
         $request->validate([
             'domain_id'=> 'required',
             'module_type'=> 'required|numeric|between:1,6',
+            'ns1'=> 'required_if:module_type,==,1',
+            'ns2'=> 'required_if:module_type,==,1',
         ]);
 
         $domain = Domain::where('status', '!=', 0)->findOrFail($request->domain_id);
@@ -45,6 +48,7 @@ class DomainModuleController extends Controller{
     } 
 
     protected function register($domain, $request){
+        
         $register = new Register($domain->register->alias);
         $register->domain = $domain;
         $register->request = $request;
@@ -55,7 +59,20 @@ class DomainModuleController extends Controller{
             $notify[] = ['error', $execute['message']];
             return back()->withNotify($notify);
         }
-     
+
+        if($request->send_email){
+            $general = GeneralSetting::first('cur_text');
+    
+            notify($domain->user, 'DOMAIN_REGISTER', [
+                'domain_reg_date' => showDateTime($domain->reg_time),
+                'domain_name' => $domain->domain,
+                'domain_reg_period' => $domain->reg_period,
+                'first_payment_amount' => getAmount($domain->first_payment_amount),
+                'next_due_date' => showDateTime($domain->next_due_date),
+                'currency' => $general->cur_text,
+            ]);
+        }
+
         $notify[] = ['success', 'Register module command run successfully'];
         return back()->withNotify($notify);
     } 

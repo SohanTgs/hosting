@@ -54,7 +54,7 @@ class DomainRegisterController extends Controller{
                     $field = 'nullable';
                 }
             }else{
-                if(!@$field->test_mode || $field->required){
+                if(!@$field->test_mode || @$field->required){
                     $field = 'required'; 
                 }
                 else{
@@ -85,5 +85,8 @@ class DomainRegisterController extends Controller{
     }
 
 }
+
+
+
 
 

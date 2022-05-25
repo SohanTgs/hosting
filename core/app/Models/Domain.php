@@ -19,6 +19,10 @@ class Domain extends Model
         return $this->belongsTo(Deposit::class, 'deposit_id');
     }
 
+    public function hosting(){ 
+        return $this->belongsTo(Hosting::class, 'hosting_id');
+    }
+
     public function user(){ 
         return $this->belongsTo(User::class, 'user_id');
     }
@@ -35,25 +39,25 @@ class Domain extends Model
             $class = "badge badge-";
         }
 
-        if ($this->status == 0){
+        if ($this->status == 1){
             $class .= 'danger';
-            $text = 'Pending';
-        }
-        elseif ($this->status == 1){
-            $class .= 'success';
-            $text = 'Active';
+            $text = Self::status()[1];
         }
         elseif ($this->status == 2){
-            $class .= 'warning';
-            $text = 'Pending Registration';
+            $class .= 'success';
+            $text = Self::status()[2];
         }
         elseif ($this->status == 3){
-            $class .= 'danger';
-            $text = 'Expired';
+            $class .= 'warning';
+            $text = Self::status()[3];
         }
         elseif ($this->status == 4){
-            $class .= 'dark';
-            $text = 'Cancelled';
+            $class .= 'danger';
+            $text = Self::status()[4];
+        }
+        elseif ($this->status == 5){
+            $class .= 'warning';
+            $text = Self::status()[5];
         }
         
         return "<span class='$class'>" . trans($text) . "</span>";
@@ -61,11 +65,11 @@ class Domain extends Model
 
     public static function status(){ 
         return [
-            0=> trans('Pending'), 
-            1=> trans('Active'),
-            2=> trans('Pending Registration'),
-            3=> trans('Expired'), 
-            4=> trans('Cancelled'),
+            1=> trans('Pending'), 
+            2=> trans('Active'),
+            3=> trans('Pending Registration'),
+            4=> trans('Expired'), 
+            5=> trans('Cancelled'),
         ];
     }
 

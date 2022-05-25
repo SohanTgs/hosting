@@ -19,17 +19,14 @@ class Resell{
         $register = $domain->register;
         $this->url = $register->test_mode ? 'https://test.httpapi.com' : 'https://httpapi.com';
         $this->resellAcc = $register->params;
-	}
+	} 
 
-    public function register(){
-
-        $domain = $this->domain;
-        $user = $domain->user;
-        $request = $this->request;
-
+    protected function makeNameservers($request, $domain, $noChange = false){
+  
         $nameservers = null;
+        $server = $domain->hosting->server;
 
-        if($request->ns1 && $request->ns2){
+        if($request){
             $nameservers = $request->ns1.','.$request->ns2;
             
             if($request->ns3){
@@ -40,10 +37,58 @@ class Resell{
                 $nameservers .= ','.$request->ns4;
             }
 
-        }else{
-            $general = GeneralSetting::first();
-            $nameservers = $general->ns1.','.$general->ns2;
+            return $nameservers;
         }
+
+        if($noChange){
+            $nameservers = $domain->ns1.','.$domain->ns2;
+
+            if($domain->ns3){
+                $nameservers .= ','.$domain->ns3;
+            }
+    
+            if($domain->ns4){
+                $nameservers .= ','.$domain->ns4;
+            }
+
+            return $nameservers;
+        }
+
+        if(@$server){
+            $nameservers = $server->ns1.','.$server->ns2;
+   
+            if($server->ns3){
+                $nameservers .= ','.$server->ns3;
+            }
+    
+            if($server->ns4){
+                $nameservers .= ','.$server->ns4;
+            }
+
+            return $nameservers;
+        }
+        
+        $general = GeneralSetting::first();
+        $nameservers = $general->ns1.','.$general->ns2;
+
+        if($general->ns3){
+            $nameservers .= ','.$general->ns3;
+        }
+
+        if($general->ns4){
+            $nameservers .= ','.$general->ns4;
+        }
+
+        return $nameservers;
+    }
+
+    public function register(){
+
+        $domain = $this->domain;
+        $user = $domain->user;
+        $request = $this->request;
+
+        $nameservers = $this->makeNameservers($request, $domain);
 
         $array = explode(',', $nameservers);
         $ns1 = @$array[0];
@@ -60,33 +105,39 @@ class Resell{
 
         try{   
  
-            $getUser = curlContent($this->url.'/api/customers/details.json?auth-userid='.$this->resellAcc->auth_user_id->value.'&api-key='.$this->resellAcc->api_key->value.'&username='.$user->email);
-
+            $getUser = Http::get($this->url.'/api/customers/details.json', [
+                'auth-userid'=>$this->resellAcc->auth_user_id->value,
+                'api-key'=>$this->resellAcc->api_key->value,
+                'username'=>$user->email,
+            ]);
+           
             if(!@json_decode($getUser)->username){
 
-                $createUser = curlPostContent($this->url.'/api/customers/v2/signup.xml?auth-userid='.$this->resellAcc->auth_user_id->value.'&api-key='.$this->resellAcc->api_key->value.'&username='.$user->email.'&passwd=Passw@rd123&name='.$user->fullname.'&company=CompanyName&address-line-1='.@$user->address->address.'&city='.@$user->address->city.'&state='.@$user->address->state.'&country='.@$user->country_code.'&zipcode='.@$user->address->zip.'&phone-cc='.$dialCode.'&phone='.$phoneWithoutCode.'&lang-pref=en');
-                
+                $createUser = Http::post($this->url.'/api/customers/v2/signup.xml?auth-userid='.$this->resellAcc->auth_user_id->value.'&api-key='.$this->resellAcc->api_key->value.'&username='.$user->email.'&passwd=Passw@rd123&name='.$user->fullname.'&company=CompanyName&address-line-1='.@$user->address->address.'&city='.@$user->address->city.'&state='.@$user->address->state.'&country='.@$user->country_code.'&zipcode='.@$user->address->zip.'&phone-cc='.$dialCode.'&phone='.$phoneWithoutCode.'&lang-pref=en');
+          
                 $domain->customer_id = @xmlToArray(@$createUser)[0]; 
                 $domain->save(); 
-
-                dump('createUser');
             }
 
-            $getContact = curlContent($this->url.'/api/contacts/details.json?auth-userid='.$this->resellAcc->auth_user_id->value.'&api-key='.$this->resellAcc->api_key->value.'&contact-id='.$domain->contact_id);
+            $getContact = Http::get($this->url.'/api/contacts/details.json', [
+                'auth-userid'=>$this->resellAcc->auth_user_id->value,
+                'api-key'=>$this->resellAcc->api_key->value,
+                'contact-id'=>$domain->contact_id,
+            ]);
       
             if(!@json_decode($getContact)->contactid){
 
-                $createContact = curlPostContent($this->url.'/api/contacts/add.json?auth-userid='.$this->resellAcc->auth_user_id->value.'&api-key='.$this->resellAcc->api_key->value.'&name='.$user->fullname.'&company=CompanyName&email='.$user->email.'&address-line-1='.@$user->address->address.'&address-line-2='.@$user->address->address.'&city='.@$user->address->city.'&country='.@$user->country_code.'&zipcode='.@$user->address->zip.'&phone-cc='.$dialCode.'&phone='.$phoneWithoutCode.'&customer-id='.$domain->customer_id.'&type=Contact');
-             
-                $domain->contact_id = @$createContact; 
-                $domain->save(); 
+                $createContact = Http::post($this->url.'/api/contacts/add.json?auth-userid='.$this->resellAcc->auth_user_id->value.'&api-key='.$this->resellAcc->api_key->value.'&name='.$user->fullname.'&company=CompanyName&email='.$user->email.'&address-line-1='.@$user->address->address.'&address-line-2='.@$user->address->address.'&city='.@$user->address->city.'&country='.@$user->country_code.'&zipcode='.@$user->address->zip.'&phone-cc='.$dialCode.'&phone='.$phoneWithoutCode.'&customer-id='.$domain->customer_id.'&type=Contact');
 
-                dump('createContact');
+                if(@json_decode(@$createContact)->status != 'ERROR'){
+                    $domain->contact_id = @json_decode($createContact) ?? 0; 
+                    $domain->save(); 
+                }
             }
 
-            $idProtection = $domain->id_protection ? 'true' : 'false';
-
-            $response = curlPostContent($this->url.'/api/domains/register.xml?auth-userid='.$this->resellAcc->auth_user_id->value.'&api-key='.$this->resellAcc->api_key->value.'&domain-name='.$domain->domain.'&years='.$domain->reg_period.'&ns='.$nameservers.'&customer-id='.$domain->customer_id.'&reg-contact-id='.$domain->contact_id.'&admin-contact-id='.$domain->contact_id.'&tech-contact-id='.$domain->contact_id.'&billing-contact-id='.$domain->contact_id.'&invoice-option=KeepInvoice&purchase-privacy='.$idProtection);
+            $protection = $domain->id_protection ? 'true' : 'false';
+    
+            $response = Http::post($this->url.'/api/domains/register.xml?auth-userid='.$this->resellAcc->auth_user_id->value.'&api-key='.$this->resellAcc->api_key->value.'&domain-name='.$domain->domain.'&years='.$domain->reg_period.'&ns='.$nameservers.'&customer-id='.$domain->customer_id.'&reg-contact-id='.$domain->contact_id.'&admin-contact-id='.$domain->contact_id.'&tech-contact-id='.$domain->contact_id.'&billing-contact-id='.$domain->contact_id.'&invoice-option=KeepInvoice&purchase-privacy='.$protection);
 
             $response = xmlToArray(@$response);  
             if(@$response['entry'][0]['string'][1] == 'error'){
@@ -101,6 +152,10 @@ class Resell{
             $domain->resell_order_id = @$response['hashtable']['string'][7]; 
             $domain->save(); 
 
+            if($domain->id_protection){
+                Http::post($this->url.'/api/domains/purchase-privacy.json?auth-userid='.$this->resellAcc->auth_user_id->value.'&api-key='.$this->resellAcc->api_key->value.'&order-id='.$domain->resell_order_id.'&invoice-option=NoInvoice');
+            }
+
             return ['success'=>true];
 
         }catch(\Exception  $error){
@@ -114,7 +169,20 @@ class Resell{
         $request = $this->request;
 
         try{
-            $response = curlPostContent($this->url.'/api/domains/renew.json?auth-userid='.$this->resellAcc->auth_user_id->value.'&api-key='.$this->resellAcc->api_key->value.'&order-id='.$domain->resell_order_id.'&years='.$domain->reg_period.'&exp-date=1279012036&invoice-option=NoInvoice');
+
+            if(!$domain->resell_order_id){
+                $details = Http::get($this->url.'/api/domains/details-by-name.json', [
+                    'auth-userid'=>$this->resellAcc->auth_user_id->value,
+                    'api-key'=>$this->resellAcc->api_key->value,
+                    'domain-name'=>$domain->domain,
+                    'options'=>'OrderDetails'
+                ]);
+
+                $domain->resell_order_id = @json_decode($details)->orderid;
+                $domain->save();
+            }
+
+            $response = Http::post($this->url.'/api/domains/renew.json?auth-userid='.$this->resellAcc->auth_user_id->value.'&api-key='.$this->resellAcc->api_key->value.'&order-id='.$domain->resell_order_id.'&years='.$domain->reg_period.'&exp-date=1279012036&invoice-option=NoInvoice');
 
             $response = json_decode(@$response); 
             if(@$response->status == 'ERROR'){
@@ -140,7 +208,24 @@ class Resell{
         $domain = $this->domain;
 
         try{
-            $response = curlPostContent($this->url.'/api/contacts/details.json?auth-userid='.$this->resellAcc->auth_user_id->value.'&api-key='.$this->resellAcc->api_key->value.'&contact-id='.$domain->contact_id);
+
+            if(!$domain->contact_id){
+                $details = Http::get($this->url.'/api/domains/details-by-name.json', [
+                    'auth-userid'=>$this->resellAcc->auth_user_id->value,
+                    'api-key'=>$this->resellAcc->api_key->value,
+                    'domain-name'=>$domain->domain,
+                    'options'=>'ContactIds'
+                ]);
+
+                $domain->contact_id = @json_decode($details)->registrantcontactid;
+                $domain->save();
+            }
+
+            $response = Http::get($this->url.'/api/contacts/details.json', [
+                'auth-userid'=>$this->resellAcc->auth_user_id->value,
+                'api-key'=>$this->resellAcc->api_key->value,
+                'contact-id'=>$domain->contact_id
+            ]);
 
             $response = @json_decode(@$response);
             if(@$response->status == 'ERROR'){
@@ -161,7 +246,7 @@ class Resell{
 
         try{   
 
-            $response = curlPostContent($this->url.'/api/contacts/modify.json?auth-userid='.$this->resellAcc->auth_user_id->value.'&api-key='.$this->resellAcc->api_key->value.'&contact-id='.$domain->contact_id.'&name='.$request->name.'&company=CompanyName&email='.$request->email.'&address-line-1='.$request->address1.'&address-line-2='.$request->address2.'&city='.$request->city.'&country='.$request->country.'&zipcode='.$request->zip.'&phone-cc='.$request->telephonecc.'&phone='.$request->telephone);
+            $response = Http::post($this->url.'/api/contacts/modify.json?auth-userid='.$this->resellAcc->auth_user_id->value.'&api-key='.$this->resellAcc->api_key->value.'&contact-id='.$domain->contact_id.'&name='.$request->name.'&company=CompanyName&email='.$request->email.'&address-line-1='.$request->address1.'&address-line-2='.$request->address2.'&city='.$request->city.'&country='.$request->country.'&zipcode='.$request->zip.'&phone-cc='.$request->telephonecc.'&phone='.$request->telephone);
 
             $response = json_decode(@$response); 
             if(@$response->status == 'ERROR'){
@@ -180,30 +265,7 @@ class Resell{
      
         $domain = $this->domain;
         $request = $this->request;
-        $nameservers = null;
-
-        if($request){
-            $nameservers = $request->ns1.','.$request->ns2;
-
-            if($request->ns3){
-                $nameservers .= ','.$request->ns3;
-            }
-    
-            if($request->ns4){
-                $nameservers .= ','.$request->ns4;
-            }
-
-        }else{
-            $nameservers = $domain->ns1.','.$domain->ns2;
-
-            if($domain->ns3){
-                $nameservers .= ','.$domain->ns3;
-            }
-    
-            if($domain->ns4){
-                $nameservers .= ','.$domain->ns4;
-            }
-        }
+        $nameservers = $this->makeNameservers($request, $domain, true);
 
         $array = explode(',', $nameservers);
         $ns1 = @$array[0];
@@ -214,8 +276,20 @@ class Resell{
         $nameservers = implode('&ns=', $array);
 
         try{
+            
+            if(!$domain->resell_order_id){
+                $details = Http::get($this->url.'/api/domains/details-by-name.json', [
+                    'auth-userid'=>$this->resellAcc->auth_user_id->value,
+                    'api-key'=>$this->resellAcc->api_key->value,
+                    'domain-name'=>$domain->domain,
+                    'options'=>'OrderDetails'
+                ]);
 
-            $response = curlPostContent($this->url.'/api/domains/modify-ns.json?auth-userid='.$this->resellAcc->auth_user_id->value.'&api-key='.$this->resellAcc->api_key->value.'&order-id='.$domain->resell_order_id.'&ns='.$nameservers);
+                $domain->resell_order_id = @json_decode($details)->orderid;
+                $domain->save();
+            }
+            
+            $response = Http::post($this->url.'/api/domains/modify-ns.json?auth-userid='.$this->resellAcc->auth_user_id->value.'&api-key='.$this->resellAcc->api_key->value.'&order-id='.$domain->resell_order_id.'&ns='.$nameservers);
 
             $response = json_decode(@$response); 
             if(@$response->status == 'ERROR'){
@@ -240,20 +314,24 @@ class Resell{
         $domain = $this->domain;
 
         try{
-            $response = Http::get($this->url, [
-                'ApiUser'=>$this->username,
-                'ApiKey'=>$this->namecheapAcc->api_key->value,
-                'UserName'=>$this->username,
-                'Command'=>'Namecheap.Whoisguard.enable',
-                'ClientIp'=>$this->requestIP,
-                'DomainName'=>$domain->domain,
-                'ForwardedToEmail'=>$domain->user->email,
-                'WhoisGuardid'=>$domain->whois_guard,
-            ]);
 
-            $response = xmlToArray(@$response); 
-            if(@$response['Errors']){
-                return ['success'=>false, 'message'=>@$response['Errors']['Error']];
+            if(!$domain->resell_order_id){
+                $details = Http::get($this->url.'/api/domains/details-by-name.json', [
+                    'auth-userid'=>$this->resellAcc->auth_user_id->value,
+                    'api-key'=>$this->resellAcc->api_key->value,
+                    'domain-name'=>$domain->domain,
+                    'options'=>'OrderDetails'
+                ]);
+
+                $domain->resell_order_id = @json_decode($details)->orderid;
+                $domain->save();
+            }
+
+            $response = Http::post($this->url.'/api/domains/modify-privacy-protection.json?auth-userid='.$this->resellAcc->auth_user_id->value.'&api-key='.$this->resellAcc->api_key->value.'&order-id='.$domain->resell_order_id.'&protect-privacy=true&reason=PrivacyProtect');
+
+            $response = json_decode(@$response);
+            if(@$response->status == 'ERROR'){
+                return ['success'=>false, 'message'=>@$response->message];
             }
 
             $domain->id_protection = 1; 
@@ -268,22 +346,28 @@ class Resell{
     }
 
     public function disableIdProtection(){
-
+       
         $domain = $this->domain;
 
         try{
-            $response = Http::get($this->url, [
-                'ApiUser'=>$this->username,
-                'ApiKey'=>$this->namecheapAcc->api_key->value,
-                'UserName'=>$this->username,
-                'Command'=>'Namecheap.Whoisguard.disable',
-                'ClientIp'=>$this->requestIP,
-                'WhoisGuardid'=>$domain->whois_guard,
-            ]);
-    
-            $response = xmlToArray(@$response); 
-            if(@$response['Errors']){
-                return ['success'=>false, 'message'=>@$response['Errors']['Error']];
+
+            if(!$domain->resell_order_id){
+                $details = Http::get($this->url.'/api/domains/details-by-name.json', [
+                    'auth-userid'=>$this->resellAcc->auth_user_id->value,
+                    'api-key'=>$this->resellAcc->api_key->value,
+                    'domain-name'=>$domain->domain,
+                    'options'=>'OrderDetails'
+                ]);
+
+                $domain->resell_order_id = @json_decode($details)->orderid;
+                $domain->save();
+            }
+
+            $response = Http::post($this->url.'/api/domains/modify-privacy-protection.json?auth-userid='.$this->resellAcc->auth_user_id->value.'&api-key='.$this->resellAcc->api_key->value.'&order-id='.$domain->resell_order_id.'&protect-privacy=false&reason=PrivacyProtect');
+
+            $response = json_decode(@$response);
+            if(@$response->status == 'ERROR'){
+                return ['success'=>false, 'message'=>@$response->message];
             }
 
             $domain->id_protection = 0; 

@@ -15,4 +15,8 @@ class DomainRegister extends Model
         return $this->where('status', 1);
     }
 
+    public function scopeDefault(){
+        return $this->where('default', 1)->first();
+    }
+
 }

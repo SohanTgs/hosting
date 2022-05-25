@@ -439,7 +439,7 @@ class PaymentController extends Controller
             }
 
             $invoice = $data->invoice;
-            $invoice->paid_date = Carbon::now();
+            $invoice->paid_date = now();
             $invoice->save();
         } 
 

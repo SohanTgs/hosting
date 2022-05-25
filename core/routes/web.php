@@ -91,7 +91,7 @@ Route::namespace('Admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('all/order', 'OrderController@all')->name('order.all');
         Route::get('pending/order', 'OrderController@pending')->name('order.pending');
         Route::get('active/order', 'OrderController@active')->name('order.active');
-        Route::get('initiate/order', 'OrderController@initiated')->name('order.initiated');
+        Route::get('cancelled/order', 'OrderController@cancelled')->name('order.cancelled');
         Route::get('order/details/{id}', 'OrderController@details')->name('order.details');
         Route::post('accept/order', 'OrderController@accept')->name('order.accept');
         Route::post('cancel/order', 'OrderController@cancel')->name('order.cancel');
@@ -103,7 +103,7 @@ Route::namespace('Admin')->prefix('admin')->name('admin.')->group(function () {
         Route::post('domain/update', 'ServiceController@domainUpdate')->name('order.domain.update'); 
 
         Route::get('change/order/hosting/product/{hostingId}/{productId}', 'ServiceController@changeHostingProduct')->name('change.order.hosting.product'); 
-
+ 
         //Module Command for CPANEL
         Route::post('module/command', 'CpanelModuleController@moduleCommand')->name('module.command');
         Route::post('login/cPanel', 'CpanelModuleController@loginCpanel')->name('module.cpanel.login');
@@ -115,10 +115,16 @@ Route::namespace('Admin')->prefix('admin')->name('admin.')->group(function () {
 
         //Invoice     
         Route::get('all/invoice', 'InvoiceController@all')->name('invoice.all');
+        Route::get('cancelled/invoice', 'InvoiceController@cancelled')->name('invoice.cancelled');
         Route::get('paid/invoice', 'InvoiceController@paid')->name('invoice.paid');
         Route::get('unpaid/invoice', 'InvoiceController@unpaid')->name('invoice.unpaid');
+        Route::get('payment-pending/invoice', 'InvoiceController@paymentPending')->name('invoice.payment.pending');
+        Route::get('refunded/invoice', 'InvoiceController@refunded')->name('invoice.refunded');
         Route::get('invoice/details/{id}', 'InvoiceController@details')->name('invoice.details');
+        Route::post('invoice/update', 'InvoiceController@updateInvoice')->name('invoice.update');
         Route::get('download/{id}/{view?}', 'InvoiceController@download')->name('invoice.download');
+        Route::post('delete/invoice/item', 'InvoiceController@deleteInvoiceItem')->name('invoice.item.delete');
+        Route::post('refund/invoice', 'InvoiceController@refundInvoice')->name('invoice.refund');
  
         //Coupon    
         Route::get('all/coupon', 'CouponController@all')->name('coupon.all');
@@ -339,6 +345,11 @@ Route::namespace('Admin')->prefix('admin')->name('admin.')->group(function () {
         Route::post('general-setting', 'GeneralSettingController@update')->name('setting.update');
         Route::get('optimize', 'GeneralSettingController@optimize')->name('setting.optimize');
 
+        // Billing Setting
+        Route::get('billing-setting', 'BillingSettingController@index')->name('billing.setting.index');
+        Route::post('billing-setting', 'BillingSettingController@update')->name('billing.setting.update');
+        Route::post('update/billing/invoice', 'BillingSettingController@updateBillingInvoice')->name('billing.setting.update.invoice');
+
         // Logo-Icon
         Route::get('setting/logo-icon', 'GeneralSettingController@logoIcon')->name('setting.logo.icon');
         Route::post('setting/logo-icon', 'GeneralSettingController@logoIconUpdate')->name('setting.logo.icon');
@@ -484,7 +495,7 @@ Route::name('user.')->prefix('user')->group(function () {
             Route::get('view/invoice/{id}', 'UserController@viewInvoice')->name('view.invoice');
 
             Route::post('payment', 'UserController@payment')->name('payment');  
-
+ 
             Route::get('my/services', 'UserController@myServices')->name('my.services');
             Route::get('service/details/{id}', 'UserController@serviceDetails')->name('service.details');
             Route::post('service/cancel/request', 'UserController@serviceCancelRequest')->name('service.cancel.request');
@@ -497,7 +508,7 @@ Route::name('user.')->prefix('user')->group(function () {
             Route::get('domain/contact/{id}', 'UserController@domainContact')->name('domain.contact');
             Route::post('domain/contact/update', 'UserController@domainContactUpdate')->name('domain.contact.update');
             Route::post('domain/renew', 'UserController@domainRenew')->name('domain.renew');
-
+ 
             Route::get('my/invoices', 'UserController@myInvoices')->name('my.invoices');
             Route::get('invoices/download/{id}/{view?}', 'UserController@invoiceDownload')->name('invoice.download');
  

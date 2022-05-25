@@ -99,8 +99,8 @@
         </div>  
     </div>
 
-    <div class="row mb-none-30">
-        <div class="col-lg-12 col-md-12 mb-30">
+    <div class="row mb-none-30 justify-content-center">
+        <div class="col-xl-8 col-md-12 mb-30">
             <div class="card">
                 <div class="card-body">
                     <button type="submit" class="btn btn--primary btn-block btn-lg">@lang('Submit')</button>
@@ -109,7 +109,6 @@
         </div>
     </div>
 </form>
-
 @endsection
 
 @push('breadcrumb-plugins') 

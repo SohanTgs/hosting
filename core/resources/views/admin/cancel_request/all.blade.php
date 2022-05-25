@@ -21,15 +21,19 @@
                                 <tr>
                                     <td data-label="@lang('Product/Service')">
                                         <span class="font-weight-bold">
-                                            <a href="{{ route('admin.order.hosting.details', $data->service->id) }}">
-                                                {{$data->service->product->serviceCategory->name}}
-                                            </a>
+                                            @if($data->service)
+                                                <a href="{{ route('admin.order.hosting.details', $data->service->id) }}">
+                                                    {{$data->service->product->serviceCategory->name}}
+                                                </a>
+                                            @endif
                                         </span>
                                         <br> 
                                         <span class="small">
-                                            <a href="{{ route('admin.users.detail', $data->service->user_id) }}">
-                                                <span>@</span>{{ $data->service->user->username }}
-                                            </a>
+                                            @if($data->service)
+                                                <a href="{{ route('admin.users.detail', $data->service->user_id) }}">
+                                                    <span>@</span>{{ $data->service->user->username }}
+                                                </a>
+                                            @endif
                                         </span>
                                     </td>
                                     <td data-label="@lang('Reason')">
