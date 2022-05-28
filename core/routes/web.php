@@ -11,9 +11,9 @@ Route::get('/clear', function(){
 |--------------------------------------------------------------------------
 */ 
 
-Route::prefix('cron')->group(function () {
-    Route::get('/expire', 'CronController@expire')->name('expire');
-});
+
+Route::get('/cron', 'CronController@index')->name('index');
+
 
 Route::namespace('Gateway')->prefix('ipn')->name('ipn.')->group(function () {
     Route::post('paypal', 'Paypal\ProcessController@ipn')->name('Paypal');
@@ -95,6 +95,8 @@ Route::namespace('Admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('order/details/{id}', 'OrderController@details')->name('order.details');
         Route::post('accept/order', 'OrderController@accept')->name('order.accept');
         Route::post('cancel/order', 'OrderController@cancel')->name('order.cancel');
+        Route::post('mark-as-pending/order', 'OrderController@markPending')->name('order.mark.pending');
+        Route::post('order/notes', 'OrderController@orderNotes')->name('order.notes');
 
         Route::get('hosting/details/{id}', 'ServiceController@hostingDetails')->name('order.hosting.details');
         Route::post('hosting/update/', 'ServiceController@hostingUpdate')->name('order.hosting.update');

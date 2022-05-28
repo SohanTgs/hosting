@@ -51,7 +51,7 @@ class Invoice extends Model
         return $this->where('status', 4);
     }
 
-    public function getStatusTextAttribute(){
+    public function getShowStatusAttribute(){
       
         if(request()->routeIs('admin*')){
             $class = "badge badge--";

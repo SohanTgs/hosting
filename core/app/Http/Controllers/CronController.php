@@ -4,19 +4,42 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Hosting;
+use App\Models\Domain;
 use Carbon\Carbon;
 
 class CronController extends Controller{
     
-    public function expire(){
-        $hostings = Hosting::where('status', 1)->where('billing', 2)->where('next_invoice_date', '<', Carbon::now())->get();
-        
-        foreach($hostings as $hosting){
-            return $hosting;
-        }
+    public function index(){
+       $hostings = Hosting::get();
+       $domains = Domain::get();
+    }
 
+    protected function addLateFee(){
+        return 'addLateFee';
+    }
+
+    protected function invoiceGenerate(){
+        return 'invoiceGenerate';
+    }
+
+    protected function unpaidInvoiceReminder(){
+        return 'unpaidInvoiceReminder';
+    }
+
+    protected function firstOverdueReminder(){
+        return 'firstOverdueReminder';
+    }
+
+    protected function secondOverdueReminder(){
+        return 'secondOverdueReminder';
+    }
+
+    protected function thirdOverdueReminder(){
+        return 'thirdOverdueReminder';
     }
 
 
-
 }
+
+
+

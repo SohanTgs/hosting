@@ -1005,8 +1005,8 @@ class UserController extends Controller
         $order->amount = $totalPrice;
         $order->discount = $allDiscount; 
         $order->ip_address = $_SERVER['REMOTE_ADDR'];
-        $order->status = 0; 
-        $order->save();
+        $order->status = 1; 
+        $order->save(); 
        
         $data = array_map(function($data) use ($user, $order){
             return $data + [

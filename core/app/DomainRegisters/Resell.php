@@ -140,8 +140,8 @@ class Resell{
             $response = Http::post($this->url.'/api/domains/register.xml?auth-userid='.$this->resellAcc->auth_user_id->value.'&api-key='.$this->resellAcc->api_key->value.'&domain-name='.$domain->domain.'&years='.$domain->reg_period.'&ns='.$nameservers.'&customer-id='.$domain->customer_id.'&reg-contact-id='.$domain->contact_id.'&admin-contact-id='.$domain->contact_id.'&tech-contact-id='.$domain->contact_id.'&billing-contact-id='.$domain->contact_id.'&invoice-option=KeepInvoice&purchase-privacy='.$protection);
 
             $response = xmlToArray(@$response);  
-            if(@$response['entry'][0]['string'][1] == 'error'){
-                return ['success'=>false, 'message'=>@$response['entry'][1]['string'][1]];
+            if(@$response['entry'][0]['string'][1] == 'error' || $response['status'] == 'ERROR'){
+                return ['success'=>false, 'message'=>@$response['entry'][1]['string'][1] ?? $response['message']];
             }
          
             $domain->ns1 = @$ns1; 

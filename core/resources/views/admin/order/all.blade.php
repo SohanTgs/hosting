@@ -14,6 +14,7 @@
                                 <th>@lang('Payment Method')</th>
                                 <th>@lang('Total')</th>
                                 <th>@lang('Status')</th>
+                                <th>@lang('Payment Status')</th>
                                 <th>@lang('Action')</th> 
                             </tr>
                             </thead>
@@ -44,8 +45,8 @@
                                             <span class="font-weight-bold">
                                                 <a href="{{ route('admin.deposit.details', $deposit->id) }}">{{ __(@$deposit->gateway->name) }}</a>
                                             </span>
-                                            <br> 
-                                            @if(@$deposit->status == 2)
+                                            <br>  
+                                            @if(@$deposit->status == 2) 
                                                 <span class="badge badge--warning">@lang('Pending')</span>
                                             @elseif(@$deposit->status == 1)
                                                 <span class="badge badge--success">@lang('Complete')</span>
@@ -54,7 +55,7 @@
                                             @endif
                                         @elseif($order->status != 0)
                                             @lang('Wallet Balance')
-                                        @else 
+                                        @else  
                                             @lang('N/A')
                                         @endif 
                                     </td>
@@ -64,9 +65,13 @@
                                         {{ $general->cur_sym }}{{ showAmount(@$order->amount) }}
                                         </span>
                                     </td>
-                                
+                                                             
                                     <td data-label="@lang('Status')">
-                                      @php echo $order->statusText; @endphp
+                                        @php echo $order->showStatus; @endphp
+                                      </td>
+
+                                    <td data-label="@lang('Payment Status')">
+                                        @php echo $order->invoice->showStatus; @endphp
                                     </td>
 
                                     <td data-label="@lang('Action')">

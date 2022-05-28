@@ -37,14 +37,16 @@ class Domain extends Model
             $class = "badge badge--";
         }else{
             $class = "badge badge-";
-        }
+        } 
+
+        $text = 'N/A'; 
 
         if ($this->status == 1){
-            $class .= 'danger';
+            $class .= 'success';
             $text = Self::status()[1];
         }
         elseif ($this->status == 2){
-            $class .= 'success';
+            $class .= 'danger';
             $text = Self::status()[2];
         }
         elseif ($this->status == 3){
@@ -65,8 +67,8 @@ class Domain extends Model
 
     public static function status(){ 
         return [
-            1=> trans('Pending'), 
-            2=> trans('Active'),
+            1=> trans('Active'),
+            2=> trans('Pending'), 
             3=> trans('Pending Registration'),
             4=> trans('Expired'), 
             5=> trans('Cancelled'),

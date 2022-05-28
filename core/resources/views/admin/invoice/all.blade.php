@@ -63,7 +63,7 @@
                                         <a href="{{ route('admin.order.details', $invoice->order->id) }}">{{ $general->cur_sym }}{{ showAmount(@$invoice->amount) }}</a>
                                         </span>
                                         <br>
-                                        @php echo $invoice->statusText; @endphp
+                                        @php echo $invoice->showStatus; @endphp
                                     </td>
                                 
                                     <td data-label="@lang('Action')">

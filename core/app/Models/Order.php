@@ -45,7 +45,7 @@ class Order extends Model
         return $this->where('status', 3);
     }
 
-    public function getStatusTextAttribute(){
+    public function getShowStatusAttribute(){
 
         if(request()->routeIs('admin*')){
             $class = "badge badge--";
@@ -55,16 +55,12 @@ class Order extends Model
 
         $text = 'N/A';
  
-        if ($this->status == 0){
-            $class .= 'primary';
-            $text = Self::status()[0];
-        }
-        elseif ($this->status == 1){
-            $class .= 'danger';
+        if ($this->status == 1){
+            $class .= 'success';
             $text = self::status()[1];
         }
         elseif ($this->status == 2){
-            $class .= 'success';
+            $class .= 'danger';
             $text = self::status()[2];
         }
         elseif($this->status == 3){
@@ -77,9 +73,8 @@ class Order extends Model
 
     public static function status(){
         return [
-            0=> trans('Initiated'), 
-            1=> trans('Pending'), 
-            2=> trans('Active'),
+            1=> trans('Active'),
+            2=> trans('Pending'), 
             3=> trans('Cancelled'),
         ]; 
     }

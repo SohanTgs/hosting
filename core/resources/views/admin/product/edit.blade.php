@@ -175,7 +175,7 @@
                                             <div class="input-group has_append mb-3">
                                                 <label class="w-100">@lang('Welcome Email')</label>
                                                 <select name="welcome_email" class="form-control" required>
-                                                    <option value="0">@lang('Select One')</option>
+                                                    <option value="0">@lang('None')</option>
                                                     @foreach (welcomeEmail() as $index => $mail) 
                                                         <option value="{{ $index }}">{{ __($mail['name']) }}</option>
                                                     @endforeach

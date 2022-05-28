@@ -6,15 +6,19 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\GeneralSetting;
+use App\Models\Hosting;
+use App\Models\Domain;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Models\DomainRegister;
+use App\DomainRegisters\Register; 
 
 class OrderController extends Controller{
 
     protected function with($with = []){
         $array = ['invoice.payment.gateway', 'user'];
         return array_merge($array, $with);
-    }
+    } 
 
     public function all(){ 
         $pageTitle = 'Manage Orders';
@@ -47,7 +51,8 @@ class OrderController extends Controller{
     public function details($id){   
         $order = Order::with($this->with(['hostings.product.serviceCategory', 'domains.details', 'hostings.details']))->findOrFail($id);
         $pageTitle = 'Order Details'; 
-        return view('admin.order.details', compact('pageTitle', 'order'));
+        $domainRegisters = DomainRegister::active()->get(['id', 'name']);
+        return view('admin.order.details', compact('pageTitle', 'order', 'domainRegisters'));
     }
 
     public function accept(Request $request){
@@ -56,29 +61,94 @@ class OrderController extends Controller{
             'order_id'=> 'required'
         ]);
 
-        $order = Order::where('status', 2)->where('id', $request->order_id)->firstOrFail();
-        $order->status = 1; 
+        $order = Order::pending()->where('id', $request->order_id)->with('hostings')->firstOrFail();
+        $error = false;
+
+        foreach($request->hostings ?? [] as $id => $hosting){
+
+            $hosting = (object) $hosting;
+            $service = $order->hostings->find($id);
+
+            if($service){
+                $product = $service->product;
+
+                $service->username = @$hosting->username;
+                $service->password = @$hosting->password;
+                $service->server_id = @$hosting->server_id;
+                $service->save();
+    
+                if(@$service->domain_status == 2 && $order->status == 2){
+                    if(@$hosting->run_create_module && @$product->module_option == 2 && $product->module_type == 1){
+                        $service->domain_status = 1;
+                    }else{
+                        $service->domain_status = 1;
+                    }
+                    
+                    if(@$hosting->send_email){
+                    }
+                }
+    
+                $service->save();
+            }
+
+        }
+
+        foreach($request->domains ?? [] as $id => $domain){
+
+            $domain = (object) $domain;
+            $service = $order->domains->find($id);
+         
+            if($service && DomainRegister::where('id', $domain->register)->exists()){
+                $service->domain_register_id = $domain->register;
+                $service->save();
+    
+                if(@$domain->domain_register){
+                    $register = new Register($service->register->alias);
+                    $register->domain = $service;
+                    $register->command = 'register';
+                    $execute = $register->run();
+                   
+                    if(!$execute['success']){
+                        $error = true;
+                        $notify[] = ['error', $execute['message']];
+                    }else{
+                        $service->status = 1;
+    
+                        if(@$domain->send_email){
+                        }
+                    }
+    
+                }else{
+                    $service->status = 1;
+                }
+    
+                $service->save(); 
+            }
+
+        }
+
+        if(!$error){
+            $order->status = 1; 
+            $order->save();
+            $notify[] = ['success', 'Order accepted successfully'];
+        }
+
+        return back()->withNotify($notify);
+    }
+
+    public function orderNotes(Request $request){
+
+        $request->validate([
+            'order_id'=> 'required', 
+            'admin_notes'=> 'required',
+        ]);
+
+        $order = Order::where('id', $request->order_id)->firstOrFail();
+        $order->admin_notes = $request->admin_notes;
         $order->save();
 
-        // foreach($order->hostings as $hosting){
-        //     $hosting->status = 1;
-        //     $hosting->domain_status = 1;
-        //     $hosting->save();
-            // $product = $hosting->product;
-
-            // if($product->module_type == 1 && $product->module_option == 1){ 
-            //     $this->createCpanelAccount($hosting, $product);
-            // }
-        // }
-
-        // foreach($order->domains as $domain){
-        //     $domain->status = 2;
-        //     $domain->save();
-        // }
-
-        $notify[] = ['success', 'Order accepted successfully'];
+        $notify[] = ['success', 'Order notes updated successfully'];
         return back()->withNotify($notify);
-
     }
 
     public function cancel(Request $request){
@@ -88,80 +158,38 @@ class OrderController extends Controller{
         ]);
 
         $order = Order::where('status', 2)->findOrFail($request->order_id);
-        $order->status = 1;
+        $order->status = 3;
         $order->save();
+
+        $hostings = $order->hostings;
+        $domains = $order->domains;
+
+        Hosting::whereIn('id', $hostings->pluck('id'))->update(['domain_status'=> 5]);
+        Domain::whereIn('id', $domains->pluck('id'))->update(['status'=> 5]);
 
         $notify[] = ['success', 'Order accepted successfully'];
         return back()->withNotify($notify);
 
     }
 
-    // protected function createCpanelAccount($hosting, $product){
-        
-    //     $general = GeneralSetting::first('cur_text');
-    //     $user = $hosting->user;
-    //     $server = $hosting->server;
+    public function markPending(Request $request){
 
-    //     try{
+        $request->validate([
+            'order_id'=> 'required'
+        ]);
 
-    //         $response = Http::withHeaders([
-    //             'Authorization' => 'WHM '.$server->username.':'.$server->api_token,
-    //         ])->get($server->hostname.'/cpsess'.$server->security_token.'/json-api/createacct?api.version=1&username='.$hosting->username.'&domain='.$hosting->domain.'&contactemail='.$user->email.'&password='.$hosting->password.'&pkgname='.$product->package_name);
-    
-    //         $response = json_decode($response);
- 
-    //         if($response->metadata->result == 0){
+        $order = Order::where('status', '!=', 2)->findOrFail($request->order_id);
+        $order->status = 2;
+        $order->save();
 
-    //             $message = null;
-    
-    //             if(str_contains($response->metadata->reason, '. at') !== false){
-    //                 $message = explode('. at', $response->metadata->reason)[0];
-    //             }else{
-    //                 $message = $response->metadata->reason;
-    //             }
+        $hostings = $order->hostings;
+        $domains = $order->domains;
 
-    //             Log::error($message);
-    //         }
+        Hosting::whereIn('id', $hostings->pluck('id'))->update(['domain_status'=> 2]);
+        Domain::whereIn('id', $domains->pluck('id'))->update(['status'=> 2]);
 
-    //         $hosting->ns1 = $response->data->nameserver;
-    //         $hosting->ns2 = $response->data->nameserver2;
-    //         $hosting->ns3 = $response->data->nameserver3;
-    //         $hosting->ns4 = $response->data->nameserver4;
-    //         $hosting->package_name = $product->package_name;
-    //         $hosting->save(); 
-
-    //         $act = welcomeEmail()[$product->welcome_email]['act'] ?? null; 
-           
-    //         if($act == 'HOSTING_ACCOUNT'){
-    //             notify($user, $act, [
-    //                 'service_product_name' => $product->name,
-    //                 'service_domain' => $hosting->domain,
-    //                 'service_first_payment_amount' => showAmount($hosting->first_payment_amount),
-    //                 'service_recurring_amount' => showAmount($hosting->amount),
-    //                 'service_billing_cycle' => billing(@$hosting->billing_cycle, true)['showText'],
-    //                 'service_next_due_date' => showDateTime($hosting->next_due_date, 'd/m/Y'),
-    //                 'currency' => $general->cur_text,
-
-    //                 'service_username' => $hosting->username,
-    //                 'service_password' => $hosting->password,
-    //                 'service_server_ip' => $response->data->ip,
-
-    //                 'ns1' => $hosting->ns1,
-    //                 'ns2' => $hosting->ns2,
-    //                 'ns3' => $hosting->ns3,
-    //                 'ns4' => $hosting->ns4,
-
-    //                 'ns1_ip' => $hosting->ns1_ip,
-    //                 'ns2_ip' => $hosting->ns2_ip,
-    //                 'ns3_ip' => $hosting->ns3_ip,
-    //                 'ns4_ip' => $hosting->ns4_ip,
-    //             ]);
-    //         }
-
-    //     }catch(\Exception  $error){
-    //         Log::error($error->getMessage());
-    //     }
-
-    // }
+        $notify[] = ['success', 'Order set back to pending successfully'];
+        return back()->withNotify($notify);
+    }
 
 }

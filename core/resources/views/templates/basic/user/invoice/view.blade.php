@@ -12,7 +12,7 @@
                         </div>
                         <div class="col-12 col-sm-6 invoice-col text-center">
                             <div class="invoice-status">
-                                @php echo @$invoice->statusText; @endphp
+                                @php echo @$invoice->showStatus; @endphp
                             </div>
 
                             @if($invoice->status == 2)

@@ -62,11 +62,11 @@ class Hosting extends Model
         $text = 'N/A';
 
         if ($this->domain_status == 1){
-            $class .= 'danger';
+            $class .= 'success';
             $text = Self::domainStatus()[1];
         } 
         if ($this->domain_status == 2){ 
-            $class .= 'success';
+            $class .= 'danger';
             $text = Self::domainStatus()[2];
         }
         elseif ($this->domain_status == 3){
@@ -87,8 +87,8 @@ class Hosting extends Model
 
     public static function domainStatus(){
         return [
-            1=> trans('Pending'), 
-            2=> trans('Active'),
+            1=> trans('Active'), 
+            2=> trans('Pending'),
             3=> trans('Suspended'),
             4=> trans('Terminated'), 
             5=> trans('Cancelled'),

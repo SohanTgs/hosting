@@ -10,7 +10,7 @@
             <div class="card b-radius--10 overflow-hidden box--shadow1">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
-                        <h5 class="mb-20 text-muted">@php echo @$invoice->statusText; @endphp</h5>
+                        <h5 class="mb-20 text-muted">@php echo @$invoice->showStatus; @endphp</h5>
                     </div>  
                     <ul class="list-group">
                         <li class="list-group-item">
@@ -109,7 +109,7 @@
 
 
 <div class="row mt-4">
-
+ 
     @if($invoice->status != 5)
         <div class="col-md-12 text-right mb-3">
             <button class="btn btn-sm btn--primary box--shadow1 text-white text--small addNewItem" type="button">

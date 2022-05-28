@@ -29,5 +29,9 @@ class Product extends Model
         return $this->belongsTo(ServiceCategory::class, 'category_id');
     }
 
+    public function getItemAttribute(){
+        return productType()[$this->product_type];
+    }
+
 }
  

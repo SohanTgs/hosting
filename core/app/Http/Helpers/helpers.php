@@ -893,7 +893,7 @@ function productModule(){
 
 function productModuleOptions(){
     $array = [
-        1 => 'Automatically setup the product as soon as an order is placed',
+        1 => 'Automatically setup the product as soon as the first payment is received',
         2 => 'Automatically setup the product when you manually accept a pending order',
         3 => 'Do not automatically setup this product',
     ];
