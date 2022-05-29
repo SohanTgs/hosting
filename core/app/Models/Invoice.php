@@ -4,12 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\BillingSetting;
+use Carbon\Carbon;
 
 class Invoice extends Model
 {
     use HasFactory;
 
-    protected $casts = ['due_date'=>'datetime', 'paid_date'=>'datetime', 'created'=>'datetime'];
+    protected $casts = ['due_date'=>'datetime', 'paid_date'=>'datetime', 'created'=>'datetime', 'reminder'=>'object'];
     
     public function user(){
         return $this->belongsTo(User::class)->withDefault();
@@ -103,3 +105,11 @@ class Invoice extends Model
     }
 
 }
+
+
+
+
+
+
+
+

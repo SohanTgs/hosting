@@ -11,6 +11,10 @@ class Domain extends Model
 
     protected $casts = ['next_invoice_date'=>'date', 'expiry_date'=>'date', 'next_due_date'=>'date', 'reg_time'=>'date']; 
 
+    public function scopeActive(){
+        return $this->where('status', 1);
+    }
+
     public function details(){
         return $this->hasOne(InvoiceItem::class, 'relation_id', 'id')->where('type', 4);
     }

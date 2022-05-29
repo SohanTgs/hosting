@@ -19,6 +19,10 @@ class Hosting extends Model
         'reg_time'=>'date'
     ];
 
+    public function scopeActive(){
+        return $this->where('domain_status', 1);
+    }
+
     public function user(){
         return $this->belongsTo(User::class)->withDefault();
     }
