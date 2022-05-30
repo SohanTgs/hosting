@@ -13,10 +13,11 @@ class Hosting extends Model
         'config_options' => 'object', 
         'next_due_date'=>'date', 
         'next_invoice_date'=>'date', 
-        'suspend_date'=>'date', 
+        'suspend_date'=>'date',  
         'termination_date'=>'date',
         'last_update'=>'date', 
-        'reg_time'=>'date'
+        'reg_time'=>'date',
+        'last_cron'=>'datetime'
     ];
 
     public function scopeActive(){

@@ -28,11 +28,7 @@
                                         </td>
 
                                         <td data-label="@lang('Status')">
-                                            @if($invoice->status == 0)
-                                                <span class="badge badge-danger">@lang('Unpaid')</span>
-                                            @elseif($invoice->status == 1)
-                                                <span class="badge badge-success">@lang('Paid')</span>
-                                            @endif
+                                           @php echo $invoice->showStatus; @endphp
                                         </td>
 
                                         <td data-label="@lang('Action')">

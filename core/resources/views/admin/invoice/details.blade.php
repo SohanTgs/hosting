@@ -141,7 +141,7 @@
                                            <div class="col-xl-6">
                                                 <div class="input-group">
                                                     <input type="number" step="any" class="form-control" name="items[{{ $item->id }}][amount]" 
-                                                    value="{{ showAmount(@$item->amount) }}" required>
+                                                    value="{{ getAmount(@$item->amount) }}" required>
                                                     <span class="input-group-append">
                                                         <span class="input-group-text">{{ @$general->cur_text }}</span>
                                                     </span>

@@ -11,7 +11,7 @@ class Invoice extends Model
 {
     use HasFactory;
 
-    protected $casts = ['due_date'=>'datetime', 'paid_date'=>'datetime', 'created'=>'datetime', 'reminder'=>'object'];
+    protected $casts = ['due_date'=>'datetime', 'paid_date'=>'datetime', 'created'=>'datetime', 'last_cron'=>'datetime', 'reminder'=>'object'];
     
     public function user(){
         return $this->belongsTo(User::class)->withDefault();
@@ -102,6 +102,27 @@ class Invoice extends Model
         }
 
         return $status;
+    }
+
+    public function updateReminder($column = null){
+
+        if($this->reminder){
+            $array = (array) $this->reminder;
+        }else{
+            $array = [
+                'unpaid_reminder'=>0,
+                'first_over_due_reminder'=>0,
+                'second_over_due_reminder'=>0,
+                'third_over_due_reminder'=>0,
+                'add_late_fee'=>0,
+            ];
+        }
+
+        if($column){
+            $array[$column] = 1;
+        }
+
+        return $array;
     }
 
 }

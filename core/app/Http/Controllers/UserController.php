@@ -1078,11 +1078,10 @@ class UserController extends Controller
         $pageTitle = 'Invoice';
 
         $invoice = Invoice::where('id', $id)->whereBelongsTo($user)
-                          ->with('order.hostings.product.serviceCategory', 'order.hostings.hostingConfigs.select', 'order.hostings.hostingConfigs.option')
+                        //   ->with('order.hostings.product.serviceCategory', 'order.hostings.hostingConfigs.select', 'order.hostings.hostingConfigs.option')
                           ->firstOrFail();
 
         $order = $invoice->order;
-        $hostings = $order->hostings; 
 
         $gatewayCurrency = GatewayCurrency::whereHas('method', function ($gate){
             $gate->where('status', 1);
@@ -1090,7 +1089,7 @@ class UserController extends Controller
         
         $address = Frontend::where('data_keys','invoice_address.content')->first();
 
-        return view($this->activeTemplate.'user.invoice.view', compact('pageTitle', 'user', 'invoice', 'gatewayCurrency', 'address', 'hostings', 'order'));
+        return view($this->activeTemplate.'user.invoice.view', compact('pageTitle', 'user', 'invoice', 'gatewayCurrency', 'address', 'order'));
     } 
 
     protected function makeHostingConfigs($hosting){

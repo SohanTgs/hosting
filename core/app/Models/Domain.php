@@ -9,7 +9,7 @@ class Domain extends Model
 {
     use HasFactory; 
 
-    protected $casts = ['next_invoice_date'=>'date', 'expiry_date'=>'date', 'next_due_date'=>'date', 'reg_time'=>'date']; 
+    protected $casts = ['next_invoice_date'=>'date', 'expiry_date'=>'date', 'next_due_date'=>'date', 'reg_time'=>'date', 'last_cron'=>'datetime']; 
 
     public function scopeActive(){
         return $this->where('status', 1);

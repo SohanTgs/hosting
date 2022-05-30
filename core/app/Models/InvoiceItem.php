@@ -11,14 +11,14 @@ class InvoiceItem extends Model
 
     protected $fillable = ['description', 'amount'];
 
-
     public static function status(){ 
         return [
             1=> 'Setup with setup amount',
             2=> 'Item details with amount', 
-            3=> 'Coupon Code with amount',
-            4=> 'Domain, ID Protection with amount',
+            3=> 'Coupon code with amount',
+            4=> 'Domain, ID protection with amount',
             5=> 'Added by admin',
+            6=> 'Late fee with amount',
         ];
     }
 
