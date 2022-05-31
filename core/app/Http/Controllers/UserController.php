@@ -402,10 +402,10 @@ class UserController extends Controller
     }  
  
     private function paymentByWallet($invoice, $order, $user){
-        
+       
         $general = GeneralSetting::first();
         $amount = $invoice->amount;
-        
+     
         if($amount > $user->balance){
             $notify[] = ['error', 'Your account '.getAmount($user->balance).' '.$general->cur_text.' balance not enough! please deposit money'];
             return back()->withNotify($notify);
@@ -418,45 +418,49 @@ class UserController extends Controller
         $invoice->paid_date = Carbon::now(); 
         $invoice->save();
 
-        $order->status = 2;
-        $order->save();
-   
-        foreach($order->hostings as $hosting){
-            $hosting->status = 1;
-            $hosting->save();
-
-            $product = $hosting->product; 
-
-            if(@$product->module_type == 1 && @$product->module_option == 1){ 
-                $this->createCpanelAccount($hosting, $product);
-            }          
-        } 
-
-        foreach($order->domains as $domain){
-
-            $findHosting = @Hosting::where('domain', $domain->domain)->where('domain_setup_id', $domain->domain_setup_id)->first()->id;
-
-            $domain->hosting_id = @$findHosting;
-            $domain->status = 2;
-            $domain->domain_register_id = DomainRegister::default()->id;
-            $domain->expiry_date = Carbon::now()->addYear($domain->reg_period);
-            $domain->save();
-
-            if(@$product->module_type == 1 && @$product->module_option == 1){ 
-                $register = new Register($domain->register->alias);
-                $register->domain = $domain;
-                $register->command = 'register';
-                $register->run();
-
-                notify($domain->user, 'DOMAIN_REGISTER', [
-                    'domain_reg_date' => showDateTime($domain->reg_time),
-                    'domain_name' => $domain->domain,
-                    'domain_reg_period' => $domain->reg_period,
-                    'first_payment_amount' => getAmount($domain->first_payment_amount),
-                    'next_due_date' => showDateTime($domain->next_due_date),
-                    'currency' => $general->cur_text,
-                ]);
+        if($order){
+            @$order->status = 2;
+            @$order->save();
+       
+            foreach(@$order->hostings as $hosting){
+                $hosting->status = 1;
+                $hosting->invoice = 0;
+                $hosting->last_cron = Carbon::now();
+                $hosting->save();
+    
+                $product = $hosting->product; 
+    
+                if(@$product->module_type == 1 && @$product->module_option == 1){ 
+                    $this->createCpanelAccount($hosting, $product);
+                }          
             } 
+    
+            foreach($order->domains as $domain){
+    
+                $findHosting = @Hosting::where('domain', $domain->domain)->where('domain_setup_id', $domain->domain_setup_id)->first()->id;
+    
+                $domain->hosting_id = @$findHosting;
+                $domain->status = 2;
+                $domain->domain_register_id = DomainRegister::default()->id;
+                $domain->expiry_date = Carbon::now()->addYear($domain->reg_period);
+                $domain->save();
+    
+                if(@$product->module_type == 1 && @$product->module_option == 1){ 
+                    $register = new Register($domain->register->alias);
+                    $register->domain = $domain;
+                    $register->command = 'register';
+                    $register->run();
+    
+                    notify($domain->user, 'DOMAIN_REGISTER', [
+                        'domain_reg_date' => showDateTime($domain->reg_time),
+                        'domain_name' => $domain->domain,
+                        'domain_reg_period' => $domain->reg_period,
+                        'first_payment_amount' => getAmount($domain->first_payment_amount),
+                        'next_due_date' => showDateTime($domain->next_due_date),
+                        'currency' => $general->cur_text,
+                    ]);
+                } 
+            }
         }
 
         $transaction = new Transaction();
@@ -479,16 +483,19 @@ class UserController extends Controller
         return back()->withNotify($notify);
     } 
 
-    private function paymentByCheckout($gate, $amount, $orderId, $user){
+    private function paymentByCheckout($gate, $amount, $orderId, $user, $invoice){
     
-        Deposit::where('order_id', $orderId)->where('status', 0)->delete();
-
+        if($orderId){
+            Deposit::where('order_id', $orderId)->where('status', 0)->delete();
+        }
+     
         $charge = $gate->fixed_charge + ($amount * $gate->percent_charge / 100);
         $payable = $amount + $charge;
         $final_amo = $payable * $gate->rate;
-
+      
         $data = new Deposit();
-        $data->order_id = $orderId;
+        $data->order_id = @$orderId;
+        $data->invoice_id = $invoice->id;
         $data->user_id = $user->id;
         $data->method_code = $gate->method_code;
         $data->method_currency = strtoupper($gate->currency);
@@ -503,10 +510,11 @@ class UserController extends Controller
         $data->status = 0;
         $data->save();
 
-        $invoice = $data->order->invoice;
+        $invoice = @$invoice;
+        // $invoice = @$data->order->invoice;
         $invoice->deposit_id = $data->id;
         $invoice->save();
-
+    
         session()->put('Track', $data->trx);
         return redirect()->route('user.deposit.preview');
     }   
@@ -748,20 +756,15 @@ class UserController extends Controller
         $request->validate([
             'payment' => 'required',
         ]);
-       
+        
         $user = auth()->user();
-        $invoice = Invoice::where('user_id', $user->id)->where('id', $request->invoice_id)->where('status', 0)->firstOrFail();
+        $invoice = Invoice::whereBelongsTo($user)->where('id', $request->invoice_id)->where('status', 2)->firstOrFail();
         $order = $invoice->order;
         $amount = $invoice->amount;
 
         if($request->payment == 'wallet'){
             return $this->paymentByWallet($invoice, $order, $user);
         }
-        
-        $user = auth()->user();
-        $invoice = Invoice::where('user_id', $user->id)->where('id', $request->invoice_id)->firstOrFail();
-        $order = $invoice->order;
-        $amount = $invoice->amount;
 
         $gate = GatewayCurrency::whereHas('method', function ($gate) {
             $gate->where('status', 1);
@@ -777,7 +780,7 @@ class UserController extends Controller
             return back()->withNotify($notify);
         }
 
-        return $this->paymentByCheckout($gate, $amount, $order->id, $user);
+        return $this->paymentByCheckout($gate, $amount, @$order->id, $user, $invoice);
     }
  
     public function myServices(){
@@ -1128,7 +1131,7 @@ class UserController extends Controller
                 $item->description = $product->name.' '.'Setup Fee'."\n".$product->serviceCategory->name;
                 $item->amount = $hosting->setup_fee;
                 $item->save();
-            }
+            } 
           
             $domainText = $hosting->domain ? ' - ' .$hosting->domain : null; 
             $date = $hosting->billing_cycle != 0 ? ' ('.showDateTime($hosting->created_at, 'd/m/Y').' - '.showDateTime($hosting->next_due_date, 'd/m/Y') .')' : ' (One Time)';

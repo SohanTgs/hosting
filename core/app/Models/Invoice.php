@@ -11,8 +11,32 @@ class Invoice extends Model
 {
     use HasFactory;
 
-    protected $casts = ['due_date'=>'datetime', 'paid_date'=>'datetime', 'created'=>'datetime', 'last_cron'=>'datetime', 'reminder'=>'object'];
+    protected $casts = [
+        'due_date'=>'datetime', 
+        'paid_date'=>'datetime', 
+        'created'=>'datetime', 
+        'last_cron'=>'datetime', 
+        'next_due_date'=>'datetime', 
+        'reminder'=>'object'
+    ];
     
+    public function viewDetails($type){
+        
+        if($this->order){
+            return "<a href=".route('admin.order.details', $this->order->id).">".trans('Order Details')."</a>";
+        }
+ 
+        if($type == 'domain' && $this->domain_id){
+            return "<a href=".route('admin.order.domain.details', $this->domain_id).">".trans('Domain Details')."</a>";
+        }
+        elseif($type == 'hosting' && $this->hosting_id){
+            return "<a href=".route('admin.order.hosting.details', $this->hosting_id).">".trans('Service Details')."</a>";
+        }
+
+        return trans('N/A');
+
+    }
+
     public function user(){
         return $this->belongsTo(User::class)->withDefault();
     }

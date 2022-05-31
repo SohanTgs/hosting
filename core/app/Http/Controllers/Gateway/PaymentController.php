@@ -23,7 +23,7 @@ class PaymentController extends Controller
     }
 
     public function deposit()
-    {
+    { 
         $gatewayCurrency = GatewayCurrency::whereHas('method', function ($gate) {
             $gate->where('status', 1);
         })->with('method')->orderby('method_code')->get();
@@ -33,7 +33,7 @@ class PaymentController extends Controller
 
     public function depositInsert(Request $request)
     {
-       
+   
         $request->validate([
             'amount' => 'required|numeric|gt:0',
             'method_code' => 'required',
@@ -137,7 +137,7 @@ class PaymentController extends Controller
         if ($data->status == 0) {
             $data->status = 1;
             $data->save();
-        
+
             $user = User::find($data->user_id);
             $user->balance += $data->amount;
             $user->save();
@@ -220,6 +220,9 @@ class PaymentController extends Controller
                     $domain->save();
                 }
 
+            }
+            elseif($data->invoice_id){
+                dump('Execute successfully............................');
             }
 
         }

@@ -11,7 +11,7 @@ class InvoiceItem extends Model
 
     protected $fillable = ['description', 'amount'];
 
-    public static function status(){ 
+    public static function type(){ 
         return [
             1=> 'Setup with setup amount',
             2=> 'Item details with amount', 

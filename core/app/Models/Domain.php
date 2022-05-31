@@ -27,6 +27,10 @@ class Domain extends Model
         return $this->belongsTo(Hosting::class, 'hosting_id');
     }
 
+    public function invoices(){
+        return $this->hasMany(Invoice::class, 'domain_id');
+    }
+
     public function user(){ 
         return $this->belongsTo(User::class, 'user_id');
     }

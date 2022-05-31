@@ -2,38 +2,37 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Hosting;
 use App\Models\Domain;
 use App\Models\Invoice;
 use App\Models\BillingSetting;
-use App\Models\InvoiceItem;
-use App\Models\HostingConfig;
+use App\Models\InvoiceItem; 
 use Carbon\Carbon;
 
 class CronController extends Controller{
     
+    protected $selectInvoiceColumns;
     protected $billingSetting;
     protected $limit;
     protected $now;
-    protected $selectInvoiceColumns;
 
     public function __construct(){
 
-        $this->billingSetting = BillingSetting::first();
-        $this->limit = 100;
-        $this->now = Carbon::now()->toDateString();
         $this->selectInvoiceColumns = 'id, reminder, user_id, amount, status, due_date, created, last_cron'; 
+        $this->billingSetting = BillingSetting::first();
+        $this->now = Carbon::now();
+        $this->limit = 100;
 
     }
 
     public function index(){
 
         set_time_limit(0);
-
+        ini_set('max_execution_time', 0);
+       
         $billingSetting = $this->billingSetting;
-
-        return $this->invoiceGenerate(); 
+        
+        $this->invoiceGenerate($billingSetting); 
 
         if($billingSetting->invoice_send_reminder == 1){
 
@@ -59,86 +58,159 @@ class CronController extends Controller{
             $this->addLateFee($billingSetting);
         }
         
-
     }
 
-    protected function invoiceGenerate(){
+    protected function invoiceGenerate($billingSetting){
 
-        $hostings = Hosting::active()
-                           ->where('invoice', 0)
-                           ->where('next_invoice_date', '<=', Carbon::now())
-                           ->orderBy('last_cron')
-                           ->limit($this->limit)
-                           ->get(['id', 'invoice', 'user_id', 'product_id', 'amount', 'domain_status', 'config_options', 'next_due_date', 'last_cron']);
+        $enableForHosting = false;
+        $enableForDomain = false;
 
-        $domains = Domain::active()
-                         ->where('invoice', 0)
-                         ->where('next_invoice_date', '<=', Carbon::now())
-                         ->orderBy('last_cron')
-                         ->limit($this->limit)
-                         ->get();
-  
-        $this->generateHostingInvoice($hostings);
-        $this->generateDomainInvoice($domains);
+        if($billingSetting->create_default_invoice_days != 0){
+            $enableForHosting = true;
+            $enableForDomain = true;
+        }else{
+
+            $array = (array) $billingSetting->create_invoice;
+
+            if(array_filter($array)){
+                $enableForHosting = true;
+            }
+
+            if($billingSetting->create_domain_invoice_days != 0){
+                $enableForDomain = true;
+            }
+
+        }
+
+        if($enableForHosting){
+       
+            $hostings = Hosting::active()->where('invoice', 0)->where('next_invoice_date', '<=', Carbon::now())->orderBy('last_cron')->limit($this->limit)
+                               ->with([
+                                    'hostingConfigs'=>function($config){
+                                        $config->select('id', 'hosting_id', 'configurable_group_option_id', 'configurable_group_sub_option_id');
+                                    },
+                                    'hostingConfigs.select'=>function($configName){
+                                        $configName->select('id', 'name', 'option_type', 'configurable_group_id');
+                                    },
+                                    'hostingConfigs.option'=>function($configValue){
+                                        $configValue->select('id', 'name', 'configurable_group_id', 'configurable_group_option_id');
+                                    },
+                                    'product'=>function($product){
+                                        $product->select('id', 'category_id', 'name')->with('serviceCategory', function($category){
+                                            $category->select('id', 'name');
+                                        });
+                                    }
+                                ])
+                               ->get(['id', 'invoice', 'user_id', 'product_id', 'amount', 'billing_cycle', 'domain_status', 'config_options', 
+                                'next_invoice_date', 'next_due_date', 'last_cron']);
+              
+            $this->generateHostingInvoice($hostings);
+        }
+
+        if($enableForDomain){
+            
+            $domains = Domain::active()->where('invoice', 0)->where('next_invoice_date', '<=', Carbon::now())->orderBy('last_cron')->limit($this->limit)
+                             ->get(['id', 'invoice', 'user_id', 'domain', 'id_protection', 'recurring_amount', 'next_due_date', 'reg_period', 'last_cron']);
+          
+            $this->generateDomainInvoice($domains);
+        } 
 
     }
 
     protected function generateHostingInvoice($hostings){
+        
         foreach($hostings as $hosting){
-          
+            
+            $billingCycle = billingCycle($hosting->billing_cycle, true);
+
             $invoice = new Invoice();
+            $invoice->hosting_id = $hosting->id;
             $invoice->user_id = $hosting->user_id;
+            $invoice->reminder = $invoice->updateReminder();
             $invoice->amount = $hosting->amount;
             $invoice->due_date = $hosting->next_due_date;
             $invoice->status = 2;
             $invoice->created = now();
+            $invoice->next_due_date = $billingCycle['carbon'];
             $invoice->save(); 
 
-            $this->makeHostingConfigs($hosting);
+            $hosting->invoice = 1;
+            $hosting->last_cron = $this->now;
+            $hosting->save();
+
             $this->makeInvoiceItems($hosting, $invoice);
         } 
     }
 
-    protected function makeHostingConfigs($hosting){
+    protected function generateDomainInvoice($domains){
+        foreach($domains as $domain){
+         
+            $invoice = new Invoice();
+            $invoice->domain_id = $domain->id;
+            $invoice->user_id = $domain->user_id;
+            $invoice->reminder = $invoice->updateReminder();
+            $invoice->amount = $domain->recurring_amount;
+            $invoice->due_date = $domain->next_due_date;
+            $invoice->status = 2;
+            $invoice->created = now();
+            $invoice->next_due_date = Carbon::now()->addYear($domain->reg_period);
+            $invoice->save(); 
 
-        if($hosting->config_options){ 
-            $data =  (array) $hosting->config_options;
-     
-            foreach($data as $optionId => $subOptionId){
-                HostingConfig::firstOrCreate([
-                    'hosting_id' => $hosting->id,
-                    'configurable_group_option_id' => $optionId,                            
-                    'configurable_group_sub_option_id' => $subOptionId,                            
-                ]);
-            }
+            $domain->invoice = 1;
+            $domain->last_cron = $this->now;
+            $domain->save();
+
+            $this->makeInvoiceItems($domain, $invoice, $domain);
 
         }  
     }
 
-    protected function makeInvoiceItems($hosting, $invoice){
-        // dd($hosting);
-        // foreach($hostings as $hosting){
-            $product = $hosting->product;
+    protected function makeInvoiceItems($hosting, $invoice, $domain = null){
         
-            if($hosting->setup_fee != 0){
-                $item = new InvoiceItem();
-                $item->invoice_id = $invoice->id;
-                $item->user_id = $invoice->user_id;
-                $item->relation_id = $hosting->id;
-                $item->type = 1;
-                $item->description = $product->name.' '.'Setup Fee'."\n".$product->serviceCategory->name;
-                $item->amount = $hosting->setup_fee;
-                $item->save();
-            }
+        if($domain){
           
+            $domainText = ' - '. $domain->domain .' - '. $domain->reg_period . ' Year/s';
+            $protection = $domain->id_protection ? '+ ID Protection' : null;
+            $text = 'Domain Renewal' . $domainText. ' ('.showDateTime($invoice->created_at, 'd/m/Y').' - '.showDateTime($invoice->next_due_date, 'd/m/Y') .')'."\n".$protection;
+
+            $item = new InvoiceItem();
+            $item->invoice_id = $invoice->id;
+            $item->user_id = $invoice->user_id;
+            $item->relation_id = $domain->id;
+            $item->type = 4;
+            $item->description = $text;
+            $item->amount = $domain->recurring_amount;
+            $item->save();
+        
+        }
+        else{
+            $product = $hosting->product;
+         
+            // if($hosting->setup_fee != 0){
+            //     $item = new InvoiceItem();
+            //     $item->invoice_id = $invoice->id;
+            //     $item->user_id = $invoice->user_id;
+            //     $item->relation_id = $hosting->id;
+            //     $item->type = 1;
+            //     $item->description = $product->name.' '.'Setup Fee'."\n".$product->serviceCategory->name;
+            //     $item->amount = $hosting->setup_fee;
+            //     $item->save();
+            // }
+      
             $domainText = $hosting->domain ? ' - ' .$hosting->domain : null; 
-            $date = $hosting->billing_cycle != 0 ? ' ('.showDateTime($hosting->created_at, 'd/m/Y').' - '.showDateTime($hosting->next_due_date, 'd/m/Y') .')' : ' (One Time)';
+    
+            if($hosting->billing_cycle == 0){
+                $date = '(One Time)';
+            }else{
+                $date = ' ('.showDateTime($invoice->created_at, 'd/m/Y').' - '.showDateTime($invoice->next_due_date, 'd/m/Y') .')';
+            }
+    
             $text = $product->name . $domainText. $date ."\n".$product->serviceCategory->name;
       
             foreach($hosting->hostingConfigs as $config){
                 $text = $text ."\n". $config->select->name.': '.$config->option->name;
             }
-
+    
             $item = new InvoiceItem(); 
             $item->invoice_id = $invoice->id;
             $item->user_id = $invoice->user_id;
@@ -147,24 +219,8 @@ class CronController extends Controller{
             $item->description = $text;
             $item->amount = $hosting->amount;
             $item->save();
-           
-            if($hosting->discount != 0){
-                $item = new InvoiceItem();
-                $item->invoice_id = $invoice->id;
-                $item->user_id = $invoice->user_id;
-                $item->relation_id = $hosting->id;
-                $item->type = 3;
-                $item->description = 'Coupon Code: '.@$order->coupon->code.' '.$product->serviceCategory->name;
-                $item->amount = $hosting->discount;
-                $item->save();
-            }
+        }
 
-    }
-
-    protected function generateDomainInvoice($domains){
-        foreach($domains as $domain){
-    
-        } 
     }
 
     protected function unpaidInvoiceReminder($billingSetting){
@@ -185,7 +241,7 @@ class CronController extends Controller{
             ]); 
         
             $invoice->reminder = $invoice->updateReminder('unpaid_reminder');
-            $invoice->last_cron = Carbon::now();
+            $invoice->last_cron = $this->now;
             $invoice->save();
 
         }   
@@ -210,7 +266,7 @@ class CronController extends Controller{
             ]); 
 
             $invoice->reminder = $invoice->updateReminder('first_over_due_reminder');
-            $invoice->last_cron = Carbon::now();
+            $invoice->last_cron = $this->now;
             $invoice->save();
 
         } 
@@ -235,7 +291,7 @@ class CronController extends Controller{
             ]); 
 
             $invoice->reminder = $invoice->updateReminder('second_over_due_reminder');
-            $invoice->last_cron = Carbon::now();
+            $invoice->last_cron = $this->now;
             $invoice->save();
 
         } 
@@ -260,7 +316,7 @@ class CronController extends Controller{
             ]); 
 
             $invoice->reminder = $invoice->updateReminder('third_over_due_reminder');
-            $invoice->last_cron = Carbon::now();
+            $invoice->last_cron = $this->now;
             $invoice->save();
             
         } 
@@ -286,7 +342,7 @@ class CronController extends Controller{
 
             $invoice->reminder = $invoice->updateReminder('add_late_fee');
             $invoice->amount = $billingSetting->getLateFee($invoice->amount, true);
-            $invoice->last_cron = Carbon::now();
+            $invoice->last_cron = $this->now;
             $invoice->save();
             
         }  

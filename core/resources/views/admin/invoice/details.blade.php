@@ -26,9 +26,7 @@
                                 <span class="billing-form__label d-block flex-shrink-0">
                                     @lang('Order')
                                 </span>
-                                <a href="{{ route('admin.order.details', $invoice->order->id) }}">
-                                    @lang('View Order')
-                                </a>
+                                @php echo $invoice->viewDetails('domain'); @endphp
                             </div>
                         </li>
                         <li class="list-group-item">

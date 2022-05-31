@@ -8,6 +8,22 @@
             <div class="card b-radius--10 overflow-hidden box--shadow1">
                 <div class="card-body">
                     <ul class="list-group">
+                        <li class="list-group-item">
+                            <div class="billing-form">
+                                <span class="billing-form__label d-block flex-shrink-0">
+                                    @lang('Order')
+                                </span>
+                                <a href="{{ route('admin.order.details', $domain->order_id) }}">@lang('View Order')</a>
+                            </div>
+                        </li> 
+                        <li class="list-group-item">
+                            <div class="billing-form">
+                                <span class="billing-form__label d-block flex-shrink-0">
+                                    @lang('Invoices')
+                                </span>
+                                <a href="{{ route('admin.invoice.domain.all', $domain->id) }}">@lang('View Invoices')</a>
+                            </div> 
+                        </li>
                         <li class="list-group-item"> 
                             <div class="billing-form">
                                 <span class="billing-form__label d-block flex-shrink-0">
@@ -82,6 +98,14 @@
                                 </div>
                             </div>
                         </li>
+                    </ul> 
+                </div>
+            </div> 
+        </div>  
+        <div class="col-xl-6 col-md-6 mb-30">
+            <div class="card b-radius--10 overflow-hidden box--shadow1">
+                <div class="card-body">
+                    <ul class="list-group">
                         <li class="list-group-item">
                             <div class="billing-form">
                                 <span class="billing-form__label d-block flex-shrink-0">
@@ -108,14 +132,6 @@
                                 </div>
                             </div>
                         </li>
-                    </ul> 
-                </div>
-            </div> 
-        </div>  
-        <div class="col-xl-6 col-md-6 mb-30">
-            <div class="card b-radius--10 overflow-hidden box--shadow1">
-                <div class="card-body">
-                    <ul class="list-group">
                         <li class="list-group-item">
                             <div class="billing-form">
                                 <span class="billing-form__label d-block flex-shrink-0">
@@ -176,7 +192,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> 
 
     @if($register) 
         <div class="row mb-none-30 mb-3">
@@ -245,7 +261,7 @@
             </div>
         </div>
     </div>
-</form>
+</form> 
 
 {{-- Register Modal --}}
 <div class="modal fade" id="registerModal" tabindex="-1" role="dialog" aria-labelledby="createModalLabel" aria-hidden="true">

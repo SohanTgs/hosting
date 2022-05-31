@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Invoice;
 use App\Models\Frontend;
 use App\Models\InvoiceItem;
+use App\Models\Domain;
+use App\Models\Hosting;
 use App\Models\Transaction;
 use PDF;
 
@@ -180,6 +182,22 @@ class InvoiceController extends Controller{
 
         $notify[] = ['success', 'Invoice refunded successfully'];
         return back()->withNotify($notify);
+    }
+
+    public function domainInvoices($id){
+        $domain = Domain::findOrFail($id);
+        $pageTitle = 'All Invoices - '.$domain->domain;
+        $invoices = Invoice::where('domain_id', $domain->id)->latest()->with('user', 'payment.gateway')->paginate(getPaginate());
+        $emptyMessage = 'No data found';
+        return view('admin.domain.invoices', compact('pageTitle', 'invoices', 'domain', 'emptyMessage'));
+    }
+
+    public function hostingInvoices($id){
+        $hosting = Hosting::findOrFail($id);
+        $pageTitle = 'All Invoices';
+        $invoices = Invoice::where('hosting_id', $hosting->id)->latest()->with('user', 'payment.gateway')->paginate(getPaginate());
+        $emptyMessage = 'No data found';
+        return view('admin.domain.invoices', compact('pageTitle', 'invoices', 'hosting', 'emptyMessage'));
     }
 
 }

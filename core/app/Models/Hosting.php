@@ -52,6 +52,10 @@ class Hosting extends Model
         return $this->hasOne(CancelRequest::class, 'hosting_id');
     }
 
+    public function invoices(){
+        return $this->hasMany(Invoice::class, 'hosting_id');
+    }
+
     public function details(){
         return $this->hasOne(InvoiceItem::class, 'relation_id', 'id')->where('type', 2);
     }

@@ -9,11 +9,11 @@ Route::get('/clear', function(){
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-*/ 
+*/  
 
 
 Route::get('/cron', 'CronController@index')->name('index');
-
+ 
 
 Route::namespace('Gateway')->prefix('ipn')->name('ipn.')->group(function () {
     Route::post('paypal', 'Paypal\ProcessController@ipn')->name('Paypal');
@@ -127,7 +127,10 @@ Route::namespace('Admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('download/{id}/{view?}', 'InvoiceController@download')->name('invoice.download');
         Route::post('delete/invoice/item', 'InvoiceController@deleteInvoiceItem')->name('invoice.item.delete');
         Route::post('refund/invoice', 'InvoiceController@refundInvoice')->name('invoice.refund');
- 
+  
+        Route::get('domain/{id}/invoices', 'InvoiceController@domainInvoices')->name('invoice.domain.all');
+        Route::get('hosting/{id}/invoices', 'InvoiceController@hostingInvoices')->name('invoice.hosting.all');
+
         //Coupon    
         Route::get('all/coupon', 'CouponController@all')->name('coupon.all');
         Route::post('add/coupon', 'CouponController@add')->name('coupon.add');
